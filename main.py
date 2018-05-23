@@ -1,25 +1,25 @@
-from logitech.g19 import G19
-from logitech.applets.simple_bg_light.simple_bg_light import SimpleBgLight
-from logitech.applets.simple_display_brightness.simple_display_brightness \
-        import SimpleDisplayBrightness
-from logitech.applets.xplanet.xplanet import Xplanet
+# coding: utf-8
+"""Userspace driwer"""
 
-import time
+from time import sleep
+from logitech.g19 import G19
+import libdraw
+
+def main():
+    """Main"""
+    print 9 / 2
+    g19_lcd = G19(True)
+    frame = libdraw.Frame()
+    drawer = libdraw.Drawer(frame)
+    drawer.draw_rectangle([0, 0], [320, 240], [255, 255, 255])
+    drawer.draw_rectangle([20, 20], [100, 100], [0, 0, 255])
+    drawer.draw_rectangle([170, 120], [50, 50], [0, 0, 255])
+    drawer.draw_image_from_file("/home/grayhook/Изображения/golovka.png", [170, 120], [150, 120])
+    drawer.draw_text([40, 120], 32, u"ТЫ ПИДОР")
+
+    g19_lcd.send_frame(drawer.get_frame_data())
+    sleep(5)
+    g19_lcd.reset()
 
 if __name__ == '__main__':
-    lg19 = G19(True)
-    lg19.start_event_handling()
-    try:
-        bgLight = SimpleBgLight(lg19)
-        lg19.add_applet(bgLight)
-
-        xplanet = Xplanet(lg19)
-        lg19.add_applet(xplanet)
-
-        displayBrightness = SimpleDisplayBrightness(lg19)
-        lg19.add_applet(displayBrightness)
-        while True:
-            time.sleep(10)
-    finally:
-        xplanet.stop()
-        lg19.stop_event_handling()
+    main()
