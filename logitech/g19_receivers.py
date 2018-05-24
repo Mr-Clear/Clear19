@@ -194,16 +194,16 @@ class G19Receiver(Runnable):
         gotData = False
         processors = self.list_all_input_processors()
 
-        data = self.__g19.read_multimedia_keys()
-        if data:
-            evt = self.__state.packet_received_mm(data)
-            if evt:
-                for proc in processors:
-                    if proc.process_input(evt):
-                        break
-            else:
-                print "mm ignored: ", data
-            gotData = True
+        # data = self.__g19.read_multimedia_keys()
+        # if data:
+        #     evt = self.__state.packet_received_mm(data)
+        #     if evt:
+        #         for proc in processors:
+        #             if proc.process_input(evt):
+        #                 break
+        #     else:
+        #         print "mm ignored: ", data
+        #     gotData = True
 
         data = self.__g19.read_g_and_m_keys()
         if data:

@@ -73,8 +73,7 @@ class G19(object):
         # saved in little-endian, because USB is little-endian
         value = self.rgb_to_uint16(r, g, b)
         valueH = value & 0xff
-        valueL = value >> 8
-        valueL = valueL & 0xff
+        valueL = value >> 8 & 0xff
         frame = [valueL, valueH] * (320 * 240)
         print valueL
         print valueH
@@ -133,8 +132,8 @@ class G19(object):
         val = []
         try:
             val = list(self.__usbDevice.handleIfMM.interruptRead(0x82, 2, 10))
-        except usb.USBError:
-            pass
+        except usb.USBError as err:
+            print "USB error({0}): {1}".format(err.errno, err.strerror)
         finally:
             self.__usbDeviceMutex.release()
         return val
@@ -187,6 +186,8 @@ class G19(object):
         self.__usbDeviceMutex.acquire()
         try:
             self.__usbDevice.handleIf0.bulkWrite(2, frame, 1000)
+        except usb.USBError as err:
+            print "USB error({0}): {1}".format(err.errno, err.strerror)
         finally:
             self.__usbDeviceMutex.release()
 
@@ -297,40 +298,43 @@ class G19UsbController(object):
         self.__lcd_device = self._find_device(0x046d, 0xc229)
         if not self.__lcd_device:
             raise usb.USBError("G19 LCD not found on USB bus")
-        self.__kbd_device = self._find_device(0x046d, 0xc228)
-        if not self.__kbd_device:
-            raise usb.USBError("G19 keyboard not found on USB bus")
+        # self.__kbd_device = self._find_device(0x046d, 0xc228)
+        # if not self.__kbd_device:
+        #     raise usb.USBError("G19 keyboard not found on USB bus")
         self.handleIf0 = self.__lcd_device.open()
         if resetOnStart:
             self.handleIf0.reset()
             self.handleIf0 = self.__lcd_device.open()
 
         self.handleIf1 = self.__lcd_device.open()
-        self.handleIfMM = self.__kbd_device.open()
+        # self.handleIfMM = self.__kbd_device.open()
+        # self.handleIfMM.reset()
+        # self.handleIfMM = self.__kbd_device.open()
+
         config = self.__lcd_device.configurations[0]
         iface0 = config.interfaces[0][0]
         iface1 = config.interfaces[0][1]
-
-        try:
-            self.handleIfMM.setConfiguration(1)
-        except usb.USBError:
-            pass
+        #
+        # try:
+        #     self.handleIfMM.setConfiguration(1)
+        # except usb.USBError:
+        #     pass
 
         try:
             self.handleIf1.detachKernelDriver(iface1)
         except usb.USBError:
             pass
-
-        try:
-            self.handleIfMM.detachKernelDriver(1)
-        except usb.USBError:
-            pass
+        #
+        # try:
+        #     self.handleIfMM.detachKernelDriver(1)
+        # except usb.USBError:
+        #     pass
 
         self.handleIf0.setConfiguration(1)
         self.handleIf1.setConfiguration(1)
         self.handleIf0.claimInterface(iface0)
         self.handleIf1.claimInterface(iface1)
-        self.handleIfMM.claimInterface(1)
+        # self.handleIfMM.claimInterface(1)
 
     @staticmethod
     def _find_device(idVendor, idProduct):
@@ -345,6 +349,7 @@ class G19UsbController(object):
         '''Resets the device on the USB.'''
         self.handleIf0.reset()
         self.handleIf1.reset()
+        # self.handleIfMM.reset()
 
 def main():
     lg19 = G19()
