@@ -1,27 +1,28 @@
+#!/usr/bin/python
 # coding: utf-8
 """Userspace driver"""
 
 import time
-import random
-from logitech.g19 import G19
+import signal
 from appmgr import AppMgr
-import libdraw
+
+APPMGR = AppMgr()
+
+
+def shutdown(*args):
+    """SIGTERM/SIGHUP callback"""
+    del args
+    APPMGR.shutdown()
+    exit()
 
 def main():
     """Main"""
 
-    app_mgr = AppMgr()
-    time.sleep(1)
-    app_mgr.routine()
+    signal.signal(signal.SIGTERM, shutdown)
+    signal.signal(signal.SIGHUP, shutdown)
 
-    lcd = G19(True)
-    drawer = libdraw.Drawer(libdraw.Frame())
-    drawer.draw_rectangle([0, 0], [320, 240], [255, 255, 255])
-    drawer.draw_rectangle([random.randint(20, 25), random.randint(20, 25)], [100, 100], [0, 0, 255])
-    drawer.draw_rectangle([170, 120], [50, 50], [0, 0, 255])
-    drawer.draw_image_from_file("/home/grayhook/Изображения/golovka.png", [170, 120], [150, 120])
-    drawer.draw_text([40, 120], 32, u"ТЫ ПИДОР")
-    lcd.send_frame(drawer.get_frame_data())
+    time.sleep(1)
+    APPMGR.routine()
 
 if __name__ == '__main__':
     main()

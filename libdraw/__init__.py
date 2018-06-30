@@ -1,6 +1,8 @@
 # coding: utf-8
 #
-""" Helper for draing"""
+""" Helper for drawing"""
+import os
+import timeit
 import PIL.Image as Img
 import PIL.ImageDraw as Draw
 import PIL.ImageFont as Font
@@ -25,6 +27,10 @@ class Frame(object):
         index = column + position[1] * 2
 
         uint_16_color = self.__rgb_to_uint16(color)
+
+        if len(color) > 3:
+            old_pixel_uint16 = (self.__map[index] << 8) | self.__map[index + 1]
+            uint_16_color = self.__uint16_apply_alpha(old_pixel_uint16, uint_16_color, color[3])
 
         self.__map[index] = self.__value_low(uint_16_color)
         self.__map[index + 1] = self.__value_high(uint_16_color)
@@ -61,6 +67,36 @@ class Frame(object):
         return value_low << 8 | value_high
 
 
+    @staticmethod
+    def __uint16_apply_alpha(uint_16_color1, uint_16_color2, alpha):
+        """Apply alpha channel for 16bit highcolor (5-6-5)."""
+
+
+        # tik = timeit.default_timer()
+        red1 = uint_16_color1 >> 3 & 0b00011111
+        red2 = uint_16_color2 >> 3 & 0b00011111
+        # print "red: " + str(timeit.default_timer() - tik)
+
+        # tik = timeit.default_timer()
+        green1 = ((uint_16_color1 & 0b00000111) << 3 | (uint_16_color1 >> 13)) & 0xff
+        green2 = ((uint_16_color2 & 0b00000111) << 3 | (uint_16_color2 >> 13)) & 0xff
+        # print "green: " + str(timeit.default_timer() - tik)
+
+
+        # tik = timeit.default_timer()
+        blue1 = uint_16_color1 >> 8 & 0b00011111
+        blue2 = uint_16_color2 >> 8 & 0b00011111
+        # print "blue: " + str(timeit.default_timer() - tik)
+
+        red_bits = red2 * alpha + red1 * (1 - alpha)
+        green_bits = green2 * alpha + green1 * (1 - alpha)
+        blue_bits = blue2 * alpha + blue1 * (1 - alpha)
+
+        value_high = (int(red_bits) << 3) | (int(green_bits) >> 3)
+        value_low = (int(green_bits) << 5) | int(blue_bits)
+        return value_low << 8 | value_high
+
+
 class Drawer(object):
     """docstring for Drawer."""
     def __init__(self, frame):
@@ -77,28 +113,46 @@ class Drawer(object):
 
     def draw_rectangle(self, position, size, color_rgb):
         """Draw rectangle on frame"""
-        end_point_x = position[0] + size[0]
-        end_point_y = position[1] + size[1]
-        for pixel_x in xrange(position[0], end_point_x):
-            for pixel_y in xrange(position[1], end_point_y):
+        end_x = position[0] + size[0]
+        end_y = position[1] + size[1]
+        start_x = position[0]
+        start_y = position[1]
+
+        if len(size) == 6:
+            start_x = size[2] if start_x < size[2] else start_x
+            if start_x > size[4]:
+                return
+            end_x = size[4] if end_x > size[4] else end_x
+            if end_x < size[2]:
+                return
+            start_y = size[3] if start_y < size[3] else start_y
+            if start_y > size[5]:
+                return
+            end_y = size[5] if end_y > size[5] else end_y
+            if end_y < size[3]:
+                return
+
+        for pixel_x in xrange(start_x, end_x):
+            for pixel_y in xrange(start_y, end_y):
                 self.draw_point([pixel_x, pixel_y], color_rgb)
 
-    def draw_line(self, position_start, position_end, color_rgb):
-        """Draw line"""
-        delta_y = position_end[1] - position_start[1]
-        delta_x = position_end[0] - position_start[0]
-        for offset_x in xrange(delta_x):
-            offset_y = delta_y * offset_x / delta_x
-            pixel_x = position_start[0] + offset_x
-            pixel_y = position_start[1] + offset_y
-            self.draw_point([pixel_x, pixel_y], color_rgb)
+    # DEPRECATED
+    # def draw_line(self, position_start, position_end, color_rgb):
+    #     """Draw line"""
+    #     delta_y = position_end[1] - position_start[1]
+    #     delta_x = position_end[0] - position_start[0]
+    #     for offset_x in xrange(delta_x):
+    #         offset_y = delta_y * offset_x / delta_x
+    #         pixel_x = position_start[0] + offset_x
+    #         pixel_y = position_start[1] + offset_y
+    #         self.draw_point([pixel_x, pixel_y], color_rgb)
 
-    def draw_image_from_file(self, filename, position, size):
+    def draw_image_from_file(self, position, size, filename):
         """Draw image frome file"""
         img = Img.open(filename)
-        self.draw_image(img, position, size)
+        self.draw_image(position, size, img)
 
-    def draw_image(self, img, position, size):
+    def draw_image(self, position, size, img):
         """Draw image"""
         access = img.load()
 
@@ -106,23 +160,45 @@ class Drawer(object):
             img = img.resize((size[0], size[1]), Img.CUBIC)
             access = img.load()
 
-        for pixel_x in range(size[0]):
-            for pixel_y in range(size[1]):
-                if len(access[pixel_x, pixel_y]) > 3:
-                    alpha_channel = access[pixel_x, pixel_y][3]
+        end = [position[0] + size[0], position[1] + size[1]]
+        start = [position[0], position[1]]
+
+        if len(size) == 6:
+            start[0] = size[2] if start[0] < size[2] else start[0]
+            if start[0] > size[4]:
+                return
+            end[0] = size[4] if end[0] > size[4] else end[0]
+            if end[0] < size[2]:
+                return
+            start[1] = size[3] if start[1] < size[3] else start[1]
+            if start[1] > size[5]:
+                return
+            end[1] = size[5] if end[1] > size[5] else end[1]
+            if end[1] < size[3]:
+                return
+
+        for pixel_x in xrange(start[0], end[0]):
+            for pixel_y in xrange(start[1], end[1]):
+                # access_x = pixel_x - position[0]
+                # access_y = pixel_y - position[1]
+                if len(access[pixel_x - position[0], pixel_y - position[1]]) > 3:
+                # if len(access[access_x, access_y]) > 3:
+                    # alpha_channel = access[access_x, access_y][3]
+                    alpha_channel = access[pixel_x - position[0], pixel_y - position[1]][3]
                     if alpha_channel == 0:
                         continue
-                color_rgb = access[pixel_x, pixel_y][0:3]
-                pixel_position = [position[0] + pixel_x, position[1] + pixel_y]
+                # color_rgb = access[access_x, access_y][0:3]
+                color_rgb = access[pixel_x - position[0], pixel_y - position[1]][0:3]
+                pixel_position = [pixel_x, pixel_y]
                 self.draw_point(pixel_position, color_rgb)
 
     def draw_text(self, position, font_size, text):
         """Draw text"""
-        img = Img.new("RGBA", (320, 240), (0, 0, 0, 0))
+        img = Img.new("RGBA", (320, font_size), (0, 0, 0, 0))
         draw = Draw.Draw(img)
-        font = Font.truetype("micradi.ttf", font_size)
-        draw.text(position, text, (0, 0, 0), font=font)
-        self.draw_image(img, [0, 0], [320, 240])
+        font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
+        draw.text([0, 0], text, (0, 0, 0), font=font)
+        self.draw_image(position, [320, font_size], img)
 
 
 
