@@ -4,10 +4,11 @@ from time import sleep
 import random
 import datetime
 import timeit
-import libdraw
 import PIL.Image as Img
+import libdraw
 from logitech.g19 import G19
 from coloradapter import ColorAdapter
+from appmgr.keybindings import KeyBindings
 
 class AppMgr(object):
     """docstring for AppMgr."""
@@ -16,6 +17,9 @@ class AppMgr(object):
         # self.__applet = AppMgrApplet()
         random.seed()
         self.__lcd = G19(True)
+        self.__key_listener = KeyBindings(self.__lcd)
+        self.__lcd.add_key_listener(self.__key_listener)
+        self.__lcd.start_event_handling()
         self.__drawer = libdraw.Drawer(libdraw.Frame())
         self.__color_adapter = ColorAdapter(self.ambient_callback)
         self.__cur_app = UrPidor(self.__drawer)
@@ -43,6 +47,7 @@ class AppMgr(object):
     def shutdown(self):
         """Shutdown appmgr"""
         self.__lcd.reset()
+        self.__lcd.stop_event_handling()
         self.__color_adapter.shutdown()
 
 # class AppMgrApplet(object):

@@ -63,7 +63,7 @@ class G19(object):
         valueL = (gBits << 5) | bBits
         return valueL << 8 | valueH
 
-    def add_applet(self, applet):
+    def add_key_listener(self, applet):
         '''Starts an applet.'''
         self.__keyReceiver.add_input_processor(applet.get_input_processor())
 
