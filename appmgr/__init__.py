@@ -93,17 +93,17 @@ class UrPidor(Applet):
         """Applet's routine"""
         start_time = timeit.default_timer()
         drawer = self._drawer
-        # time = datetime.datetime.now().strftime("%H:%M:%S")
-        tdelta = datetime.datetime(2018, 7, 15) - datetime.datetime.now()
-        time = digit_fit_width(tdelta.days, 2) + ":" + \
-               digit_fit_width(tdelta.seconds // 3600, 2) + ":" +\
-               digit_fit_width(tdelta.seconds // 60 % 60, 2) + ":" +\
-               digit_fit_width(tdelta.seconds % 60, 2)
+        time = datetime.datetime.now().strftime("%H:%M:%S")
+        # tdelta = datetime.datetime(2018, 7, 13, 19, 50) - datetime.datetime.now()
+        # time = digit_fit_width(tdelta.days, 2) + ":" + \
+        #        digit_fit_width(tdelta.seconds // 3600, 2) + ":" +\
+        #        digit_fit_width(tdelta.seconds // 60 % 60, 2) + ":" +\
+        #        digit_fit_width(tdelta.seconds % 60, 2)
 
         drawer.draw_image([0, 0], [320, 240, 0, 90, 320, 175], self.__background)
         drawer.draw_rectangle([0, 90], [320, 85], self.__bg_color)
-        # drawer.draw_text([32, 90], 72, time)
-        drawer.draw_text([0, 94], 64, time)
+        drawer.draw_text([32, 90], 72, time)
+        # drawer.draw_text([0, 94], 64, time)
         print "draw_screen: " + str(timeit.default_timer() - start_time)
         self._period = 1 - (timeit.default_timer() - start_time)
 
