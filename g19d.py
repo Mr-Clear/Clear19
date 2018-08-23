@@ -27,11 +27,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-# if __name__ == '__main__':
-#     try:
-#         lg19 = G19()
-#         lg19.start_event_handling()
-#         while True:
-#             time.sleep(10)
-#     except KeyboardInterrupt:
-#         lg19.stop_event_handling()
