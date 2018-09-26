@@ -18,3 +18,4 @@
   + Pyusb
   + Pillow
   + PyUserInput
+  + [ambient_light](https://bitbucket.org/GRayHook/logiled_ambient/src/master/) from link above (It disable by default)

@@ -192,11 +192,33 @@ class Drawer(object):
                 pixel_position = [pixel_x, pixel_y]
                 self.draw_point(pixel_position, color_rgb)
 
-    def draw_text(self, position, font_size, text):
+    def draw_text_fitted(self, position, font_size, text):
         """Draw text"""
+        font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
+        height = font_size
+        width = 0
+        for i in xrange(len(text)):
+            width += font.getsize(text[i])[0]
+            if text[i] == '\n':
+                width = 0
+                height += font_size + 15
+            if width > 320 - position[0]:
+                text = text[:i-1] + '\n' + text[i-1:]
+                width = 0
+                height += font_size + 15
+            if height > 240 - position[1]:
+                text = text[:i-1]
+                break
+        img = Img.new("RGBA", (320, height), (0, 0, 0, 0))
+        draw = Draw.Draw(img)
+        draw.text([0, 0], text, (0, 0, 0), font=font)
+        self.draw_image(position, [320, height], img)
+
+    def draw_textline(self, position, font_size, text):
+        """Draw text"""
+        font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
         img = Img.new("RGBA", (320, font_size), (0, 0, 0, 0))
         draw = Draw.Draw(img)
-        font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
         draw.text([0, 0], text, (0, 0, 0), font=font)
         self.draw_image(position, [320, font_size], img)
 

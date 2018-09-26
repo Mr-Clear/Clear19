@@ -19,6 +19,7 @@ class G19(object):
         self.__usbDeviceMutex = threading.Lock()
         self.__keyReceiver = G19Receiver(self)
         self.__threadDisplay = None
+        self.__interrupt = False
 
     @staticmethod
     def convert_image_to_frame(filename):
@@ -62,6 +63,12 @@ class G19(object):
         valueH = (rBits << 3) | (gBits >> 3)
         valueL = (gBits << 5) | bBits
         return valueL << 8 | valueH
+
+    def set_interrupt(self):
+        self.__interrupt = True
+
+    def unset_interrupt(self):
+        self.__interrupt = False
 
     def add_key_listener(self, applet):
         '''Starts an applet.'''
@@ -171,6 +178,8 @@ class G19(object):
         (data[239 * 2], data[239 * 2 + 1]) the lower left one.
 
         '''
+        if self.__interrupt:
+            return
         if len(data) != (320 * 240 * 2):
             raise ValueError("illegal frame size: " + str(len(data))
                     + " should be 320x240x2=" + str(320 * 240 * 2))
