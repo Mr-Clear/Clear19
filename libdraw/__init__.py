@@ -25,7 +25,6 @@ class Frame(object):
         """Set pixel on map"""
         column = self.__get_column(position[0])
         index = column + position[1] * 2
-
         uint_16_color = self.__rgb_to_uint16(color)
 
         if len(color) > 3:
@@ -109,6 +108,8 @@ class Drawer(object):
 
     def draw_point(self, position, color_rgb):
         """Draw point on frame"""
+        # while len(color_rgb) < 3:
+        #     color_rgb = color_rgb + (0,)
         self.__frame.set_point(position, color_rgb)
 
     def draw_rectangle(self, position, size, color_rgb):
@@ -177,8 +178,8 @@ class Drawer(object):
             if end[1] < size[3]:
                 return
 
-        for pixel_x in xrange(start[0], end[0]):
-            for pixel_y in xrange(start[1], end[1]):
+        for pixel_x in xrange(max(0, start[0]), min(320, end[0])):
+            for pixel_y in xrange(max(0, start[1]), min(240, end[1])):
                 # access_x = pixel_x - position[0]
                 # access_y = pixel_y - position[1]
                 if len(access[pixel_x - position[0], pixel_y - position[1]]) > 3:
@@ -205,7 +206,7 @@ class Drawer(object):
             if width > 320 - position[0]:
                 text = text[:i-1] + '\n' + text[i-1:]
                 width = 0
-                height += font_size + 15
+                height += font_size + 25
             if height > 240 - position[1]:
                 text = text[:i-1]
                 break
@@ -217,10 +218,17 @@ class Drawer(object):
     def draw_textline(self, position, font_size, text):
         """Draw text"""
         font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
+        width = 0
+        for i in xrange(len(text)):
+            width += font.getsize(text[i])[0]
+            if text[i] == '\n' or width > 320 - position[0]:
+                text = text[:i-1]
+                break
         img = Img.new("RGBA", (320, font_size), (0, 0, 0, 0))
         draw = Draw.Draw(img)
         draw.text([0, 0], text, (0, 0, 0), font=font)
         self.draw_image(position, [320, font_size], img)
+
 
 
 
