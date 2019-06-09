@@ -176,10 +176,6 @@ class UrPidor(Applet):
         self.name = "Watch"
         self.__background = Img.open(u"/home/grayhook/Изображения/usny.jpg")
         self.__background = self.__background.resize((320, 240), Img.CUBIC)
-        self.__snow = Img.open(u"/home/grayhook/Документы/logitech_LCD/flake.png")
-        self.__snow_pos = []
-        while len(self.__snow_pos) < 40:
-            self.__snow_pos.append([random.randint(-10, 330), random.randint(-10, 250)])
 
         self.__watch_alpha = 0.6
         self.__bg_color = [177, 31, 80, self.__watch_alpha]
@@ -208,14 +204,6 @@ class UrPidor(Applet):
         # drawer.draw_image([0, 0], [320, 240, 0, 90, 320, 175], self.__background)
         drawer.draw_image([0, 0], [320, 240], self.__background)
         drawer.draw_rectangle([0, 90], [320, 85], self.__bg_color)
-        for flake in self.__snow_pos:
-            flake[0] = flake[0] + random.randint(-4, 4)
-            flake[1] = flake[1] + random.randint(3, 12)
-            if flake[0] > 330:
-                flake[0] = flake[0] % 25 * -1
-            if flake[1] > 250:
-                flake[1] = flake[1] % 25 * -1
-            drawer.draw_image(flake, [25, 25], self.__snow)
         drawer.draw_textline([32, 90], 72, time)
 
         # drawer.draw_text([0, 94], 64, time)
