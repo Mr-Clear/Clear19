@@ -4,6 +4,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
 import net.djpowell.lcdjni.LcdConnection;
@@ -14,8 +17,10 @@ import net.djpowell.lcdjni.SyncType;
 
 public class App
 {
+    private static final Logger logger = LogManager.getLogger(App.class.getName());
     public static void main(String[] args) throws InterruptedException, IOException
     {
+        logger.info("START");
         try (LcdConnection con = new LcdConnection("HelloWorld", false, AppletCapability.getCaps(AppletCapability.QVGA), null, null);
                 LcdDevice device = con.openDevice(DeviceType.QVGA, null);
                 LcdRGBABitmap bmp = device.createRGBABitmap();)
@@ -30,6 +35,10 @@ public class App
             device.setForeground(true);
             Thread.sleep(10000);
         }
-        LcdConnection.deInit();
+        finally
+        {
+            LcdConnection.deInit();
+            logger.info("END");
+        }
     }
 }
