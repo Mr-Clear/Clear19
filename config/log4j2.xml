@@ -11,7 +11,7 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Logger name="de.klierlinge" level="TRACE" />
+		<Logger name="de.klierlinge" level="DEBUG" />
 		<Root level="error">
 			<AppenderRef ref="Console" />
 			<AppenderRef ref="File" />
