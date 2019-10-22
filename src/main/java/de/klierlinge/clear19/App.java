@@ -29,9 +29,9 @@ public class App
 
     final Timer updateTimer = new Timer();
 
-    final LcdConnection lcdCon;
-    final LcdDevice lcdDevice;
-    final LcdRGBABitmap lcdBmp;
+    LcdConnection lcdCon;
+    LcdDevice lcdDevice;
+    LcdRGBABitmap lcdBmp;
     
     public App()
     {
@@ -50,10 +50,19 @@ public class App
         
         f.setVisible(true);
 
-        
-        lcdCon = new LcdConnection("HelloWorld", false, AppletCapability.getCaps(AppletCapability.QVGA), null, null);
-        lcdDevice = lcdCon.openDevice(DeviceType.QVGA, null);
-        lcdBmp = lcdDevice.createRGBABitmap();
+        try
+        {
+            lcdCon = new LcdConnection("HelloWorld", false, AppletCapability.getCaps(AppletCapability.QVGA), null, null);
+            lcdDevice = lcdCon.openDevice(DeviceType.QVGA, null);
+            lcdBmp = lcdDevice.createRGBABitmap();
+        }
+        catch(UnsatisfiedLinkError e)
+        {
+            logger.error("Failed to load lcd library.", e);
+            lcdCon = null;
+            lcdDevice = null;
+            lcdBmp = null;
+        }
         
         
         
@@ -69,11 +78,14 @@ public class App
                         mainScreen.paint((Graphics2D)image.getGraphics());
                         imagePanel.repaint();
                         
-                        final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
-                        g.drawImage(image, 0, 0, null);
-                        g.dispose();
-                        lcdBmp.updateScreen(Priority.ALERT, SyncType.SYNC);
-                        lcdDevice.setForeground(true);
+                        if (lcdBmp != null)
+                        {
+                            final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
+                            g.drawImage(image, 0, 0, null);
+                            g.dispose();
+                            lcdBmp.updateScreen(Priority.ALERT, SyncType.SYNC);
+                            lcdDevice.setForeground(true);
+                        }
                     }
                 }
             }
@@ -94,17 +106,20 @@ public class App
         updateTimer.cancel();
         synchronized(updateTimer)
         {
-            try
+            if (lcdBmp != null)
             {
-                lcdBmp.close();
-                lcdDevice.close();
-                lcdCon.close();
+                try
+                {
+                    lcdBmp.close();
+                    lcdDevice.close();
+                    lcdCon.close();
+                }
+                catch(IOException e2)
+                {
+                    logger.warn("Failed to close LCD", e2);
+                }
+                LcdConnection.deInit();
             }
-            catch(IOException e2)
-            {
-                logger.warn("Failed to close LCD", e2);
-            }
-            LcdConnection.deInit();
         }
         logger.info("END");
         System.exit(0);
