@@ -50,6 +50,8 @@ public class DateTimeWidget extends Widget
     @Override
     public Dimension getPreferedSize(Graphics2D g)
     {
+        if(g == null)
+            return new Dimension(200, 100);
         setFont(g);
         Date now = new Date();
         final String time = timeFormat.format(now);

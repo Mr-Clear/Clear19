@@ -1,9 +1,6 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 
 public class MainScreen extends Screen
 {
@@ -23,9 +20,7 @@ public class MainScreen extends Screen
     @Override
     void layout(Graphics2D g)
     {
-        dateTimeWidget.setPos(new Rectangle(new Point(10, 10), dateTimeWidget.getPreferedSize(g)));
-        analogClock.setPos(new Rectangle(new Point((int)(dateTimeWidget.getPos().getMaxX() + 10), 10), new Dimension(100, 100)));
+        dateTimeWidget.setSize(dateTimeWidget.getPreferedSize(g));
+        dateTimeWidget.setTopRight(this.getTopRight());
     }
-    
-    
 }

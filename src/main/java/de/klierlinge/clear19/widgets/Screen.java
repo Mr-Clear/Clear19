@@ -2,6 +2,8 @@ package de.klierlinge.clear19.widgets;
 
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,7 @@ public abstract class Screen extends Widget
     public Screen()
     {
         super(null);
+        setPos(new Rectangle(new Point(0, 0), getPreferedSize(null)));
     }
     
     @Override
