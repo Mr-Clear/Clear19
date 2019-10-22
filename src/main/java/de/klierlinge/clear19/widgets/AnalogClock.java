@@ -4,7 +4,7 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.time.LocalTime;
 import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class AnalogClock extends Widget
 {
@@ -13,26 +13,16 @@ public class AnalogClock extends Widget
     public AnalogClock(Widget parent)
     {
         super(parent);
-        timer = new Timer();
-        timer.schedule(new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                setDirty(); 
-            }
-        }, 1, 37);
+        app.scheduler.scheduleAtFixedRate(() -> setDirty(), 0, 37, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public void paint(Graphics2D g)
+    public void paintForeground(Graphics2D g)
     {
         final int width = getWidth();
         final int height = getHeigth();
         final int midX = width / 2;
         final int midY = height / 2;
-        g.setColor(getBackground());
-        g.fillRect(0, 0, width, height);
         g.setColor(getForeground());
         g.drawOval(0, 0, width - 1, height - 1);
         //double s = new Date().getSeconds() / 60.0 * 2 * Math.PI;

@@ -1,13 +1,14 @@
 package de.klierlinge.clear19;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
@@ -17,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
+import de.klierlinge.clear19.widgets.Widget;
 import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
 import net.djpowell.lcdjni.LcdConnection;
@@ -26,34 +28,34 @@ import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
 
-public class App
+public class App extends Widget
 {
     private static final Logger logger = LogManager.getLogger(App.class.getName());
 
     private final BufferedImage image;
     Screen screen;
-    
-    private final Timer updateTimer = new Timer();
+
+    public final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, (r, e) -> logger.error("Failed to execute task: " + r + " - " + e));
 
     private LcdConnection lcdCon;
     private LcdDevice lcdDevice;
     private LcdRGBABitmap lcdBmp;
-    
+    private final ImagePanel imagePanel;
     
     public App()
     {
+        super(null);
         logger.info("START");
         JFrame f = new JFrame("Clear19");
         f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         f.setLocation(500, 500);
-        ImagePanel imagePanel = new ImagePanel();
+        imagePanel = new ImagePanel();
         f.setContentPane(imagePanel);
         f.pack();
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
         
-        screen = new MainScreen(getGraphics());
-        paint();
+        screen = new MainScreen(this, getGraphics());
         
         f.setVisible(true);
 
@@ -71,32 +73,6 @@ public class App
             lcdDevice = null;
             lcdBmp = null;
         }
-        
-        updateTimer.schedule(new TimerTask()
-        {
-            @Override
-            public void run()
-            {
-                if(screen.isDirty())
-                {
-                    synchronized(updateTimer)
-                    {
-                        paint();
-                        
-                        imagePanel.repaint();
-                        
-                        if (lcdBmp != null)
-                        {
-                            final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
-                            g.drawImage(image, 0, 0, null);
-                            g.dispose();
-                            lcdBmp.updateScreen(Priority.NORMAL, SyncType.SYNC);
-                            g.dispose();
-                        }
-                    }
-                }
-            }
-        }, 31, 31);
 
         f.addWindowListener(new WindowAdapter()
         {
@@ -106,13 +82,34 @@ public class App
                 exit();
             }
         });
+
+        scheduler.scheduleAtFixedRate(() -> {
+            if (isDirty())
+                updateLcd();
+        }, 0, 31, TimeUnit.MILLISECONDS);
     }
     
-    private void paint()
+    private void updateLcd()
     {
-        final Graphics2D g = getGraphics();
-        screen.paint(g);
-        g.dispose();
+        {
+            final Graphics2D g = getGraphics();
+            paint(g);
+            g.dispose();
+        }
+        
+        synchronized(scheduler)
+        {
+            imagePanel.repaint();
+            
+            if (lcdBmp != null)
+            {
+                final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
+                g.drawImage(image, 0, 0, null);
+                g.dispose();
+                lcdBmp.updateScreen(Priority.NORMAL, SyncType.SYNC);
+                g.dispose();
+            }
+        }
     }
     
     private Graphics2D getGraphics()
@@ -130,8 +127,8 @@ public class App
     
     private void exit()
     {
-        updateTimer.cancel();
-        synchronized(updateTimer)
+        scheduler.shutdownNow();
+        synchronized(scheduler)
         {
             if (lcdBmp != null)
             {
@@ -150,6 +147,25 @@ public class App
         }
         logger.info("END");
         System.exit(0);
+    }
+
+    @Override
+    public void paint(Graphics2D g)
+    {
+        paintForeground(g);
+        clearDirty();
+    }
+    
+    @Override
+    public void paintForeground(Graphics2D g)
+    {
+        screen.paint(g);
+    }    
+
+    @Override
+    public Dimension getPreferedSize(Graphics2D g)
+    {
+        return new Dimension(0, 0);
     }
     
     @SuppressWarnings("unused")

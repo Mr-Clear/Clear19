@@ -5,21 +5,12 @@ import java.awt.Font;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 public class DateTimeWidget extends TextWidget
 {
     private DateFormat format = new SimpleDateFormat("dd.MM.YYYY\nHH:mm:ss");
-    private final Timer timer = new Timer();
-    private final TimerTask tt = new TimerTask()
-    {
-        @Override
-        public void run()
-        {
-            setText(getFormat().format(new Date()));
-        }
-    };
+    private final Runnable tt = () -> setText(getFormat().format(new Date(System.currentTimeMillis() + 500)));
     
     public DateTimeWidget(Widget parent)
     {
@@ -27,7 +18,9 @@ public class DateTimeWidget extends TextWidget
         setFont(new Font("Consolas", Font.BOLD, 29));
         setTextAllignment(TextAllignment.CENTER);
         tt.run();
-        timer.scheduleAtFixedRate(tt, new Date((new Date().getTime() / 1000 + 1) * 1000), 1000);
+        final long ctm = System.currentTimeMillis();
+        final long delay = (ctm / 1000 + 1) * 1000 - ctm - 3;
+        app.scheduler.scheduleAtFixedRate(tt, delay, 1000, TimeUnit.MILLISECONDS);
         setBackground(Color.DARK_GRAY);
     }
 

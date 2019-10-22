@@ -5,15 +5,22 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.klierlinge.clear19.App;
+
 public abstract class Widget
 {
     private static final Logger logger = LogManager.getLogger(Widget.class.getName());
-    private final Widget parent; 
+    private final Widget parent;
+    protected final App app;
+    protected List<Widget> children = new ArrayList<>();
     private Rectangle pos = new Rectangle(0, 0, 0, 0);
     private boolean dirty = true;
     private Color background = Color.BLACK;
@@ -24,7 +31,17 @@ public abstract class Widget
         this.parent = parent;
         this.setSize(getPreferedSize(null));
         if (parent != null)
+        {
+            parent.children.add(this);
+            setBackground(parent.background);
+            setForeground(parent.foreground);
             this.setCenter(parent.getCenter());
+            app = parent.app;
+        }
+        else
+        {
+            app = (App)this;
+        }
     }
     
     public Rectangle getPos()
@@ -231,11 +248,40 @@ public abstract class Widget
         }
     }
 
-    void clearDirty()
+    protected void clearDirty()
     {
         dirty = false;
     }
 
-    abstract public void paint(Graphics2D g);
+    
+    public void paint(Graphics2D g)
+    {
+        paintBackground(g);
+        paintChildren(g);
+        paintForeground(g);
+        clearDirty();
+    }
+    
+    protected void paintChildren(Graphics2D g)
+    {
+        for(Widget child : children)
+        {
+            if (child.isDirty())
+            {
+                AffineTransform tx = new AffineTransform();
+                tx.setToTranslation(child.getPos().getX(), child.getPos().getY());
+                g.setTransform(tx);
+                child.paint(g);
+            }
+        }
+    }
+
+    protected void paintBackground(Graphics2D g)
+    {
+        g.setColor(getBackground());
+        g.fillRect(0, 0, getWidth(), getHeigth());
+    }
+    
+    abstract public void paintForeground(Graphics2D g);
     abstract public Dimension getPreferedSize(Graphics2D g);
 }
