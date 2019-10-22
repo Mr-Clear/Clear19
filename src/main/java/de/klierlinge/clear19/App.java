@@ -21,6 +21,7 @@ import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
 import net.djpowell.lcdjni.LcdConnection;
 import net.djpowell.lcdjni.LcdDevice;
+import net.djpowell.lcdjni.LcdException;
 import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
@@ -61,6 +62,7 @@ public class App
             lcdCon = new LcdConnection("HelloWorld", false, AppletCapability.getCaps(AppletCapability.QVGA), null, null);
             lcdDevice = lcdCon.openDevice(DeviceType.QVGA, null);
             lcdBmp = lcdDevice.createRGBABitmap();
+            lcdDevice.setForeground(true);
         }
         catch(UnsatisfiedLinkError e)
         {
@@ -69,8 +71,6 @@ public class App
             lcdDevice = null;
             lcdBmp = null;
         }
-        
-        
         
         updateTimer.schedule(new TimerTask()
         {
@@ -90,8 +90,7 @@ public class App
                             final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
                             g.drawImage(image, 0, 0, null);
                             g.dispose();
-                            lcdBmp.updateScreen(Priority.ALERT, SyncType.SYNC);
-                            lcdDevice.setForeground(true);
+                            lcdBmp.updateScreen(Priority.NORMAL, SyncType.SYNC);
                             g.dispose();
                         }
                     }
@@ -142,7 +141,7 @@ public class App
                     lcdDevice.close();
                     lcdCon.close();
                 }
-                catch(IOException e2)
+                catch(LcdException | IOException e2)
                 {
                     logger.warn("Failed to close LCD", e2);
                 }
