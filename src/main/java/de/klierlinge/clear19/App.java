@@ -1,6 +1,7 @@
 package de.klierlinge.clear19;
 
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
@@ -75,7 +76,19 @@ public class App
                 {
                     synchronized(updateTimer)
                     {
-                        mainScreen.paint((Graphics2D)image.getGraphics());
+                        {
+                            final Graphics2D g = (Graphics2D)image.getGraphics();
+                            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+                            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+                            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+                            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+                            mainScreen.paint(g);
+                            g.dispose();
+                        }
+                        
                         imagePanel.repaint();
                         
                         if (lcdBmp != null)
@@ -85,6 +98,7 @@ public class App
                             g.dispose();
                             lcdBmp.updateScreen(Priority.ALERT, SyncType.SYNC);
                             lcdDevice.setForeground(true);
+                            g.dispose();
                         }
                     }
                 }

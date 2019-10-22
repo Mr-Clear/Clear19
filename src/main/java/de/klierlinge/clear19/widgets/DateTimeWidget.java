@@ -3,6 +3,7 @@ package de.klierlinge.clear19.widgets;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -39,10 +40,11 @@ public class DateTimeWidget extends Widget
         Date now = new Date();
         final String time = timeFormat.format(now);
         final String date = dateFormat.format(now);
-        final int fontHeight = g.getFontMetrics().getHeight();
-        final int fontAscent = g.getFontMetrics().getAscent();
-        final int timeWidth = g.getFontMetrics().stringWidth(time);
-        final int dateWidth = g.getFontMetrics().stringWidth(date);
+        final FontMetrics fontMetrics = g.getFontMetrics();
+        final int fontHeight = fontMetrics.getHeight();
+        final int fontAscent = fontMetrics.getAscent();
+        final int timeWidth = fontMetrics.stringWidth(time);
+        final int dateWidth = fontMetrics.stringWidth(date);
         g.drawString(time, (getPos().width - timeWidth) / 2, fontAscent);
         g.drawString(date, (getPos().width - dateWidth) / 2, fontHeight + fontAscent);
     }
@@ -56,10 +58,12 @@ public class DateTimeWidget extends Widget
         Date now = new Date();
         final String time = timeFormat.format(now);
         final String date = dateFormat.format(now);
-        final int fontHeight = g.getFontMetrics().getHeight();
-        final int timeWidth = g.getFontMetrics().stringWidth(time);
-        final int dateWidth = g.getFontMetrics().stringWidth(date);
-        return new Dimension(Math.max(timeWidth, dateWidth) + 2, fontHeight * 2);
+        final FontMetrics fontMetrics = g.getFontMetrics();
+        final int fontHeight = fontMetrics.getHeight();
+        final int fontDescent =  fontMetrics.getDescent();
+        final int timeWidth = fontMetrics.stringWidth(time);
+        final int dateWidth = fontMetrics.stringWidth(date);
+        return new Dimension(Math.max(timeWidth, dateWidth) + 2, fontHeight * 2 - fontDescent);
     }
     
     private static void setFont(Graphics2D g)
