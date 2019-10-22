@@ -5,16 +5,28 @@ import java.awt.Font;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DateTimeWidget extends TextWidget
 {
-    private DateFormat format = new SimpleDateFormat("dd.MM.YYYY\nHH:mm:ss");
+    private DateFormat format;
     private final Runnable tt = () -> setText(getFormat().format(new Date(System.currentTimeMillis() + 500)));
-    
+
     public DateTimeWidget(Widget parent)
     {
-        super(parent, "00.00.0000\n00:00:00");
+        this(parent, "dd.MM.YYYY\nHH:mm:ss");
+    }
+    
+    public DateTimeWidget(Widget parent, String format)
+    {
+        this(parent, new SimpleDateFormat(format));
+    }
+    
+    public DateTimeWidget(Widget parent, DateFormat format)
+    {
+        super(parent, format.format(new Date()));
+        this.format = format;
         setFont(new Font("Consolas", Font.BOLD, 29));
         setTextAllignment(TextAllignment.CENTER);
         tt.run();
@@ -31,6 +43,10 @@ public class DateTimeWidget extends TextWidget
 
     public void setFormat(DateFormat format)
     {
-        this.format = format;
+        if (!Objects.equals(this.format, format))
+        {
+            this.format = format;
+            setDirty();
+        }
     }
 }

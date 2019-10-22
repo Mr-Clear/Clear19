@@ -50,19 +50,24 @@ public class TextWidget extends Widget
             line++;
         }
     }
-
+    
     @Override
     public Dimension getPreferedSize(Graphics2D g)
+    {
+        return getPreferedSize(g, font, text);
+    }
+    
+    public static Dimension getPreferedSize(Graphics2D g, Font testFont, String testText)
     {
         if(g == null)
         {
             return new Dimension(100, 10);
         }
-        g.setFont(font);
+        g.setFont(testFont);
         final FontMetrics fontMetrics = g.getFontMetrics();
         final int fontHeight = fontMetrics.getHeight();
         final int fontDescent = fontMetrics.getDescent();
-        final String[] split = text.split("\n");
+        final String[] split = testText.split("\n");
         int max = 0;
         for (String string : split)
         {
@@ -71,6 +76,12 @@ public class TextWidget extends Widget
                 max = stringWidth;
         }
         return new Dimension(max, split.length * fontHeight - fontDescent);
+    }
+    
+    public double fitFontSize(Dimension size)
+    {
+        new Font(font.getName(), font.getStyle(), font.getSize());
+        return -1;
     }
 
     public String getText()

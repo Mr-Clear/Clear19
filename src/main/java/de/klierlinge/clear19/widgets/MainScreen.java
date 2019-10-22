@@ -21,8 +21,9 @@ public class MainScreen extends Screen
     @Override
     void layout(Graphics2D g)
     {
-        dateTimeWidget.setSize(dateTimeWidget.getPreferedSize(g));
-        dateTimeWidget.setTopRight(getTopRight());
+        dateTimeWidget.setTopLeft(getTopLeft());
+        dateTimeWidget.setWidth(getWidth());
+        dateTimeWidget.setHeight(dateTimeWidget.getPreferedSize(g).height);
         analogClock.setSize(new Dimension(32, 24));
         analogClock.setTopRight(dateTimeWidget.getBottomRight());
     }

@@ -91,6 +91,7 @@ public class App extends Widget
     
     private void updateLcd()
     {
+        logger.trace("Update LCD");
         {
             final Graphics2D g = getGraphics();
             paint(g);
