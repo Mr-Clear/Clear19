@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.widgets.MainScreen;
+import de.klierlinge.clear19.widgets.Screen;
 import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
 import net.djpowell.lcdjni.LcdConnection;
@@ -28,11 +29,15 @@ public class App
 {
     private static final Logger logger = LogManager.getLogger(App.class.getName());
 
-    final Timer updateTimer = new Timer();
+    private final BufferedImage image;
+    Screen screen;
+    
+    private final Timer updateTimer = new Timer();
 
-    LcdConnection lcdCon;
-    LcdDevice lcdDevice;
-    LcdRGBABitmap lcdBmp;
+    private LcdConnection lcdCon;
+    private LcdDevice lcdDevice;
+    private LcdRGBABitmap lcdBmp;
+    
     
     public App()
     {
@@ -43,11 +48,11 @@ public class App
         ImagePanel imagePanel = new ImagePanel();
         f.setContentPane(imagePanel);
         f.pack();
-        BufferedImage image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
+        image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
         
-        MainScreen mainScreen = new MainScreen((Graphics2D)image.getGraphics());
-        mainScreen.paint((Graphics2D)image.getGraphics());
+        screen = new MainScreen(getGraphics());
+        paint();
         
         f.setVisible(true);
 
@@ -72,22 +77,11 @@ public class App
             @Override
             public void run()
             {
-                if(mainScreen.isDirty())
+                if(screen.isDirty())
                 {
                     synchronized(updateTimer)
                     {
-                        {
-                            final Graphics2D g = (Graphics2D)image.getGraphics();
-                            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-                            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-                            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-                            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-                            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-                            mainScreen.paint(g);
-                            g.dispose();
-                        }
+                        paint();
                         
                         imagePanel.repaint();
                         
@@ -113,6 +107,26 @@ public class App
                 exit();
             }
         });
+    }
+    
+    private void paint()
+    {
+        final Graphics2D g = getGraphics();
+        screen.paint(g);
+        g.dispose();
+    }
+    
+    private Graphics2D getGraphics()
+    {
+        final Graphics2D g = (Graphics2D)image.getGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+        return g;
     }
     
     private void exit()
@@ -142,6 +156,14 @@ public class App
     @SuppressWarnings("unused")
     public static void main(String[] args)
     {
-        new App();
+        try
+        {
+            new App();            
+        }
+        catch (Throwable t)
+        {
+            logger.fatal("Failed to start app", t);
+            System.exit(1);
+        }
     }
 }

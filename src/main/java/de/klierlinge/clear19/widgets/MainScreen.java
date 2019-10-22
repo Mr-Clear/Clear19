@@ -1,5 +1,6 @@
 package de.klierlinge.clear19.widgets;
 
+import java.awt.Dimension;
 import java.awt.Graphics2D;
 
 public class MainScreen extends Screen
@@ -21,6 +22,8 @@ public class MainScreen extends Screen
     void layout(Graphics2D g)
     {
         dateTimeWidget.setSize(dateTimeWidget.getPreferedSize(g));
-        dateTimeWidget.setTopRight(this.getTopRight());
+        dateTimeWidget.setTopRight(getTopRight());
+        analogClock.setSize(new Dimension(32, 24));
+        analogClock.setBottomLeft(getBottomLeft());
     }
 }

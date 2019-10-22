@@ -1,9 +1,11 @@
 package de.klierlinge.clear19.widgets;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,6 +16,8 @@ public abstract class Widget
     private final Widget parent; 
     private Rectangle pos = new Rectangle(0, 0, 0, 0);
     private boolean dirty = true;
+    private Color background = Color.BLACK;
+    private Color foreground = Color.WHITE;
 
     public Widget(Widget parent)
     {
@@ -113,7 +117,6 @@ public abstract class Widget
     {
         pos.x = topRight.x - pos.width;
         pos.y = topRight.y;
-        logger.debug(pos);
     }
     
     public Point getBottomLeft()
@@ -177,6 +180,34 @@ public abstract class Widget
     public void setSize(Dimension size)
     {
         pos.setSize(size);
+    }
+
+    public Color getBackground()
+    {
+        return background;
+    }
+
+    public void setBackground(Color background)
+    {
+        if(!Objects.equals(this.background, background))
+        {
+            this.background = background;
+            setDirty();
+        }
+    }
+
+    public Color getForeground()
+    {
+        return foreground;
+    }
+
+    public void setForeground(Color foreground)
+    {
+        if(!Objects.equals(this.foreground, foreground))
+        {
+            this.foreground = foreground;
+            setDirty();
+        }
     }
 
     public Widget getParent()
