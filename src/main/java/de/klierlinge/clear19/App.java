@@ -1,5 +1,6 @@
 package de.klierlinge.clear19;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -47,6 +48,9 @@ public class App extends Widget
     {
         super(null);
         logger.info("START");
+        
+        setForeground(Color.LIGHT_GRAY);
+        
         final var frame = new JFrame("Clear19");
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setLocation(500, 500);
@@ -176,7 +180,17 @@ public class App extends Widget
     {
         final var ctm = System.currentTimeMillis();
         final var delay = (ctm / interval + 1) * interval - ctm - 3;
-        return app.scheduler.scheduleAtFixedRate(task, delay, interval, TimeUnit.MILLISECONDS);
+        return scheduler.scheduleAtFixedRate(() -> {
+            try
+            {
+                task.run();
+            }
+            catch (Throwable t)
+            {
+                logger.error("Error in scheduled task " + task, t);
+                throw t;
+            }
+        }, delay, interval, TimeUnit.MILLISECONDS);
     }
     
     @SuppressWarnings("unused")

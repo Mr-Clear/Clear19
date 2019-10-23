@@ -1,6 +1,5 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,7 +29,6 @@ public class DateTimeWidget extends TextWidget
         setHAllignment(HAllignment.CENTER);
         tt.run();
         app.schedule(1000, tt);
-        setBackground(Color.DARK_GRAY);
     }
 
     public DateFormat getFormat()

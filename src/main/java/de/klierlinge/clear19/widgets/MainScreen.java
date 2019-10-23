@@ -1,6 +1,7 @@
 package de.klierlinge.clear19.widgets;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics2D;
 
 import de.klierlinge.clear19.App;
@@ -9,7 +10,7 @@ import de.klierlinge.clear19.data.system.CpuUsage;
 public class MainScreen extends Screen
 {
     final DateTimeWidget dateTimeWidget;
-    final AnalogClock analogClock;
+    //final AnalogClock analogClock;
     final AutoUpdateTextWidget cpuWidget;
 
     final CpuUsage cpuUsage;
@@ -21,9 +22,15 @@ public class MainScreen extends Screen
         cpuUsage = new CpuUsage(app);
         
         dateTimeWidget = new DateTimeWidget(this);
-        analogClock = new AnalogClock(dateTimeWidget);
+        //analogClock = new AnalogClock(dateTimeWidget);
         
-        cpuWidget = new AutoUpdateTextWidget(this, 1000, () -> Float.toString(cpuUsage.currentLoad[2]));
+        cpuWidget = new AutoUpdateTextWidget(this, 1000, () -> {
+            return String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
+                    cpuUsage.getIdleLoad() * 100,
+                    cpuUsage.getUserLoad() * 100,
+                    cpuUsage.getSystemLoad() * 100,
+                    (cpuUsage.getIrqLoad() + cpuUsage.getSoftIrqLoad()) * 100);
+        });
         layout(g);
     }
 
@@ -33,13 +40,14 @@ public class MainScreen extends Screen
         dateTimeWidget.setTopLeft(getTopLeft());
         dateTimeWidget.setSize(getSize());
         dateTimeWidget.fitFontSize(g, dateTimeWidget.getSize());
-        dateTimeWidget.setSize(dateTimeWidget.getPreferedSize(g));
+        dateTimeWidget.pack(g);
         dateTimeWidget.setBottom(getBottom());
-        analogClock.setSize(new Dimension(20, 20));
-        analogClock.setCenter(dateTimeWidget.getCenter());
+        //analogClock.setSize(new Dimension(20, 20));
+        //analogClock.setCenter(dateTimeWidget.getCenter());
         
-        cpuWidget.setSize(new Dimension(200, 30));
-        cpuWidget.fitFontSize(g, cpuWidget.getSize());
+        cpuWidget.setFont(new Font("Consolas", Font.PLAIN, 1));
+        cpuWidget.fitFontSize(g, new Dimension(getWidth(), 40));
+        cpuWidget.pack(g);
         cpuWidget.setTopLeft(getTopLeft());
     }
 }

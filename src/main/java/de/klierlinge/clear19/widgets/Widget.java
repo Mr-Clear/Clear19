@@ -198,6 +198,11 @@ public abstract class Widget
     {
         pos.setSize(size);
     }
+    
+    public void pack(Graphics2D g)
+    {
+        setSize(getPreferedSize(g));
+    }
 
     public Color getBackground()
     {
@@ -272,6 +277,7 @@ public abstract class Widget
                 final var tx = new AffineTransform();
                 tx.setToTranslation(child.getPos().getX(), child.getPos().getY());
                 g.setTransform(tx);
+                g.setClip(new Rectangle(child.getSize()));
                 child.paint(g);
                 g.setTransform(oldTx);
             }
