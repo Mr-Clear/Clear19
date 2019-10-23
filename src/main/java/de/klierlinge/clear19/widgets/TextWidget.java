@@ -9,7 +9,8 @@ import java.util.Objects;
 public class TextWidget extends Widget
 {
     private String text;
-    private TextAllignment textAllignment = TextAllignment.LEFT;
+    private HAllignment hAllignment = HAllignment.LEFT;
+    private VAllignment vAllignment = VAllignment.TOP;
     private Font font;
 
     public TextWidget(Widget parent, String text)
@@ -26,13 +27,32 @@ public class TextWidget extends Widget
         final FontMetrics fontMetrics = g.getFontMetrics();
         final int fontHeight = fontMetrics.getHeight();
         final int fontAscent = fontMetrics.getAscent();
+        final int fontDescent = fontMetrics.getDescent();
         final String[] split = text.split("\n");
+        
+        final int textHeight = split.length * fontHeight - fontDescent;
+        final int top;
+        switch(vAllignment)
+        {
+        default:
+        case TOP:
+            top = 0;
+            break;
+        case CENTER:
+            top = (getHeigth() - textHeight) / 2;
+            break;
+        case BOTTOM:
+            top = getHeigth() - textHeight;
+            break;
+        
+        }
+        
         int line = 0;
         for (String string : split)
         {
             final int stringWidth = fontMetrics.stringWidth(string);
             final int x;
-            switch(textAllignment)
+            switch(hAllignment)
             {
             default:
             case LEFT:
@@ -45,7 +65,7 @@ public class TextWidget extends Widget
                 x = getWidth() - stringWidth;
                 break;
             }
-            final int y = fontHeight * line + fontAscent;
+            final int y = top + fontHeight * line + fontAscent;
             g.drawString(string, x, y);
             line++;
         }
@@ -78,10 +98,21 @@ public class TextWidget extends Widget
         return new Dimension(max, split.length * fontHeight - fontDescent);
     }
     
-    public double fitFontSize(Dimension size)
+    public void fitFontSize(Graphics2D g, Dimension size)
     {
-        new Font(font.getName(), font.getStyle(), font.getSize());
-        return -1;
+        final Dimension testSize = getPreferedSize(g);
+        final float sx = (float)testSize.width / size.width;
+        final float sy = (float)testSize.height / size.height;
+        final float fontSize;
+        if (sx > sy)
+        {
+            fontSize = getFont().getSize2D() / sx;
+        }
+        else
+        {
+            fontSize = getFont().getSize2D() / sy;
+        }
+        setFont(getFont().deriveFont(fontSize));
     }
 
     public String getText()
@@ -98,18 +129,28 @@ public class TextWidget extends Widget
         }
     }
 
-    public TextAllignment getTextAllignment()
+    public HAllignment getHAllignment()
     {
-        return textAllignment;
+        return hAllignment;
     }
 
-    public void setTextAllignment(TextAllignment textAllignment)
+    public void setHAllignment(HAllignment hAllignment)
     {
-        if (this.textAllignment != textAllignment)
+        if (this.hAllignment != hAllignment)
         {
-            this.textAllignment = textAllignment;
+            this.hAllignment = hAllignment;
             setDirty();
         }
+    }
+
+    public VAllignment getvAllignment()
+    {
+        return vAllignment;
+    }
+
+    public void setvAllignment(VAllignment vAllignment)
+    {
+        this.vAllignment = vAllignment;
     }
 
     public Font getFont()
@@ -126,10 +167,17 @@ public class TextWidget extends Widget
         }
     }
 
-    public enum TextAllignment
+    public enum HAllignment
     {
         LEFT,
         CENTER,
         RIGHT
+    }
+
+    public enum VAllignment
+    {
+        TOP,
+        CENTER,
+        BOTTOM
     }
 }

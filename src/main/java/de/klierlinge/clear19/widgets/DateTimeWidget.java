@@ -28,7 +28,7 @@ public class DateTimeWidget extends TextWidget
         super(parent, format.format(new Date()));
         this.format = format;
         setFont(new Font("Consolas", Font.BOLD, 29));
-        setTextAllignment(TextAllignment.CENTER);
+        setHAllignment(HAllignment.CENTER);
         tt.run();
         final long ctm = System.currentTimeMillis();
         final long delay = (ctm / 1000 + 1) * 1000 - ctm - 3;

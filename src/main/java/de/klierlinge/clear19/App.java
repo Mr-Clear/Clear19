@@ -83,10 +83,12 @@ public class App extends Widget
             }
         });
 
+        final long ctm = System.currentTimeMillis();
+        final long delay = (ctm / 40 + 1) * 20 - ctm - 1;
         scheduler.scheduleAtFixedRate(() -> {
             if (isDirty())
                 updateLcd();
-        }, 0, 31, TimeUnit.MILLISECONDS);
+        }, delay, 40, TimeUnit.MILLISECONDS);
     }
     
     private void updateLcd()

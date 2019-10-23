@@ -14,7 +14,7 @@ public class MainScreen extends Screen
     {
         super (parent);
         dateTimeWidget = new DateTimeWidget(this);
-        analogClock = new AnalogClock(this);
+        analogClock = new AnalogClock(dateTimeWidget);
         layout(g);
     }
 
@@ -22,9 +22,11 @@ public class MainScreen extends Screen
     void layout(Graphics2D g)
     {
         dateTimeWidget.setTopLeft(getTopLeft());
-        dateTimeWidget.setWidth(getWidth());
-        dateTimeWidget.setHeight(dateTimeWidget.getPreferedSize(g).height);
-        analogClock.setSize(new Dimension(32, 24));
-        analogClock.setTopRight(dateTimeWidget.getBottomRight());
+        dateTimeWidget.setSize(getSize());
+        dateTimeWidget.fitFontSize(g, dateTimeWidget.getSize());
+        dateTimeWidget.setSize(dateTimeWidget.getPreferedSize(g));
+        dateTimeWidget.setBottom(getBottom());
+        analogClock.setSize(new Dimension(20, 20));
+        analogClock.setCenter(dateTimeWidget.getCenter());
     }
 }
