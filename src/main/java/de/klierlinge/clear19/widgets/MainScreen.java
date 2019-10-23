@@ -7,8 +7,8 @@ import de.klierlinge.clear19.App;
 
 public class MainScreen extends Screen
 {
-    DateTimeWidget dateTimeWidget;
-    AnalogClock analogClock;
+    final DateTimeWidget dateTimeWidget;
+    final AnalogClock analogClock;
 
     public MainScreen(App parent, Graphics2D g)
     {

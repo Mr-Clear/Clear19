@@ -25,47 +25,30 @@ public class TextWidget extends Widget
         g.setFont(font);
         g.setColor(getForeground());
         final FontMetrics fontMetrics = g.getFontMetrics();
-        final int fontHeight = fontMetrics.getHeight();
-        final int fontAscent = fontMetrics.getAscent();
-        final int fontDescent = fontMetrics.getDescent();
-        final String[] split = text.split("\n");
+        final var fontHeight = fontMetrics.getHeight();
+        final var fontAscent = fontMetrics.getAscent();
+        final var fontDescent = fontMetrics.getDescent();
+        final var split = text.split("\n");
         
-        final int textHeight = split.length * fontHeight - fontDescent;
-        final int top;
-        switch(vAllignment)
-        {
-        default:
-        case TOP:
-            top = 0;
-            break;
-        case CENTER:
-            top = (getHeigth() - textHeight) / 2;
-            break;
-        case BOTTOM:
-            top = getHeigth() - textHeight;
-            break;
-        
-        }
+        final var textHeight = split.length * fontHeight - fontDescent;
+        final var top = switch(vAllignment)
+                {
+                    case TOP -> 0;
+                    case CENTER ->(getHeigth() - textHeight) / 2;
+                    case BOTTOM -> getHeigth() - textHeight;
+                };
         
         int line = 0;
         for (String string : split)
         {
-            final int stringWidth = fontMetrics.stringWidth(string);
-            final int x;
-            switch(hAllignment)
-            {
-            default:
-            case LEFT:
-                x = 0;
-                break;
-            case CENTER:
-                x = (getWidth() - stringWidth) / 2;
-                break;
-            case RIGHT:
-                x = getWidth() - stringWidth;
-                break;
-            }
-            final int y = top + fontHeight * line + fontAscent;
+            final var stringWidth = fontMetrics.stringWidth(string);
+            final var x = switch(hAllignment)
+                    {
+                        case LEFT -> 0;
+                        case CENTER -> (getWidth() - stringWidth) / 2;
+                        case RIGHT -> getWidth() - stringWidth;
+                    };
+            final var y = top + fontHeight * line + fontAscent;
             g.drawString(string, x, y);
             line++;
         }
@@ -85,13 +68,13 @@ public class TextWidget extends Widget
         }
         g.setFont(testFont);
         final FontMetrics fontMetrics = g.getFontMetrics();
-        final int fontHeight = fontMetrics.getHeight();
-        final int fontDescent = fontMetrics.getDescent();
-        final String[] split = testText.split("\n");
-        int max = 0;
+        final var fontHeight = fontMetrics.getHeight();
+        final var fontDescent = fontMetrics.getDescent();
+        final var split = testText.split("\n");
+        var max = 0;
         for (String string : split)
         {
-            final int stringWidth = fontMetrics.stringWidth(string);
+            final var stringWidth = fontMetrics.stringWidth(string);
             if (stringWidth > max)
                 max = stringWidth;
         }
@@ -100,18 +83,10 @@ public class TextWidget extends Widget
     
     public void fitFontSize(Graphics2D g, Dimension size)
     {
-        final Dimension testSize = getPreferedSize(g);
-        final float sx = (float)testSize.width / size.width;
-        final float sy = (float)testSize.height / size.height;
-        final float fontSize;
-        if (sx > sy)
-        {
-            fontSize = getFont().getSize2D() / sx;
-        }
-        else
-        {
-            fontSize = getFont().getSize2D() / sy;
-        }
+        final var testSize = getPreferedSize(g);
+        final var sx = (float)testSize.width / size.width;
+        final var sy = (float)testSize.height / size.height;
+        final var fontSize = getFont().getSize2D() / Math.max(sx, sy);
         setFont(getFont().deriveFont(fontSize));
     }
 

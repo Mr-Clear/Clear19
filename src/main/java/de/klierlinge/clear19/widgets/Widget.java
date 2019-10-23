@@ -268,8 +268,8 @@ public abstract class Widget
         {
             if (child.isDirty())
             {
-                final AffineTransform oldTx = g.getTransform();
-                final AffineTransform tx = new AffineTransform();
+                final var oldTx = g.getTransform();
+                final var tx = new AffineTransform();
                 tx.setToTranslation(child.getPos().getX(), child.getPos().getY());
                 g.setTransform(tx);
                 child.paint(g);

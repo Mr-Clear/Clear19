@@ -46,18 +46,18 @@ public class App extends Widget
     {
         super(null);
         logger.info("START");
-        JFrame f = new JFrame("Clear19");
-        f.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-        f.setLocation(500, 500);
+        final var frame = new JFrame("Clear19");
+        frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        frame.setLocation(500, 500);
         imagePanel = new ImagePanel();
-        f.setContentPane(imagePanel);
-        f.pack();
+        frame.setContentPane(imagePanel);
+        frame.pack();
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
         
         screen = new MainScreen(this, getGraphics());
         
-        f.setVisible(true);
+        frame.setVisible(true);
 
         try
         {
@@ -74,7 +74,7 @@ public class App extends Widget
             lcdBmp = null;
         }
 
-        f.addWindowListener(new WindowAdapter()
+        frame.addWindowListener(new WindowAdapter()
         {
             @Override
             public void windowClosed(WindowEvent e)
@@ -83,8 +83,8 @@ public class App extends Widget
             }
         });
 
-        final long ctm = System.currentTimeMillis();
-        final long delay = (ctm / 40 + 1) * 20 - ctm - 1;
+        final var ctm = System.currentTimeMillis();
+        final var delay = (ctm / 40 + 1) * 20 - ctm - 1;
         scheduler.scheduleAtFixedRate(() -> {
             if (isDirty())
                 updateLcd();
@@ -106,7 +106,7 @@ public class App extends Widget
             
             if (lcdBmp != null)
             {
-                final Graphics2D g = (Graphics2D)lcdBmp.getGraphics();
+                final var g = (Graphics2D)lcdBmp.getGraphics();
                 g.drawImage(image, 0, 0, null);
                 g.dispose();
                 lcdBmp.updateScreen(Priority.NORMAL, SyncType.SYNC);
@@ -117,7 +117,7 @@ public class App extends Widget
     
     private Graphics2D getGraphics()
     {
-        final Graphics2D g = (Graphics2D)image.getGraphics();
+        final var g = (Graphics2D)image.getGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
@@ -178,7 +178,7 @@ public class App extends Widget
         {
             new App();            
         }
-        catch (Throwable t)
+        catch(Throwable t)
         {
             logger.fatal("Failed to start app", t);
             System.exit(1);

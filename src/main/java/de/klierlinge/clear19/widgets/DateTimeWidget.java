@@ -30,8 +30,8 @@ public class DateTimeWidget extends TextWidget
         setFont(new Font("Consolas", Font.BOLD, 29));
         setHAllignment(HAllignment.CENTER);
         tt.run();
-        final long ctm = System.currentTimeMillis();
-        final long delay = (ctm / 1000 + 1) * 1000 - ctm - 3;
+        final var ctm = System.currentTimeMillis();
+        final var delay = (ctm / 1000 + 1) * 1000 - ctm - 3;
         app.scheduler.scheduleAtFixedRate(tt, delay, 1000, TimeUnit.MILLISECONDS);
         setBackground(Color.DARK_GRAY);
     }
