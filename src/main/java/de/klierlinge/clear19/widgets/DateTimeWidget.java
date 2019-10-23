@@ -6,7 +6,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class DateTimeWidget extends TextWidget
 {
@@ -30,9 +29,7 @@ public class DateTimeWidget extends TextWidget
         setFont(new Font("Consolas", Font.BOLD, 29));
         setHAllignment(HAllignment.CENTER);
         tt.run();
-        final var ctm = System.currentTimeMillis();
-        final var delay = (ctm / 1000 + 1) * 1000 - ctm - 3;
-        app.scheduler.scheduleAtFixedRate(tt, delay, 1000, TimeUnit.MILLISECONDS);
+        app.schedule(1000, tt);
         setBackground(Color.DARK_GRAY);
     }
 

@@ -7,6 +7,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -35,7 +36,7 @@ public class App extends Widget
     private final BufferedImage image;
     Screen screen;
 
-    public final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, (r, e) -> logger.error("Failed to execute task: " + r + " - " + e));
+    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, (r, e) -> logger.error("Failed to execute task: " + r + " - " + e));
 
     private LcdConnection lcdCon;
     private LcdDevice lcdDevice;
@@ -169,6 +170,13 @@ public class App extends Widget
     public Dimension getPreferedSize(Graphics2D g)
     {
         return new Dimension(0, 0);
+    }
+    
+    public ScheduledFuture<?> schedule(long interval, Runnable task)
+    {
+        final var ctm = System.currentTimeMillis();
+        final var delay = (ctm / interval + 1) * interval - ctm - 3;
+        return app.scheduler.scheduleAtFixedRate(task, delay, interval, TimeUnit.MILLISECONDS);
     }
     
     @SuppressWarnings("unused")

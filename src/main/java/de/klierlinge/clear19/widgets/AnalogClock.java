@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.time.LocalTime;
 import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 
 public class AnalogClock extends Widget
 {
@@ -13,7 +12,7 @@ public class AnalogClock extends Widget
     public AnalogClock(Widget parent)
     {
         super(parent);
-        app.scheduler.scheduleAtFixedRate(() -> setDirty(), 0, 37, TimeUnit.MILLISECONDS);
+        app.schedule(37, () -> setDirty());
     }
 
     @Override
