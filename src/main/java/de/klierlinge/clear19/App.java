@@ -18,7 +18,7 @@ import javax.swing.WindowConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.klierlinge.clear19.data.system.CpuUsage;
+import de.klierlinge.clear19.data.system.CpuLoad;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
@@ -46,7 +46,7 @@ public class App extends Widget
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
 
-    public final CpuUsage cpuUsage;
+    public final CpuLoad cpuUsage;
     
     public App()
     {
@@ -65,7 +65,7 @@ public class App extends Widget
         imagePanel.setImage(image);
         
         final var si = new SystemInfo();
-        cpuUsage = new CpuUsage(this, si);
+        cpuUsage = new CpuLoad(this, si);
         
         screen = new MainScreen(this, getGraphics());
         
@@ -96,7 +96,7 @@ public class App extends Widget
         });
 
         final var ctm = System.currentTimeMillis();
-        final var delay = (ctm / 40 + 1) * 20 - ctm - 1;
+        final var delay = (ctm / 40 + 1) * 20 - ctm;
         scheduler.scheduleAtFixedRate(() -> {
             if (isDirty())
                 updateLcd();

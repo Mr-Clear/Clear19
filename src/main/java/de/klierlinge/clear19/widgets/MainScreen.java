@@ -5,30 +5,26 @@ import java.awt.Font;
 import java.awt.Graphics2D;
 
 import de.klierlinge.clear19.App;
-import de.klierlinge.clear19.data.system.CpuUsage;
 
 public class MainScreen extends Screen
 {
     final DateTimeWidget dateTimeWidget;
     //final AnalogClock analogClock;
-    final AutoUpdateTextWidget cpuWidget;
+    final DataUpdateTextWidget cpuWidget;
     
     public MainScreen(App parent, Graphics2D g)
     {
         super (parent);
         
-        cpuUsage = new CpuUsage(app);
-        
         dateTimeWidget = new DateTimeWidget(this);
         //analogClock = new AnalogClock(dateTimeWidget);
         
-        cpuWidget = new AutoUpdateTextWidget(this, 1000, () -> {
-            return String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
-                    cpuUsage.getIdleLoad() * 100,
-                    cpuUsage.getUserLoad() * 100,
-                    cpuUsage.getSystemLoad() * 100,
-                    (cpuUsage.getIrqLoad() + cpuUsage.getSoftIrqLoad()) * 100);
-        });
+        cpuWidget = new DataUpdateTextWidget(this, app.cpuUsage, (d) -> 
+            String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
+                d.idle * 100,
+                d.user * 100,
+                d.system * 100,
+                (d.irq + d.softirq) * 100));
         layout(g);
     }
 

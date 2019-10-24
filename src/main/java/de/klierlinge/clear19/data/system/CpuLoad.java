@@ -7,12 +7,13 @@ import de.klierlinge.clear19.data.DataProvider;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor.TickType;
 
-public class CpuUsage extends DataProvider<CpuUsage.UsageData>
+public class CpuLoad extends DataProvider<CpuLoad.Data>
 {
     private long[] lastTicks;
     
-    public CpuUsage(App app, SystemInfo si)
+    public CpuLoad(App app, SystemInfo si)
     {
+        super(new Data());
         app.schedule(1000, () -> {
             final var t = si.getHardware().getProcessor().getSystemCpuLoadTicks();
             if (lastTicks != null)
@@ -24,61 +25,67 @@ public class CpuUsage extends DataProvider<CpuUsage.UsageData>
                 }
                 final var sum = Arrays.stream(diff).sum();
                 final var currentLoad = Arrays.stream(diff).mapToDouble(d -> (double)d / sum).toArray();
-                updateData(new UsageData(currentLoad));
+                updateData(new Data(currentLoad));
             }
             lastTicks = t;
         });
     }
     
-    public static class UsageData
+    public static class Data
     {
         /**
          * CPU utilization that occurred while executing at the user level
          * (application).
          */
-        final double user;
+        public final double user;
         /**
          * CPU utilization that occurred while executing at the user level with nice
          * priority.
          */
-        final double nice;
+        public final double nice;
         /**
          * CPU utilization that occurred while executing at the system level (kernel).
          */
-        final double system;
+        public final double system;
         /**
          * Time that the CPU or CPUs were idle and the system did not have an
          * outstanding disk I/O request.
          */
-        final double idle;
+        public final double idle;
         /**
          * Time that the CPU or CPUs were idle during which the system had an
          * outstanding disk I/O request.
          */
-        final double iowait;
+        public final double iowait;
         /**
          * Time that the CPU used to service hardware IRQs
          */
-        final double irq;
+        public final double irq;
         /**
          * Time that the CPU used to service soft IRQs
          */
-        final double softirq;
+        public final double softirq;
         /**
          * Time which the hypervisor dedicated for other guests in the system. Only
          * supported on Linux.
          */
-        final double steal;
-        public UsageData(double[] d)
+        public final double steal;
+        
+        public Data(double[] d)
         {
-            this.user = d[TickType.USER.getIndex()];
-            this.nice = d[TickType.NICE.getIndex()];
-            this.system = d[TickType.SYSTEM.getIndex()];
-            this.idle = d[TickType.IDLE.getIndex()];
-            this.iowait = d[TickType.IOWAIT.getIndex()];
-            this.irq = d[TickType.IRQ.getIndex()];
-            this.softirq = d[TickType.SOFTIRQ.getIndex()];
-            this.steal = d[TickType.STEAL.getIndex()];
+            user = d[TickType.USER.getIndex()];
+            nice = d[TickType.NICE.getIndex()];
+            system = d[TickType.SYSTEM.getIndex()];
+            idle = d[TickType.IDLE.getIndex()];
+            iowait = d[TickType.IOWAIT.getIndex()];
+            irq = d[TickType.IRQ.getIndex()];
+            softirq = d[TickType.SOFTIRQ.getIndex()];
+            steal = d[TickType.STEAL.getIndex()];
+        }
+        
+        private Data()
+        {
+            user = nice = system = idle = iowait = irq = softirq = steal = 0;
         }
     }
 }

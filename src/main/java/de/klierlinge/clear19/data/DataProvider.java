@@ -9,6 +9,11 @@ public class DataProvider<T>
     private final Set<Consumer<T>> listeners = new HashSet<>();
     private T data;
     
+    protected DataProvider(T initialData)
+    {
+        data= initialData;
+    }
+    
     protected void updateData(T newData)
     {
         data = newData;
@@ -19,7 +24,7 @@ public class DataProvider<T>
         }
     }
     
-    T getData()
+    public T getData()
     {
         return data;
     }

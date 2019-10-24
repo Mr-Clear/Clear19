@@ -1,11 +1,14 @@
 package de.klierlinge.clear19.widgets;
 
-public class DataUpdateTextWidget
+import java.util.function.Function;
+
+import de.klierlinge.clear19.data.DataProvider;
+
+public class DataUpdateTextWidget extends TextWidget
 {
-
-    public DataUpdateTextWidget()
+    public <T> DataUpdateTextWidget(Widget parent, DataProvider<T> provider, Function<T, String> onUpdate)
     {
-        // TODO Auto-generated constructor stub
+        super(parent, onUpdate.apply(provider.getData()));
+        provider.addListener((d) -> setText(onUpdate.apply(d)));
     }
-
 }
