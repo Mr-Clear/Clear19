@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.data.system.CpuLoad;
 import de.klierlinge.clear19.data.system.Memory;
+import de.klierlinge.clear19.data.system.Processes;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
@@ -47,8 +48,11 @@ public class App extends Widget
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
 
+    public final SystemInfo si;
     public final CpuLoad cpuLoad;
     public final Memory memory;
+    public final Processes processes;
+
     
     public App()
     {
@@ -66,9 +70,10 @@ public class App extends Widget
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
         
-        final var si = new SystemInfo();
+        si = new SystemInfo();
         cpuLoad = new CpuLoad(this, si);
         memory = new Memory(this, si);
+        processes = new Processes(this, si);
         
         screen = new MainScreen(this, getGraphics());
         

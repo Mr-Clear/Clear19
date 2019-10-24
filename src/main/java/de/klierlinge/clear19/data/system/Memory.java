@@ -39,21 +39,11 @@ public class Memory extends DataProvider<Memory.Data>
              * The current memory committed to the paging/swap file(s), in bytes
              */
             this.swapUsed = swapUsed;
-            
-            System.out.println("TOT: " + humanReadableByteCount(total) +
-                              " FRE: " + humanReadableByteCount(free) + 
-                              " STOT: " + humanReadableByteCount(swapTotal) + 
-                              " SUSD: " + humanReadableByteCount(swapUsed));
         }
 
         private Data()
         {
             total = free = swapTotal = swapUsed = 0;
-            
-            System.out.println("TOT: " + humanReadableByteCount(total) +
-                              " FRE: " + humanReadableByteCount(free) + 
-                              " STOT: " + humanReadableByteCount(swapTotal) + 
-                              " SUSD: " + humanReadableByteCount(swapUsed));
         }
     }
 

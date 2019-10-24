@@ -3,6 +3,7 @@ package de.klierlinge.clear19.widgets;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.system.Memory;
@@ -13,6 +14,7 @@ public class MainScreen extends Screen
     final DateTimeWidget dateTimeWidget;
     final DataUpdateTextWidget cpuWidget;
     final DataUpdateTextWidget memoryWidget;
+    final DataUpdateTextWidget processesWidget;
 
     public MainScreen(App parent, Graphics2D g)
     {
@@ -33,6 +35,28 @@ public class MainScreen extends Screen
                         Memory.humanReadableByteCount(d.total), 
                         (int)((1 - (double)d.free / d.total) * 100)));
 
+        
+        processesWidget = new DataUpdateTextWidget(this, app.processes,  (d) -> {
+                    final var ps = new ArrayList<>((d.values()));
+                    ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
+                    final var lines = new ArrayList<String>(4);
+                    for(var i = 0; i < 5; i++)
+                    {
+                        if (i < ps.size())
+                        {
+                            final var p = ps.get(i);
+                            lines.add(String.format("%02.0f %s", (p.totalLoad()) * 100 /
+                                                                 app.si.getHardware().getProcessor().getLogicalProcessorCount(), 
+                                                                 p.name));
+                        }
+                        else
+                        {
+                            lines.add("00 ----------------------");
+                        }
+                    }
+                    return  String.join("\n", lines);
+                });
+        
         layout(g);
     }
 
@@ -54,5 +78,10 @@ public class MainScreen extends Screen
         memoryWidget.setSize(getWidth(), cpuWidget.getHeigth());
         memoryWidget.setHAllignment(HAllignment.CENTER);
         memoryWidget.setTopLeft(cpuWidget.getBottomLeft());
+
+        processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
+        processesWidget.setSize(getWidth(), dateTimeWidget.getTop() - memoryWidget.getBottom());
+        processesWidget.setTopLeft(memoryWidget.getBottomLeft());
+        processesWidget.fitFontSize(g);
     }
 }
