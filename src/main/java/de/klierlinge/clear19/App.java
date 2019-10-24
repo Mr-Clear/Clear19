@@ -19,6 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.data.system.CpuLoad;
+import de.klierlinge.clear19.data.system.Memory;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
@@ -46,7 +47,8 @@ public class App extends Widget
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
 
-    public final CpuLoad cpuUsage;
+    public final CpuLoad cpuLoad;
+    public final Memory memory;
     
     public App()
     {
@@ -65,7 +67,8 @@ public class App extends Widget
         imagePanel.setImage(image);
         
         final var si = new SystemInfo();
-        cpuUsage = new CpuLoad(this, si);
+        cpuLoad = new CpuLoad(this, si);
+        memory = new Memory(this, si);
         
         screen = new MainScreen(this, getGraphics());
         

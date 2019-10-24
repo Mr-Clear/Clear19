@@ -81,6 +81,11 @@ public class TextWidget extends Widget
         return new Dimension(max, split.length * fontHeight - fontDescent);
     }
     
+    public void fitFontSize(Graphics2D g)
+    {
+        fitFontSize(g, getSize());
+    }
+    
     public void fitFontSize(Graphics2D g, Dimension size)
     {
         final var testSize = getPreferedSize(g);

@@ -199,6 +199,11 @@ public abstract class Widget
         pos.setSize(size);
     }
     
+    public void setSize(int width, int heigth)
+    {
+        pos.setSize(width, heigth);
+    }
+    
     public void pack(Graphics2D g)
     {
         setSize(getPreferedSize(g));
