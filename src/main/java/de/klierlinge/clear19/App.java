@@ -18,6 +18,7 @@ import javax.swing.WindowConstants;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import de.klierlinge.clear19.data.system.CpuUsage;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
@@ -29,6 +30,7 @@ import net.djpowell.lcdjni.LcdException;
 import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
+import oshi.SystemInfo;
 
 public class App extends Widget
 {
@@ -43,6 +45,8 @@ public class App extends Widget
     private LcdDevice lcdDevice;
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
+
+    public final CpuUsage cpuUsage;
     
     public App()
     {
@@ -59,6 +63,9 @@ public class App extends Widget
         frame.pack();
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
+        
+        final var si = new SystemInfo();
+        cpuUsage = new CpuUsage(this, si);
         
         screen = new MainScreen(this, getGraphics());
         

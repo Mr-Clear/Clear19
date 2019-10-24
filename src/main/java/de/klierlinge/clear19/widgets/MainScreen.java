@@ -12,8 +12,6 @@ public class MainScreen extends Screen
     final DateTimeWidget dateTimeWidget;
     //final AnalogClock analogClock;
     final AutoUpdateTextWidget cpuWidget;
-
-    final CpuUsage cpuUsage;
     
     public MainScreen(App parent, Graphics2D g)
     {
