@@ -1,91 +1,126 @@
 package de.klierlinge.clear19.data.system;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hyperic.sigar.Cpu;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.DataProvider;
-import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor.TickType;
 
 public class CpuLoad extends DataProvider<CpuLoad.Data>
 {
-    private long[] lastTicks;
+    private static final Logger logger = LogManager.getLogger(CpuLoad.class.getName());
     
-    public CpuLoad(App app, SystemInfo si)
+    Cpu lastCpu;
+    
+    public CpuLoad(App app, Sigar si)
     {
         super(new Data());
         app.schedule(1000, () -> {
-            final var t = si.getHardware().getProcessor().getSystemCpuLoadTicks();
-            if (lastTicks != null)
-            {
-                final long[] diff = new long[t.length];
-                for(int i = 0; i < t.length; i++)
+                try
                 {
-                    diff[i] = (t[i] - lastTicks[i]);
+                    final var cpu = si.getCpu();
+                    if (lastCpu != null)
+                    {
+                        final var diffs = merge(cpuStream(cpu), cpuStream(lastCpu),
+                                (a, b) -> new CpuField(a.name,  a.value - b.value))
+                                .collect(Collectors.toList());
+                        final var total = diffs.stream()
+                                               .filter((f) -> f.name == "total")
+                                               .findFirst()
+                                               .get()
+                                               .value;
+                        final var load = diffs.stream()
+                                              .collect(Collectors.toMap((f) -> f.name, (f) -> (double)f.value / total));
+                        updateData(new Data(load));
+                    }
+                    lastCpu = cpu;
                 }
-                final var sum = Arrays.stream(diff).sum();
-                final var currentLoad = Arrays.stream(diff).mapToDouble(d -> (double)d / sum).toArray();
-                updateData(new Data(currentLoad));
-            }
-            lastTicks = t;
+                catch(SigarException e)
+                {
+                    logger.error("Failed to load CPU statistics.", e);
+                }
         });
+    }
+        
+    private static class CpuField
+    {
+        private final String name;
+        private final long value;
+        private CpuField(String name, long value)
+        {
+            this.name = name;
+            this.value = value;
+        }
+        private CpuField(Field field, Cpu object)
+        {
+            this.name = field.getName();
+            long v;
+            try
+            {
+                v = field.getLong(object);
+            }
+            catch(IllegalArgumentException | IllegalAccessException e)
+            {
+                logger.error("Failed to read CPU statistics.", e);
+                v = -1;
+            }
+            value = v;
+        }
+    }
+    
+    private static Stream<CpuField> cpuStream(Cpu cpu)
+    {
+        final Field[] fields = Cpu.class.getDeclaredFields();
+        Arrays.stream(fields).forEach((f) -> f.setAccessible(true));
+        return Arrays.stream(fields).filter((f) -> f.getType() == long.class).map((f) -> new CpuField(f, cpu));
+    }
+    
+    static <A, B, R> Stream<R> merge(Stream<A> as, Stream<B> bs, BiFunction<A, B, R> function)
+    {
+        Iterator<A> i = as.iterator();
+        return bs.filter(x -> i.hasNext())
+                  .map(b -> function.apply(i.next(), b));
     }
     
     public static class Data
     {
-        /**
-         * CPU utilization that occurred while executing at the user level
-         * (application).
-         */
         public final double user;
-        /**
-         * CPU utilization that occurred while executing at the user level with nice
-         * priority.
-         */
         public final double nice;
-        /**
-         * CPU utilization that occurred while executing at the system level (kernel).
-         */
-        public final double system;
-        /**
-         * Time that the CPU or CPUs were idle and the system did not have an
-         * outstanding disk I/O request.
-         */
+        public final double sys;
         public final double idle;
-        /**
-         * Time that the CPU or CPUs were idle during which the system had an
-         * outstanding disk I/O request.
-         */
-        public final double iowait;
-        /**
-         * Time that the CPU used to service hardware IRQs
-         */
+        public final double wait;
         public final double irq;
-        /**
-         * Time that the CPU used to service soft IRQs
-         */
-        public final double softirq;
-        /**
-         * Time which the hypervisor dedicated for other guests in the system. Only
-         * supported on Linux.
-         */
-        public final double steal;
+        public final double softIrq;
+        public final double stolen;
+        public final double total;
         
-        public Data(double[] d)
+        public Data(Map<String, Double> map)
         {
-            user = d[TickType.USER.getIndex()];
-            nice = d[TickType.NICE.getIndex()];
-            system = d[TickType.SYSTEM.getIndex()];
-            idle = d[TickType.IDLE.getIndex()];
-            iowait = d[TickType.IOWAIT.getIndex()];
-            irq = d[TickType.IRQ.getIndex()];
-            softirq = d[TickType.SOFTIRQ.getIndex()];
-            steal = d[TickType.STEAL.getIndex()];
+            user = map.get("user");
+            nice = map.get("nice");
+            sys = map.get("sys");
+            idle = map.get("idle");
+            wait = map.get("wait");
+            irq = map.get("irq");
+            softIrq = map.get("softIrq");
+            stolen = map.get("stolen");
+            total = map.get("total");
         }
         
         private Data()
         {
-            user = nice = system = idle = iowait = irq = softirq = steal = 0;
+            user = nice = sys = idle = wait = irq = softIrq = stolen = total = 0;
         }
     }
 }

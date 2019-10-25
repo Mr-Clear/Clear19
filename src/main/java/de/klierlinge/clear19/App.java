@@ -17,6 +17,7 @@ import javax.swing.WindowConstants;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hyperic.sigar.Sigar;
 
 import de.klierlinge.clear19.data.system.CpuLoad;
 import de.klierlinge.clear19.data.system.Memory;
@@ -32,7 +33,6 @@ import net.djpowell.lcdjni.LcdException;
 import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
-import oshi.SystemInfo;
 
 public class App extends Widget
 {
@@ -48,7 +48,7 @@ public class App extends Widget
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
 
-    public final SystemInfo si;
+    public final Sigar si;
     public final CpuLoad cpuLoad;
     public final Memory memory;
     public final Processes processes;
@@ -70,7 +70,7 @@ public class App extends Widget
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
         
-        si = new SystemInfo();
+        si = new Sigar();
         cpuLoad = new CpuLoad(this, si);
         memory = new Memory(this, si);
         processes = new Processes(this, si);

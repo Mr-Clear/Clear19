@@ -45,9 +45,9 @@
 			<version>2.9.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.oshi</groupId>
-			<artifactId>oshi-core</artifactId>
-			<version>4.1.0</version>
+			<groupId>org.fusesource</groupId>
+			<artifactId>sigar</artifactId>
+			<version>1.6.4</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -1,0 +1,3 @@
+[submodule "lib/sigar"]
+	path = lib/sigar
+	url = https://github.com/AlexYaruki/sigar

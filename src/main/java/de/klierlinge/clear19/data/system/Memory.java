@@ -1,18 +1,30 @@
 package de.klierlinge.clear19.data.system;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.hyperic.sigar.Mem;
+import org.hyperic.sigar.Sigar;
+import org.hyperic.sigar.SigarException;
+
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.DataProvider;
-import oshi.SystemInfo;
 
 public class Memory extends DataProvider<Memory.Data>
 {
-    public Memory(App app, SystemInfo si)
+    private static final Logger logger = LogManager.getLogger(Memory.class.getName());
+    
+    public Memory(App app, Sigar si)
     {
         super(new Data());
         app.schedule(1000, () -> {
-            final var mem = si.getHardware().getMemory();
-            final var vmem = mem.getVirtualMemory();
-            updateData(new Data(mem.getTotal(), mem.getAvailable(), vmem.getSwapTotal(), vmem.getSwapUsed()));
+            try
+            {
+                updateData(new Data(si.getMem()));
+            }
+            catch(SigarException e)
+            {
+                logger.error("Failed to load memory statistics.", e);
+            }
         });
     }
 
@@ -20,30 +32,16 @@ public class Memory extends DataProvider<Memory.Data>
     {
         public final long total;
         public final long free;
-        public final long swapTotal;
-        public final long swapUsed;
-
-        public Data(long total, long free, long swapTotal, long swapUsed)
-        {
-            super();
-            /** The amount of actual physical memory, in bytes. */
-            this.total = total;
-            /** The amount of physical memory currently available, in bytes. */
-            this.free = free;
-            /**
-             * The current size of the paging/swap file(s), in bytes. If the
-             * paging/swap file can be extended, this is a soft limit.
-             */
-            this.swapTotal = swapTotal;
-            /**
-             * The current memory committed to the paging/swap file(s), in bytes
-             */
-            this.swapUsed = swapUsed;
-        }
 
         private Data()
         {
-            total = free = swapTotal = swapUsed = 0;
+            total = free = 0;
+        }
+
+        public Data(Mem mem)
+        {
+            total = mem.getTotal();
+            free = mem.getFree();
         }
     }
 

@@ -26,8 +26,8 @@ public class MainScreen extends Screen
                 (d) -> String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
                         d.idle * 100,
                         d.user * 100,
-                        d.system * 100,
-                        (d.irq + d.softirq) * 100));
+                        d.sys * 100,
+                        (d.irq + d.softIrq) * 100));
 
         memoryWidget = new DataUpdateTextWidget(this, app.memory,
                 (d) -> String.format("%s / %s (%02d%%)",
@@ -45,8 +45,7 @@ public class MainScreen extends Screen
                         if (i < ps.size())
                         {
                             final var p = ps.get(i);
-                            lines.add(String.format("%02.0f %s", (p.totalLoad()) * 100 /
-                                                                 app.si.getHardware().getProcessor().getLogicalProcessorCount(), 
+                            lines.add(String.format("%02.0f %s", (p.totalLoad()) * 100, 
                                                                  p.name));
                         }
                         else
