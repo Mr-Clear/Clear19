@@ -29,7 +29,6 @@ public abstract class Widget
     public Widget(Widget parent)
     {
         this.parent = parent;
-        this.setSize(getPreferedSize(null));
         if (parent != null)
         {
             parent.children.add(this);
@@ -52,6 +51,11 @@ public abstract class Widget
     public void setPos(Rectangle size)
     {
         this.pos = size;
+    }
+
+    public void setPos(Point topLeft, Point bottomRight)
+    {
+        this.pos = new Rectangle(topLeft, new Dimension(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y));
     }
     
     public int getLeft()
@@ -123,6 +127,12 @@ public abstract class Widget
     {
         pos.x = topLeft.x;
         pos.y = topLeft.y;
+    }
+
+    public void setTopLeft(int left, int top)
+    {
+        pos.x = left;
+        pos.y = top;
     }
     
     public Point getTopRight()
@@ -266,8 +276,10 @@ public abstract class Widget
     
     public void paint(Graphics2D g)
     {
+        g.setColor(getBackground());
         paintBackground(g);
         paintChildren(g);
+        g.setColor(getForeground());
         paintForeground(g);
         clearDirty();
     }
@@ -291,7 +303,6 @@ public abstract class Widget
 
     protected void paintBackground(Graphics2D g)
     {
-        g.setColor(getBackground());
         g.fillRect(0, 0, getWidth(), getHeigth());
     }
     

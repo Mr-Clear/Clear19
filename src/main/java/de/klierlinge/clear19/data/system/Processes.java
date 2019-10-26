@@ -41,14 +41,11 @@ public class Processes extends DataProvider<Map<Long, Processes.ProcessData>>
 
     private void update()
     {
-        var s = System.currentTimeMillis();
         try
         {
             final var map = Arrays.stream(si.getProcList())
                                   .boxed()
                                   .collect(Collectors.toMap(pid -> pid, pid -> new ProcessData(si, pid)));
-
-            System.out.println(System.currentTimeMillis() - s);
             updateData(map);
         }
         catch(SigarException e)

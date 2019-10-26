@@ -1,12 +1,14 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.system.Memory;
+import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
 
 public class MainScreen extends Screen
@@ -40,7 +42,7 @@ public class MainScreen extends Screen
                     final var ps = new ArrayList<>((d.values()));
                     ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
                     final var lines = new ArrayList<String>(4);
-                    for(var i = 0; i < 5; i++)
+                    for(var i = 0; i < 10; i++)
                     {
                         if (i < ps.size())
                         {
@@ -62,25 +64,36 @@ public class MainScreen extends Screen
     @Override
     void layout(Graphics2D g)
     {
-        dateTimeWidget.setTopLeft(getTopLeft());
-        dateTimeWidget.setSize(getSize());
+        final var w4 = getWidth() / 4;
+        final var font = new Font("Consolas", Font.PLAIN, 10);
+        
+        final var bV3 = new Border(this, Orientation.VERTICAL);
+        bV3.setPos(new Rectangle(w4 * 3 - 1, 0, 3, 100));
+        
+        final var bH1 = new Border(this, Orientation.HORIZONTAL);
+        
+        dateTimeWidget.setPos(bV3.getTopRight(), getBottomRight());
+        dateTimeWidget.setFont(font);
         dateTimeWidget.fitFontSize(g);
         dateTimeWidget.pack(g);
-        dateTimeWidget.setBottom(getBottom());
+        
+        bV3.setHeight(dateTimeWidget.getHeigth() + 1);
 
-        cpuWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
-        cpuWidget.fitFontSize(g, new Dimension(getWidth(), 40));
-        cpuWidget.pack(g);
-        cpuWidget.setTopLeft(getTopLeft());
+        cpuWidget.setPos(getTopLeft(), new Point(bV3.getLeft(), dateTimeWidget.getBottom() / 2));
+        cpuWidget.setFont(font);
+        cpuWidget.setHAllignment(HAllignment.CENTER);
+        cpuWidget.fitFontSize(g);
 
         memoryWidget.setFont(cpuWidget.getFont());
-        memoryWidget.setSize(getWidth(), cpuWidget.getHeigth());
         memoryWidget.setHAllignment(HAllignment.CENTER);
+        memoryWidget.setSize(cpuWidget.getSize());
         memoryWidget.setTopLeft(cpuWidget.getBottomLeft());
+        
+        bH1.setPos(memoryWidget.getBottomLeft(), new Point(getWidth(), dateTimeWidget.getBottom() + 3));
 
         processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
-        processesWidget.setSize(getWidth(), dateTimeWidget.getTop() - memoryWidget.getBottom());
-        processesWidget.setTopLeft(memoryWidget.getBottomLeft());
+        processesWidget.setSize(getWidth(), getHeigth() - bH1.getBottom());
+        processesWidget.setTopLeft(bH1.getBottomLeft());
         processesWidget.fitFontSize(g);
     }
 }

@@ -1,6 +1,5 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Font;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,7 +24,6 @@ public class DateTimeWidget extends TextWidget
     {
         super(parent, format.format(new Date()));
         this.format = format;
-        setFont(new Font("Consolas", Font.BOLD, 29));
         setHAllignment(HAllignment.CENTER);
         tt.run();
         app.schedule(1000, tt);
