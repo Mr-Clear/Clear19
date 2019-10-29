@@ -8,20 +8,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.hyperic.sigar.Sigar;
 
-import de.klierlinge.clear19.data.system.CpuLoad;
-import de.klierlinge.clear19.data.system.Memory;
-import de.klierlinge.clear19.data.system.Processes;
+import de.klierlinge.clear19.data.system.SystemData;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
@@ -41,18 +35,14 @@ public class App extends Widget
     private final BufferedImage image;
     Screen screen;
 
-    private final ScheduledThreadPoolExecutor scheduler = new ScheduledThreadPoolExecutor(1, (r, e) -> logger.error("Failed to execute task: " + r + " - " + e));
+    public final Scheduler scheduler = new Scheduler();
 
     private LcdConnection lcdCon;
     private LcdDevice lcdDevice;
     private LcdRGBABitmap lcdBmp;
     private final ImagePanel imagePanel;
 
-    public final Sigar si;
-    public final CpuLoad cpuLoad;
-    public final Memory memory;
-    public final Processes processes;
-
+    public final SystemData systemData = new SystemData();
     
     public App()
     {
@@ -69,11 +59,6 @@ public class App extends Widget
         frame.pack();
         image = new BufferedImage(320, 240, BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
-        
-        si = new Sigar();
-        cpuLoad = new CpuLoad(this, si);
-        memory = new Memory(this, si);
-        processes = new Processes(this, si);
         
         screen = new MainScreen(this, getGraphics());
         
@@ -103,12 +88,10 @@ public class App extends Widget
             }
         });
 
-        final var ctm = System.currentTimeMillis();
-        final var delay = (ctm / 40 + 1) * 20 - ctm;
-        scheduler.scheduleAtFixedRate(() -> {
+        scheduler.schedule(10, () -> {
             if (isDirty())
                 updateLcd();
-        }, delay, 40, TimeUnit.MILLISECONDS);
+        });
     }
     
     private void updateLcd()
@@ -150,7 +133,7 @@ public class App extends Widget
     
     private void exit()
     {
-        scheduler.shutdownNow();
+        scheduler.close();
         synchronized(scheduler)
         {
             if (lcdBmp != null)
@@ -189,23 +172,6 @@ public class App extends Widget
     public Dimension getPreferedSize(Graphics2D g)
     {
         return new Dimension(0, 0);
-    }
-    
-    public ScheduledFuture<?> schedule(long interval, Runnable task)
-    {
-        final var ctm = System.currentTimeMillis();
-        final var delay = (ctm / interval + 1) * interval - ctm - 3;
-        return scheduler.scheduleAtFixedRate(() -> {
-            try
-            {
-                task.run();
-            }
-            catch (Throwable t)
-            {
-                logger.error("Error in scheduled task " + task, t);
-                throw t;
-            }
-        }, delay, interval, TimeUnit.MILLISECONDS);
     }
     
     @SuppressWarnings("unused")

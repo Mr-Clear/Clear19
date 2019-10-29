@@ -26,7 +26,7 @@ public class DateTimeWidget extends TextWidget
         this.format = format;
         setHAllignment(HAllignment.CENTER);
         tt.run();
-        app.schedule(1000, tt);
+        app.scheduler.schedule(1000, tt);
     }
 
     public DateFormat getFormat()

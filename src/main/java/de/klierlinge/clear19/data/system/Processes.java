@@ -10,7 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
-import de.klierlinge.clear19.App;
+import de.klierlinge.clear19.Scheduler;
 import de.klierlinge.clear19.data.DataProvider;
 
 public class Processes extends DataProvider<Map<Long, Processes.ProcessData>>
@@ -21,7 +21,7 @@ public class Processes extends DataProvider<Map<Long, Processes.ProcessData>>
     private final Sigar si;
     private final int cpuCount;
 
-    public Processes(App app, Sigar si)
+    public Processes(Sigar si, Scheduler scheduler)
     {
         super(new HashMap<>(0));
         this.si = si;
@@ -36,7 +36,7 @@ public class Processes extends DataProvider<Map<Long, Processes.ProcessData>>
             logger.error("Failed to get cpu count.", e);
         }
         cpuCount = tcpuCount;
-        app.schedule(UPDATE_INTERVAL, () -> update());
+        scheduler.schedule(UPDATE_INTERVAL, () -> update());
     }
 
     private void update()

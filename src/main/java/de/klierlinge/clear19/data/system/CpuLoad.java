@@ -14,7 +14,7 @@ import org.hyperic.sigar.Cpu;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
-import de.klierlinge.clear19.App;
+import de.klierlinge.clear19.Scheduler;
 import de.klierlinge.clear19.data.DataProvider;
 
 public class CpuLoad extends DataProvider<CpuLoad.Data>
@@ -23,10 +23,10 @@ public class CpuLoad extends DataProvider<CpuLoad.Data>
     
     Cpu lastCpu;
     
-    public CpuLoad(App app, Sigar si)
+    public CpuLoad(Sigar si, Scheduler scheduler)
     {
         super(new Data());
-        app.schedule(1000, () -> {
+        scheduler.schedule(1000, () -> {
                 try
                 {
                     final var cpu = si.getCpu();

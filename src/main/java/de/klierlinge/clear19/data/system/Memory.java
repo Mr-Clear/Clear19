@@ -6,17 +6,17 @@ import org.hyperic.sigar.Mem;
 import org.hyperic.sigar.Sigar;
 import org.hyperic.sigar.SigarException;
 
-import de.klierlinge.clear19.App;
+import de.klierlinge.clear19.Scheduler;
 import de.klierlinge.clear19.data.DataProvider;
 
 public class Memory extends DataProvider<Memory.Data>
 {
     private static final Logger logger = LogManager.getLogger(Memory.class.getName());
     
-    public Memory(App app, Sigar si)
+    public Memory(Sigar si, Scheduler scheduler)
     {
         super(new Data());
-        app.schedule(1000, () -> {
+        scheduler.schedule(1000, () -> {
             try
             {
                 updateData(new Data(si.getMem()));
