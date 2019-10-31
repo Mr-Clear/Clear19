@@ -1,16 +1,14 @@
 package de.klierlinge.clear19.data.web;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.List;
 
 import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.DataProvider;
@@ -43,161 +41,143 @@ public class Wetter_com extends DataProvider<Wetter_com.WeatherData>
         }
     }
     
+    @FunctionalInterface
+    private interface colJob 
+    {
+        void doIt(int col, Element td);
+    }
+    
+    private static void handleRow(Element tr, colJob job)
+    {
+        int col = 0;
+        for(final var td : tr.children())
+        {
+            job.doIt(col, td);
+            col++;
+        }
+    }
+    
+    public static List<WeatherPeriod> getWeather(String location) throws IOException
+    {
+        final var url = "https://www.wetter.com/deutschland/" + location + ".html";
+        final var doc = Jsoup.connect(url).get();
+        final var periods = new WeatherPeriod[24];
+        for(int i = 0; i < periods.length; i++)
+            periods[i] = new WeatherPeriod();
+ 
+        final var tbody = doc.getElementById("vhs-detail-diagram").child(0);
+        var tr = tbody.children().first();
+        /* Sunrise/Sunset row */
+        
+        tr = tr.nextElementSibling();
+        /* Line */
+        
+        tr = tr.nextElementSibling();
+        /* Time */
+        var time = LocalDateTime.of(LocalDate.now(), LocalTime.of(Integer.parseInt(tr.getElementsByTag("div").first().text().substring(0, 2)) - 1, 0));
+        for(var i = 0; i < periods.length; i++)
+        {
+            periods[i].start = time;
+            time = time.plusHours(1);
+        }
+
+        tr = tr.nextElementSibling();
+        /* Weather title */
+
+        tr = tr.nextElementSibling();
+        /* Weather */
+        handleRow(tr, (col, td) -> {
+            final var img = td.children().first();
+            periods[col].icon = img.attr("data-single-src");
+            periods[col].shortText = img.attr("alt");
+            periods[col].longText = img.attr("title");
+        });
+
+        tr = tr.nextElementSibling();
+        /* Temperature title */
+
+        tr = tr.nextElementSibling();
+        /* Temperature */
+        handleRow(tr, (col, td) -> periods[col].temp = Integer.parseInt(td.children().first().children().first().text()));
+
+        tr = tr.nextElementSibling();
+        /* POP title */
+
+        tr = tr.nextElementSibling();
+        /* POP */
+        handleRow(tr, (col, td) -> periods[col].pop = Integer.parseInt(td.text()));
+
+        tr = tr.nextElementSibling();
+        /* Rainfall title */
+
+        tr = tr.nextElementSibling();
+        /* Rainfall */
+        handleRow(tr, (col, td) -> periods[col].rainfall = Double.parseDouble(td.text()));
+
+        tr = tr.nextElementSibling();
+        /* Wind title */
+
+        tr = tr.nextElementSibling();
+        /* Wind direction */
+        handleRow(tr, (col, td) -> periods[col].windDirection = td.text());
+
+        tr = tr.nextElementSibling();
+        /* Wind speed */
+        handleRow(tr, (col, td) -> periods[col].windSpeed = Integer.parseInt(td.text()));
+
+        tr = tr.nextElementSibling();
+        /* Pressure title */
+
+        tr = tr.nextElementSibling();
+        /* Pressure */
+        handleRow(tr, (col, td) -> periods[col].pressure = Integer.parseInt(td.text()));
+
+        tr = tr.nextElementSibling();
+        /* Humidity title */
+
+        tr = tr.nextElementSibling();
+        /* Humidity */
+        handleRow(tr, (col, td) -> periods[col].humidity = Integer.parseInt(td.text()));
+
+        tr = tr.nextElementSibling();
+        /* Cloudiness title */
+
+        tr = tr.nextElementSibling();
+        /* Cloudiness */
+        handleRow(tr, (col, td) -> periods[col].cloudiness = Integer.parseInt(td.text().substring(0, 1)));
+
+        return Arrays.asList(periods);
+    }
+    
     public static void main(String... args) throws IOException
     {
-        final var url = "https://www.wetter.com/deutschland/kolbermoor/pullach/DE0008435.html";
-        final var file = "/home/thomas/wetter.com.html";
-        //final var s = Jsoup.connect(url).get();
-        final var doc = Jsoup.parse(new File(file), "UTF-8", url);
-        final var classes = Set.of("hwg-col-period", "hwg-col-icon", "hwg-col-temperature", "hwg-col-rain-icon",
-                                   "hwg-col-rain-text", "hwg-col-wind-icon", "hwg-col-wind-text");
-        final var ignored = Set.of("hwg-row-sunset", "hwg-row-sunrise", "hwg-row-date", "hwg-row-video",
-                                  "hwg-row-ad", "hwg-row-button");
-        final var periods = new TreeMap<Integer, Period>();
-        var date = LocalDate.of(2019, 10, 30); // TODO: Replace this with current date;
-        for(final var div : doc.getElementsByClass("hourly-weather-grid").get(0).children())
-        {
-            boolean found = false;
-            for(final var c : classes)
-            {
-                final var dataNumString = div.attr("data-num");
-                if (!dataNumString.isEmpty() && div.classNames().contains(c))
-                {
-                    final Period period;
-                    final var dataNum = Integer.parseInt(dataNumString);
-                    if (periods.containsKey(dataNum))
-                    {
-                        period = periods.get(dataNum);
-                    }
-                    else
-                    {
-                        period = new Period();
-                        periods.put(dataNum, period);
-                    }
-                    
-                    switch(c)
-                    {
-                        case "hwg-col-period" ->
-                        {
-                            final var dString = div.getElementsByClass("delta").get(0).text();
-                            period.start = LocalDateTime.of(date, LocalTime.of(Integer.parseInt(dString.substring(0, 2)), Integer.parseInt(dString.substring(3, 5))));
-                            period.end = LocalDateTime.of(date, LocalTime.of(Integer.parseInt(dString.substring(8, 10)), Integer.parseInt(dString.substring(11, 13))));
-                            if(period.end.getHour() == 0)
-                            {
-                                period.end = period.end.plusDays(1);
-                                date = date.plusDays(1);
-                            }
-                            period.text = div.getElementsByClass("vhs-text--small").get(0).text();
-                        }
-                        case "hwg-col-icon" ->
-                        {
-                            final var img = div.getElementsByTag("img").get(0);
-                            period.icon = img.attr("data-single-src");
-                            period.iconAlt = img.attr("alt");
-                            period.iconText = img.attr("title");
-                            
-                        }
-                        case "hwg-col-temperature" ->
-                        {
-                            //inal var img = div.getElementsByTag("img").get(0);
-                            period.temp = Integer.parseInt(div.text().replace("°C", ""));
-                        }
-                        case "hwg-col-rain-icon" ->
-                        {
-                            final var cs = div.getElementsByClass("icon--x-large").get(0).classNames();
-                            cs.remove("icon--x-large");
-                            period.rainIcon = cs.iterator().next();
-                        }
-                        case "hwg-col-rain-text" ->
-                        {
-                            final var regEx = Pattern.compile("(\\d+) %( (<)?(\\d+(,\\d*)?) l/m²)?");
-                            final var matcher = regEx.matcher(div.text());
-                            if(matcher.matches())
-                            {
-                                period.pop = Integer.parseInt(matcher.group(1));
-                                if(matcher.group(4) != null)
-                                    period.rainfall = Double.parseDouble(matcher.group(4).replace(',', '.'));
-                                else
-                                    period.rainfall = 0;
-                                period.rainfallSmallerThan = matcher.group(4) != null;
-                            }
-                            else
-                                System.out.println("Failed to parse rain.");
-                        }
-                        case "hwg-col-wind-text" ->
-                        {
-                            final var regEx = Pattern.compile("(\\w+) (\\d+) km/h");
-                            final var matcher = regEx.matcher(div.text());
-                            if(matcher.matches())
-                            {
-                                period.windDirection = matcher.group(1);
-                                period.windSpeed = Integer.parseInt(matcher.group(2));
-                            }
-                            else
-                                System.out.println("Failed to parse wind.");
-                        }
-                        case "hwg-col-wind-icon" ->
-                        {
-                            /* Ignore this. */
-                        }
-                        default -> 
-                        {
-                            System.out.println("Unimplemented element: " + div);
-                        }
-                    }
-                    found = true;
-                }
-            }
-            for(final var c : ignored)
-            {
-                if (div.classNames().contains(c))
-                {
-                    found = true;
-                    break;
-                }
-            }
-            
-            if(!found)
-                System.out.println("UNKNOWN: " + div.siblingIndex() + div);
-        }
-        for(final var p : periods.values())
+        for(final var p : getWeather("DE0008184003"))
             System.out.println("P: " + p);
     }
     
-    public static class Period
+    public static class WeatherPeriod
     {
         private LocalDateTime start;
-        private LocalDateTime end;
-        private String text;
+        private String shortText;
+        private String longText;
         private String icon;
-        private String iconAlt;
-        private String iconText;
         private int temp;
-        private String rainIcon;
         private int pop; /* Probability of precipitation */
         private double rainfall;
-        private boolean rainfallSmallerThan;
         private String windDirection;
         private int windSpeed;
+        private int pressure;
+        private int humidity;
+        private int cloudiness;
         
         public LocalDateTime getStart()
         {
             return start;
         }
         
-        public LocalDateTime getEnd()
+        public String getLongText()
         {
-            return end;
-        }
-        
-        public Duration getDuration()
-        {
-            return Duration.between(start, end);
-        }
-        
-        public String getText()
-        {
-            return text;
+            return longText;
         }
 
         public String getIcon()
@@ -205,24 +185,14 @@ public class Wetter_com extends DataProvider<Wetter_com.WeatherData>
             return icon;
         }
 
-        public String getIconAlt()
+        public String getShortText()
         {
-            return iconAlt;
-        }
-
-        public String getIconText()
-        {
-            return iconText;
+            return shortText;
         }
 
         public int getTemp()
         {
             return temp;
-        }
-
-        public String getRainIcon()
-        {
-            return rainIcon;
         }
 
         public int getPop()
@@ -235,11 +205,6 @@ public class Wetter_com extends DataProvider<Wetter_com.WeatherData>
             return rainfall;
         }
 
-        public boolean isRainfallSmallerThan()
-        {
-            return rainfallSmallerThan;
-        }
-
         public String getWindDirection()
         {
             return windDirection;
@@ -249,43 +214,28 @@ public class Wetter_com extends DataProvider<Wetter_com.WeatherData>
         {
             return windSpeed;
         }
-
-        public boolean isValid()
-        {
-            return start != null && end != null;
-        }
         
+        public int getPressure()
+        {
+            return pressure;
+        }
+
+        public int getHumidity()
+        {
+            return humidity;
+        }
+
+        public int getCloudiness()
+        {
+            return cloudiness;
+        }
+
         @Override
         public String toString()
         {
-            if(!isValid())
-                return "INVALID";
-            final var sb = new StringBuilder();
-            if (getDuration().getSeconds() == 3600)
-                sb.append(String.format("%02d:%02d", start.getHour(), start.getMinute()));
-            else
-                sb.append(String.format("%02d:%02d - %02d:%02d", start.getHour(), start.getMinute(), end.getHour(), end.getMinute()));
-            
-            sb.append(" ");
-            sb.append(temp);
-            sb.append("°C ");
-            
-            sb.append(text);
-            sb.append(" ");
-            
-            sb.append(pop);
-            sb.append("% ");
-            if(rainfallSmallerThan)
-                sb.append('<');
-            sb.append(rainfall);
-            sb.append(" l/m² ");
-            
-            sb.append(windDirection);
-            sb.append(" ");
-            sb.append(windSpeed);
-            sb.append(" km/h ");
-            
-            return sb.toString();
+            return String.format("%02d:%02d %2d°C %2d%% %.2f l/m² %2s %d km/h %4d hPa %2d %% %d/8 %s",
+                    start.getHour(), start.getMinute(), temp, pop, rainfall, windDirection, windSpeed,
+                    pressure, humidity, cloudiness, shortText);
         }
     }
     
