@@ -1,7 +1,6 @@
 package de.klierlinge.clear19;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
@@ -19,6 +18,7 @@ import de.klierlinge.clear19.data.system.SystemData;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.Widget;
+import de.klierlinge.clear19.widgets.geometry.Size;
 import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
 import net.djpowell.lcdjni.LcdConnection;
@@ -169,9 +169,9 @@ public class App extends Widget
     }    
 
     @Override
-    public Dimension getPreferedSize(Graphics2D g)
+    public Size getPreferedSize(Graphics2D g)
     {
-        return new Dimension(0, 0);
+        return Size.ZERO;
     }
     
     @SuppressWarnings("unused")

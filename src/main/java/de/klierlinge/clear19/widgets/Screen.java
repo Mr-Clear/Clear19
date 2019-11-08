@@ -1,22 +1,23 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+
+import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
+import de.klierlinge.clear19.widgets.geometry.Rectangle;
+import de.klierlinge.clear19.widgets.geometry.Size;
 
 public abstract class Screen extends Widget
 {
     public Screen(Widget parent)
     {
         super(parent);
-        setPos(new Rectangle(new Point(0, 0), getPreferedSize(null)));
+        setAbsRect(new Rectangle(AnchoredPoint.ZERO, getPreferedSize(null)));
     }
 
     @Override
-    public Dimension getPreferedSize(Graphics2D g)
+    public Size getPreferedSize(Graphics2D g)
     {
-        return new Dimension(320, 240);
+        return new Size(320, 240);
     }
 
     @Override

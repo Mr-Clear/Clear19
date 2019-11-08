@@ -2,14 +2,16 @@ package de.klierlinge.clear19.widgets;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.util.ArrayList;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.data.system.Memory;
 import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
+import de.klierlinge.clear19.widgets.geometry.Anchor;
+import de.klierlinge.clear19.widgets.geometry.AnchorH;
+import de.klierlinge.clear19.widgets.geometry.Vector;
+import de.klierlinge.clear19.widgets.geometry.Rectangle;
 
 public class MainScreen extends Screen
 {
@@ -17,6 +19,7 @@ public class MainScreen extends Screen
     final DataUpdateTextWidget cpuWidget;
     final DataUpdateTextWidget memoryWidget;
     final DataUpdateTextWidget processesWidget;
+    final WeatherWidget weatherWidget;
 
     public MainScreen(App parent, Graphics2D g)
     {
@@ -36,6 +39,8 @@ public class MainScreen extends Screen
                         Memory.humanReadableByteCount(d.total - d.free), 
                         Memory.humanReadableByteCount(d.total), 
                         (int)((1 - (double)d.free / d.total) * 100)));
+        
+        weatherWidget = new WeatherWidget(this);
 
         
         processesWidget = new DataUpdateTextWidget(this, app.systemData.processes,  (d) -> {
@@ -68,32 +73,32 @@ public class MainScreen extends Screen
         final var font = new Font("Consolas", Font.PLAIN, 10);
         
         final var bV3 = new Border(this, Orientation.VERTICAL);
-        bV3.setPos(new Rectangle(w4 * 3 - 1, 0, 3, 100));
+        bV3.setAbsRect(new Rectangle(w4 * 3 - 1, 0, 3, 100, Anchor.TOP_LEFT));
         
         final var bH1 = new Border(this, Orientation.HORIZONTAL);
         
-        dateTimeWidget.setPos(bV3.getTopRight(), getBottomRight());
+        dateTimeWidget.setAbsRect(new Rectangle(bV3.getAbsPos(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT), getAbsPos(Anchor.BOTTOM_RIGHT)));
         dateTimeWidget.setFont(font);
         dateTimeWidget.fitFontSize(g);
-        dateTimeWidget.pack(g);
+        dateTimeWidget.pack(g, Anchor.TOP_LEFT);
         
-        bV3.setHeight(dateTimeWidget.getHeigth() + 1);
+        bV3.setAbsRect(bV3.getAbsRect().withHeight(dateTimeWidget.getHeight() + 1, AnchorH.TOP));
 
-        cpuWidget.setPos(getTopLeft(), new Point(bV3.getLeft(), dateTimeWidget.getBottom() / 2));
+        cpuWidget.setAbsRect(getAbsPos(Anchor.TOP_LEFT), new Vector(bV3.getAbsLeft(), dateTimeWidget.getAbsBottom() / 2));
         cpuWidget.setFont(font);
         cpuWidget.setHAllignment(HAllignment.CENTER);
         cpuWidget.fitFontSize(g);
 
         memoryWidget.setFont(cpuWidget.getFont());
         memoryWidget.setHAllignment(HAllignment.CENTER);
-        memoryWidget.setSize(cpuWidget.getSize());
-        memoryWidget.setTopLeft(cpuWidget.getBottomLeft());
+        memoryWidget.setAbsRect(cpuWidget.getAbsPos(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT), cpuWidget.getSize());
         
-        bH1.setPos(memoryWidget.getBottomLeft(), new Point(getWidth(), dateTimeWidget.getBottom() + 3));
+        bH1.setAbsRect(memoryWidget.getAbsPos(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT), new Vector(getWidth(), dateTimeWidget.getAbsBottom() + 3));
 
+        weatherWidget.setAbsRect(getAbsPos(Anchor.BOTTOM_LEFT), weatherWidget.getPreferedSize(g));
+        
         processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
-        processesWidget.setSize(getWidth(), getHeigth() - bH1.getBottom());
-        processesWidget.setTopLeft(bH1.getBottomLeft());
+        processesWidget.setAbsRect(bH1.getAbsPos(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT), weatherWidget.getAbsPos(Anchor.TOP_RIGHT));
         processesWidget.fitFontSize(g);
     }
 }

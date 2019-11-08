@@ -1,9 +1,10 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.time.LocalTime;
 import java.util.Timer;
+
+import de.klierlinge.clear19.widgets.geometry.Size;
 
 public class AnalogClock extends Widget
 {
@@ -19,7 +20,7 @@ public class AnalogClock extends Widget
     public void paintForeground(Graphics2D g)
     {
         final var width = getWidth();
-        final var height = getHeigth();
+        final var height = getHeight();
         final var midX = width / 2;
         final var midY = height / 2;
         g.setColor(getForeground());
@@ -31,9 +32,9 @@ public class AnalogClock extends Widget
     }
 
     @Override
-    public Dimension getPreferedSize(Graphics2D g)
+    public Size getPreferedSize(Graphics2D g)
     {
-        return new Dimension(100, 100);
+        return new Size(100, 100);
     }
 
 }

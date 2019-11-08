@@ -1,10 +1,7 @@
 package de.klierlinge.clear19.widgets;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +11,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.App;
+import de.klierlinge.clear19.widgets.geometry.Anchor;
+import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
+import de.klierlinge.clear19.widgets.geometry.Vector;
+import de.klierlinge.clear19.widgets.geometry.Rectangle;
+import de.klierlinge.clear19.widgets.geometry.Size;
 
 public abstract class Widget
 {
@@ -21,7 +23,7 @@ public abstract class Widget
     private final Widget parent;
     protected final App app;
     protected List<Widget> children = new ArrayList<>();
-    private Rectangle pos = new Rectangle(0, 0, 0, 0);
+    private Rectangle rectangle = Rectangle.ZEROS;
     private boolean dirty = true;
     private Color background = Color.BLACK;
     private Color foreground = Color.WHITE;
@@ -34,7 +36,7 @@ public abstract class Widget
             parent.children.add(this);
             setBackground(parent.background);
             setForeground(parent.foreground);
-            this.setCenter(parent.getCenter());
+            setAbsRect(new Rectangle(parent.getAbsRect().getPosition(Anchor.CENTER_CENTER), Size.ZERO));
             app = parent.app;
         }
         else
@@ -43,180 +45,35 @@ public abstract class Widget
         }
     }
     
-    public Rectangle getPos()
+    public Rectangle getAbsRect()
     {
-        return pos;
+        return rectangle;
+    }
+    
+    public Rectangle getRelRect()
+    {
+        return rectangle.withPosition(rectangle.getPosition(Anchor.TOP_LEFT).add(parent.getAbsPos(Anchor.TOP_LEFT)));
     }
 
-    public void setPos(Rectangle size)
+    public void setAbsRect(Rectangle rectangle)
     {
-        this.pos = size;
+        this.rectangle = rectangle;
+        setDirty();
+    }
+    
+    public void setRelRect(Rectangle rectangle)
+    {
+        setAbsRect(rectangle.moved(parent.getAbsPos(Anchor.TOP_LEFT)));
     }
 
-    public void setPos(Point topLeft, Point bottomRight)
+    public void setAbsRect(AnchoredPoint from, Vector to)
     {
-        this.pos = new Rectangle(topLeft, new Dimension(bottomRight.x - topLeft.x, bottomRight.y - topLeft.y));
+        setAbsRect(new Rectangle(from, to));
     }
-    
-    public int getLeft()
+        
+    public void pack(Graphics2D g, Anchor anchor)
     {
-        return pos.x;
-    }
-    
-    public void setLeft(int left)
-    {
-        pos.x = left;
-    }
-    
-    public int getRight()
-    {
-        return pos.x + pos.width;
-    }
-    
-    public void setRight(int right)
-    {
-        pos.x = right - pos.width;
-    }
-    
-    public int getTop()
-    {
-        return pos.y;
-    }
-    
-    public void setTop(int top)
-    {
-        pos.y = top;
-    }
-    
-    public int getBottom()
-    {
-        return pos.y + pos.height;
-    }
-    
-    public void setBottom(int bottom)
-    {
-        pos.y = bottom - pos.height;
-    }
-    
-    public int getCenterX()
-    {
-        return pos.x + pos.width / 2;
-    }
-    
-    public void setCenterX(int centerX)
-    {
-        pos.x = centerX - pos.width / 2;
-    }
-    
-    public int getCenterY()
-    {
-        return pos.y + pos.height / 2;
-    }
-    
-    public void setCentery(int centerY)
-    {
-        pos.y = centerY - pos.height / 2;
-    }
-    
-    public Point getTopLeft()
-    {
-        return new Point(pos.x, pos.y); 
-    }
-    
-    public void setTopLeft(Point topLeft)
-    {
-        pos.x = topLeft.x;
-        pos.y = topLeft.y;
-    }
-
-    public void setTopLeft(int left, int top)
-    {
-        pos.x = left;
-        pos.y = top;
-    }
-    
-    public Point getTopRight()
-    {
-        return new Point(pos.x + pos.width, pos.y);
-    }
-    
-    public void setTopRight(Point topRight)
-    {
-        pos.x = topRight.x - pos.width;
-        pos.y = topRight.y;
-    }
-    
-    public Point getBottomLeft()
-    {
-        return new Point(pos.x, pos.y + pos.height); 
-    }
-    
-    public void setBottomLeft(Point bottomLeft)
-    {
-        pos.x = bottomLeft.x;
-        pos.y = bottomLeft.y - pos.height;
-    }
-    
-    public Point getBottomRight()
-    {
-        return new Point(pos.x + pos.width, pos.y + pos.height);
-    }
-    
-    public void setBottomRight(Point bottomRight)
-    {
-        pos.x = bottomRight.x - pos.width;
-        pos.y = bottomRight.y - pos.height;
-    }
-    
-    public Point getCenter()
-    {
-        return new Point(getCenterX(), getCenterY());
-    }
-    
-    public void setCenter(Point center)
-    {
-        setCenterX(center.x);
-        setCentery(center.y);
-    }
-    
-    public int getWidth()
-    {
-        return pos.width;
-    }
-    
-    public void setWidth(int width)
-    {
-        pos.width = width;
-    }
-    
-    public int getHeigth()
-    {
-        return pos.height;
-    }
-    
-    public void setHeight(int height)
-    {
-        pos.height = height;
-    }
-    
-    public Dimension getSize()
-    {
-        return pos.getSize();
-    }
-    
-    public void setSize(Dimension size)
-    {
-        pos.setSize(size);
-    }
-    
-    public void setSize(int width, int heigth)
-    {
-        pos.setSize(width, heigth);
-    }
-    
-    public void pack(Graphics2D g)
-    {
-        setSize(getPreferedSize(g));
+        setAbsRect(getAbsRect().withSize(getPreferedSize(g), anchor));
     }
 
     public Color getBackground()
@@ -251,6 +108,13 @@ public abstract class Widget
     {
         return parent;
     }
+    
+    public Screen getScreen()
+    {
+        if(this instanceof Screen)
+            return (Screen)this;
+        return parent.getScreen();
+    }
 
     public boolean isDirty()
     {
@@ -272,7 +136,6 @@ public abstract class Widget
     {
         dirty = false;
     }
-
     
     public void paint(Graphics2D g)
     {
@@ -292,9 +155,9 @@ public abstract class Widget
             {
                 final var oldTx = g.getTransform();
                 final var tx = new AffineTransform();
-                tx.setToTranslation(child.getPos().getX(), child.getPos().getY());
+                tx.setToTranslation(child.getAbsRect().getLeft(), child.getAbsRect().getTop());
                 g.setTransform(tx);
-                g.setClip(new Rectangle(child.getSize()));
+                g.setClip(new java.awt.Rectangle(child.getAbsRect().getSize().toAwtDimension()));
                 child.paint(g);
                 g.setTransform(oldTx);
             }
@@ -303,9 +166,53 @@ public abstract class Widget
 
     protected void paintBackground(Graphics2D g)
     {
-        g.fillRect(0, 0, getWidth(), getHeigth());
+        g.fillRect(0, 0, getAbsRect().getWidth(), getAbsRect().getHeight());
+    }
+
+    public void setAbsRect(AnchoredPoint position, Size size)
+    {
+        setAbsRect(new Rectangle(position, size));
     }
     
+    public void setSize(Size size, Anchor anchor)
+    {
+        setAbsRect(getAbsRect().withSize(size, anchor));
+    }
+    
+    /* Delegate Methods for geometry information: */   
+    public Size getSize()
+    {
+        return getAbsRect().getSize();
+    }
+    public int getWidth()
+    {
+        return getAbsRect().getWidth();
+    }
+    public int getHeight()
+    {
+        return getAbsRect().getHeight();
+    }
+    public AnchoredPoint getAbsPos(Anchor anchor)
+    {
+        return getAbsRect().getPosition(anchor);
+    }
+    public int getAbsLeft()
+    {
+        return getAbsRect().getLeft();
+    }
+    public int getAbsRight()
+    {
+        return getAbsRect().getRight();
+    }
+    public int getAbsTop()
+    {
+        return getAbsRect().getTop();
+    }
+    public int getAbsBottom()
+    {
+        return getAbsRect().getBottom();
+    }
+
     abstract public void paintForeground(Graphics2D g);
-    abstract public Dimension getPreferedSize(Graphics2D g);
+    abstract public Size getPreferedSize(Graphics2D g);
 }

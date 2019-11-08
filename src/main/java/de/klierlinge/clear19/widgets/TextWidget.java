@@ -1,10 +1,11 @@
 package de.klierlinge.clear19.widgets;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.util.Objects;
+
+import de.klierlinge.clear19.widgets.geometry.Size;
 
 public class TextWidget extends Widget
 {
@@ -33,8 +34,8 @@ public class TextWidget extends Widget
         final var top = switch(vAllignment)
                 {
                     case TOP -> 0;
-                    case CENTER ->(getHeigth() - textHeight) / 2;
-                    case BOTTOM -> getHeigth() - textHeight;
+                    case CENTER ->(getHeight() - textHeight) / 2;
+                    case BOTTOM -> getHeight() - textHeight;
                 };
         
         int line = 0;
@@ -54,16 +55,16 @@ public class TextWidget extends Widget
     }
     
     @Override
-    public Dimension getPreferedSize(Graphics2D g)
+    public Size getPreferedSize(Graphics2D g)
     {
         return getPreferedSize(g, font, text);
     }
     
-    public static Dimension getPreferedSize(Graphics2D g, Font testFont, String testText)
+    public static Size getPreferedSize(Graphics2D g, Font testFont, String testText)
     {
         if(g == null)
         {
-            return new Dimension(100, 10);
+            return new Size(100, 10);
         }
         g.setFont(testFont);
         final FontMetrics fontMetrics = g.getFontMetrics();
@@ -77,7 +78,7 @@ public class TextWidget extends Widget
             if (stringWidth > max)
                 max = stringWidth;
         }
-        return new Dimension(max, split.length * fontHeight - fontDescent);
+        return new Size(max, split.length * fontHeight - fontDescent);
     }
     
     public void fitFontSize(Graphics2D g)
@@ -85,11 +86,11 @@ public class TextWidget extends Widget
         fitFontSize(g, getSize());
     }
     
-    public void fitFontSize(Graphics2D g, Dimension size)
+    public void fitFontSize(Graphics2D g, Size size)
     {
         final var testSize = getPreferedSize(g);
-        final var sx = (float)testSize.width / size.width;
-        final var sy = (float)testSize.height / size.height;
+        final var sx = (float)testSize.getWidth() / size.getWidth();
+        final var sy = (float)testSize.getHeight() / size.getHeight();
         final var fontSize = getFont().getSize2D() / Math.max(sx, sy);
         setFont(getFont().deriveFont(fontSize));
     }
