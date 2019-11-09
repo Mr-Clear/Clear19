@@ -2,12 +2,12 @@ package de.klierlinge.clear19.widgets.geometry;
 
 public enum AnchorH
 {
-    TOP,
+    LEFT,
     CENTER,
-    BOTTOM;
+    RIGHT;
     
     public Anchor with(AnchorV other)
     {
-        return Anchor.combine(this, other);
+        return Anchor.combine(other, this);
     }
 }

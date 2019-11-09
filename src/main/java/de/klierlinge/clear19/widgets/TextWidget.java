@@ -24,6 +24,7 @@ public class TextWidget extends Widget
     public void paintForeground(Graphics2D g)
     {
         g.setColor(getForeground());
+        g.setFont(font);
         final FontMetrics fontMetrics = g.getFontMetrics();
         final var fontHeight = fontMetrics.getHeight();
         final var fontAscent = fontMetrics.getAscent();

@@ -29,6 +29,11 @@ public class Scheduler implements AutoCloseable
             }
         }, delay, interval, TimeUnit.MILLISECONDS);
     }
+    
+    public ScheduledFuture<?> scheduleOnce(long delay, Runnable task)
+    {
+        return scheduler.schedule(task, delay, TimeUnit.MILLISECONDS);
+    }
 
     @Override
     public void close()

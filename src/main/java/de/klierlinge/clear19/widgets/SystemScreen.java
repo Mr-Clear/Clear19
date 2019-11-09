@@ -10,21 +10,20 @@ import de.klierlinge.clear19.data.system.Memory;
 import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
 import static  de.klierlinge.clear19.widgets.geometry.Anchor.*;
-import static  de.klierlinge.clear19.widgets.geometry.AnchorV.*;
+import de.klierlinge.clear19.widgets.geometry.AnchorV;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Vector;
 
-public class MainScreen extends Screen
+public class SystemScreen extends Screen
 {
     final DateTimeWidget dateTimeWidget;
     final DataUpdateTextWidget cpuWidget;
     final DataUpdateTextWidget memoryWidget;
     final DataUpdateTextWidget processesWidget;
-    final WeatherWidget weatherWidget;
 
-    public MainScreen(App parent, Graphics2D g)
+    public SystemScreen(App parent, Graphics2D g)
     {
-        super(parent, g, "Main Screen");
+        super(parent, g, "System");
 
         dateTimeWidget = new DateTimeWidget(this);
 
@@ -40,15 +39,13 @@ public class MainScreen extends Screen
                         Memory.humanReadableByteCount(d.total - d.free), 
                         Memory.humanReadableByteCount(d.total), 
                         (int)((1 - (double)d.free / d.total) * 100)));
-        
-        weatherWidget = new WeatherWidget(this);
 
         
         processesWidget = new DataUpdateTextWidget(this, app.systemData.processes,  (d) -> {
                     final var ps = new ArrayList<>((d.values()));
                     ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
                     final var lines = new ArrayList<String>(4);
-                    for(var i = 0; i < 4; i++)
+                    for(var i = 0; i < 10; i++)
                     {
                         if (i < ps.size())
                         {
@@ -73,16 +70,16 @@ public class MainScreen extends Screen
         final var font = new Font("Consolas", Font.PLAIN, 10);
         
         final var bV3 = new Border(this, Orientation.VERTICAL);
-        bV3.setRelRect(new Rectangle(w4 * 3 - 1, 0, 3, 100, TOP_LEFT));
+        bV3.setAbsRect(new Rectangle(w4 * 3 - 1, 0, 3, 100, TOP_LEFT));
         
         final var bH1 = new Border(this, Orientation.HORIZONTAL);
         
-        dateTimeWidget.setRelRect(new Rectangle(bV3.getRelPos(TOP_RIGHT).anchored(TOP_LEFT), getRelPos(BOTTOM_RIGHT)));
+        dateTimeWidget.setAbsRect(bV3.getAbsPos(TOP_RIGHT).anchored(TOP_LEFT), getAbsPos(BOTTOM_RIGHT));
         dateTimeWidget.setFont(font);
         dateTimeWidget.fitFontSize(g);
         dateTimeWidget.pack(g, TOP_LEFT);
         
-        bV3.setRelRect(bV3.getRelRect().withHeight(dateTimeWidget.getHeight() + 1, TOP));
+        bV3.setHeight(dateTimeWidget.getHeight() + 1, AnchorV.TOP);
 
         cpuWidget.setRelRect(getRelPos(TOP_LEFT), new Vector(bV3.getRelLeft(), dateTimeWidget.getRelBottom() / 2));
         cpuWidget.setFont(font);
@@ -92,13 +89,11 @@ public class MainScreen extends Screen
         memoryWidget.setFont(cpuWidget.getFont());
         memoryWidget.setHAllignment(HAllignment.CENTER);
         memoryWidget.setRelRect(cpuWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), cpuWidget.getSize());
-        
+
         bH1.setRelRect(memoryWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Vector(getWidth(), dateTimeWidget.getRelBottom() + 3));
 
-        weatherWidget.setRelRect(getRelPos(BOTTOM_LEFT), weatherWidget.getPreferedSize(g));
-        
         processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
-        processesWidget.setRelRect(bH1.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), weatherWidget.getRelPos(TOP_RIGHT));
+        processesWidget.setRelRect(bH1.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), getSize().toVector());
         processesWidget.fitFontSize(g);
     }
 
@@ -107,9 +102,9 @@ public class MainScreen extends Screen
     {
         switch(button)
         {
-            case UP -> 
+            case DOWN -> 
             {
-                app.setCurrentScreen(app.systemScreen);
+                app.setCurrentScreen(app.mainScreen);
             }
             default -> { /* Do nothing. */}
         }

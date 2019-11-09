@@ -120,14 +120,14 @@ public final class Rectangle
         return new Rectangle(getPosition(anchor).anchored(anchor), newSize);
     }
     
-    public Rectangle withHeight(int newHeight, AnchorH anchor)
+    public Rectangle withHeight(int newHeight, AnchorV anchor)
     {
-        return new Rectangle(getLeft(), getTop(), getWidth(), newHeight, anchor.with(AnchorV.LEFT));
+        return new Rectangle(getLeft(), getTop(), getWidth(), newHeight, anchor.with(AnchorH.LEFT));
     }
     
-    public Rectangle withWidth(int newWidth, AnchorV anchor)
+    public Rectangle withWidth(int newWidth, AnchorH anchor)
     {
-        return new Rectangle(getLeft(), getTop(), newWidth, getHeight(), anchor.with(AnchorH.TOP));
+        return new Rectangle(getLeft(), getTop(), newWidth, getHeight(), anchor.with(AnchorV.TOP));
     }
     
     public int getLeft()
@@ -197,5 +197,10 @@ public final class Rectangle
     public String toString()
     {
         return "Position [x=" + x + ", y=" + y + ", width=" + width + ", height=" + height + "]";
+    }
+
+    public java.awt.Rectangle toAwtRect()
+    {
+        return new java.awt.Rectangle(getLeft(), getTop(), getWidth(), getHeight());
     }
 }

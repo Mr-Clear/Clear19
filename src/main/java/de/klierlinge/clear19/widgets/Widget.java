@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.widgets.geometry.Anchor;
+import de.klierlinge.clear19.widgets.geometry.AnchorH;
+import de.klierlinge.clear19.widgets.geometry.AnchorV;
 import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
 import de.klierlinge.clear19.widgets.geometry.Vector;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
@@ -22,8 +24,11 @@ public abstract class Widget
     private static final Logger logger = LogManager.getLogger(Widget.class.getName());
     private final Widget parent;
     protected final App app;
+    protected final Screen screen;
     protected List<Widget> children = new ArrayList<>();
     private Rectangle rectangle = Rectangle.ZEROS;
+    private boolean isVisible = true;
+    private int layer;
     private boolean dirty = true;
     private Color background = Color.BLACK;
     private Color foreground = Color.WHITE;
@@ -38,10 +43,15 @@ public abstract class Widget
             setForeground(parent.foreground);
             setAbsRect(new Rectangle(parent.getAbsRect().getPosition(Anchor.CENTER_CENTER), Size.ZERO));
             app = parent.app;
+            if (this instanceof Screen)
+                screen = (Screen)this;
+            else
+                screen = parent.screen;
         }
         else
         {
             app = (App)this;
+            screen = null;
         }
     }
     
@@ -69,6 +79,36 @@ public abstract class Widget
     public void setAbsRect(AnchoredPoint from, Vector to)
     {
         setAbsRect(new Rectangle(from, to));
+    }
+
+    public void setRelRect(AnchoredPoint from, Vector to)
+    {
+        setRelRect(new Rectangle(from, to));
+    }
+
+    public void setAbsRect(AnchoredPoint position, Size size)
+    {
+        setAbsRect(new Rectangle(position, size));
+    }
+
+    public void setRelRect(AnchoredPoint position, Size size)
+    {
+        setRelRect(new Rectangle(position, size));
+    }
+    
+    public void setSize(Size size, Anchor anchor)
+    {
+        setAbsRect(getAbsRect().withSize(size, anchor));
+    }
+    
+    public void setWidth(int height, AnchorH anchor)
+    {
+        setAbsRect(getAbsRect().withWidth(height, anchor));
+    }
+    
+    public void setHeight(int height, AnchorV anchor)
+    {
+        setAbsRect(getAbsRect().withHeight(height, anchor));
     }
         
     public void pack(Graphics2D g, Anchor anchor)
@@ -111,9 +151,31 @@ public abstract class Widget
     
     public Screen getScreen()
     {
-        if(this instanceof Screen)
-            return (Screen)this;
-        return parent.getScreen();
+        return screen;
+    }
+    
+    public void setVisible(boolean isVisible)
+    {
+        if(this.isVisible != isVisible)
+        {
+            this.isVisible = isVisible;
+            setDirty();
+        }
+    }
+
+    public boolean isVisible()
+    {
+        return isVisible && (getScreen() == null || app.getCurrentScreen() == getScreen());
+    }
+
+    public int getLayer()
+    {
+        return layer;
+    }
+
+    public void setLayer(int layer)
+    {
+        this.layer = layer;
     }
 
     public boolean isDirty()
@@ -123,6 +185,11 @@ public abstract class Widget
 
     public void setDirty()
     {
+        setDirty(false);
+    }
+
+    public void setDirty(boolean childrenToo)
+    {
         if (!isDirty())
         {
             logger.trace("Set as dirty: " + this);
@@ -130,11 +197,16 @@ public abstract class Widget
             if (parent != null)
                 parent.setDirty();
         }
+        
+        if(childrenToo)
+            for(final var child : children)
+                child.setDirty(true);
     }
 
     protected void clearDirty()
     {
-        dirty = false;
+        if(layer < 1000)
+            dirty = false;
     }
     
     public void paint(Graphics2D g)
@@ -146,12 +218,17 @@ public abstract class Widget
         paintForeground(g);
         clearDirty();
     }
+
+    @SuppressWarnings("unused")
+    public void paintForeground(Graphics2D g)
+    { /* Empty default implementation. */ }
     
     protected void paintChildren(Graphics2D g)
     {
+        children.sort((a, b) -> Integer.compare(a.getLayer(), b.getLayer()));
         for(Widget child : children)
         {
-            if (child.isDirty())
+            if (child.isDirty() && child.isVisible())
             {
                 final var oldTx = g.getTransform();
                 final var tx = new AffineTransform();
@@ -168,18 +245,14 @@ public abstract class Widget
     {
         g.fillRect(0, 0, getAbsRect().getWidth(), getAbsRect().getHeight());
     }
-
-    public void setAbsRect(AnchoredPoint position, Size size)
+    
+    @SuppressWarnings({"static-method", "unused"})
+    public Size getPreferedSize(Graphics2D g)
     {
-        setAbsRect(new Rectangle(position, size));
+        return Size.ZERO;
     }
     
-    public void setSize(Size size, Anchor anchor)
-    {
-        setAbsRect(getAbsRect().withSize(size, anchor));
-    }
-    
-    /* Delegate Methods for geometry information: */   
+    /* Delegate Methods for geometry information: */
     public Size getSize()
     {
         return getAbsRect().getSize();
@@ -212,7 +285,24 @@ public abstract class Widget
     {
         return getAbsRect().getBottom();
     }
-
-    abstract public void paintForeground(Graphics2D g);
-    abstract public Size getPreferedSize(Graphics2D g);
+    public AnchoredPoint getRelPos(Anchor anchor)
+    {
+        return getRelRect().getPosition(anchor);
+    }
+    public int getRelLeft()
+    {
+        return getRelRect().getLeft();
+    }
+    public int getRelRight()
+    {
+        return getRelRect().getRight();
+    }
+    public int getRelTop()
+    {
+        return getRelRect().getTop();
+    }
+    public int getRelBottom()
+    {
+        return getRelRect().getBottom();
+    }
 }

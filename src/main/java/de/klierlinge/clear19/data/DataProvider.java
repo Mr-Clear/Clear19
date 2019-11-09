@@ -31,7 +31,7 @@ public class DataProvider<T>
     
     public boolean addListener(Consumer<T> listener)
     {
-        synchronized(listener)
+        synchronized(listeners)
         {
             return listeners.add(listener);
         }
@@ -39,7 +39,7 @@ public class DataProvider<T>
     
     public boolean removeListener(Consumer<T> listener)
     {
-        synchronized(listener)
+        synchronized(listeners)
         {
             return listeners.remove(listener);
         }

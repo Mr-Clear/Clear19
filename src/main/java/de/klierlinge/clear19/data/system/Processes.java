@@ -81,7 +81,8 @@ public class Processes extends DataProvider<Map<Long, Processes.ProcessData>>
             {
                 tppid = -1;
                 tname = null;
-                logger.error("Failed to get process state.", e);
+                if (!e.getMessage().equals("No such process"))
+                    logger.error("Failed to get process state.", e);
             }
             ppid = tppid;
             name = tname;

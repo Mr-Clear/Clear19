@@ -30,6 +30,11 @@ public final class Size
     {
         return height;
     }
+    
+    public Vector toVector()
+    {
+        return new Vector(getWidth(), getHeight());
+    }
 
     public Dimension toAwtDimension()
     {

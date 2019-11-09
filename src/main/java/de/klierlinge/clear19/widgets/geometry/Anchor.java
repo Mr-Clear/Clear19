@@ -12,7 +12,7 @@ public enum Anchor
     BOTTOM_CENTER,
     BOTTOM_RIGHT;
     
-    public static Anchor combine(AnchorH h, AnchorV v)
+    public static Anchor combine(AnchorV h, AnchorH v)
     {
         switch(h)
         {
