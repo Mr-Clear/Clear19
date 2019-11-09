@@ -12,6 +12,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="config"/>
+	<classpathentry kind="src" path="lib/lcdjni">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Clear19/lib/lcdjni"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -23,6 +28,10 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/sigar/lcdjni.jar"/>
+	<classpathentry kind="lib" path="lib/lcdjni/lcdjni.jar" sourcepath="lib/lcdjni/src.zip">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="Clear19/lib/lcdjni"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
