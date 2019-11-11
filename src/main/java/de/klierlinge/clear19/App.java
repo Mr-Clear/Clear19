@@ -52,6 +52,8 @@ public class App extends Widget implements KeyCallback
 
     public final SystemData systemData = new SystemData();
     
+    public final Object exitObserver = new Object();
+    
     public App() throws IOException
     {
         super(null);
@@ -112,6 +114,41 @@ public class App extends Widget implements KeyCallback
         });
         
         getCurrentScreen().onShow(null);
+        
+        synchronized(exitObserver)
+        {
+            boolean noExcept = false;
+            while(!noExcept)
+            try
+            {
+                exitObserver.wait();
+                noExcept = true;
+            }
+            catch(InterruptedException e)
+            {
+                logger.debug("Interrupted while waiting for exit.", e);
+            }
+        }
+        
+        scheduler.close();
+        synchronized(scheduler)
+        {
+            if (lcdBmp != null)
+            {
+                try
+                {
+                    lcdBmp.close();
+                    lcdDevice.close();
+                    lcdCon.close();
+                }
+                catch(LcdException | IOException e2)
+                {
+                    logger.warn("Failed to close LCD", e2);
+                }
+                LcdConnection.deInit();
+            }
+        }
+        logger.info("END");
     }
     
     public Screen getCurrentScreen()
@@ -177,26 +214,10 @@ public class App extends Widget implements KeyCallback
     
     private void exit()
     {
-        scheduler.close();
-        synchronized(scheduler)
+        synchronized(exitObserver)
         {
-            if (lcdBmp != null)
-            {
-                try
-                {
-                    lcdBmp.close();
-                    lcdDevice.close();
-                    lcdCon.close();
-                }
-                catch(LcdException | IOException e2)
-                {
-                    logger.warn("Failed to close LCD", e2);
-                }
-                LcdConnection.deInit();
-            }
+            exitObserver.notifyAll();
         }
-        logger.info("END");
-        System.exit(0);
     }
 
     @Override
