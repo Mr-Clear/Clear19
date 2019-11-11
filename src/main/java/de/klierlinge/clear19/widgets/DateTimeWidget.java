@@ -10,17 +10,17 @@ public class DateTimeWidget extends TextWidget
     private DateFormat format;
     private final Runnable tt = () -> setText(getFormat().format(new Date(System.currentTimeMillis() + 500)));
 
-    public DateTimeWidget(Widget parent)
+    public DateTimeWidget(ContainerWidget parent)
     {
         this(parent, "dd.MM.YYYY\nHH:mm:ss");
     }
     
-    public DateTimeWidget(Widget parent, String format)
+    public DateTimeWidget(ContainerWidget parent, String format)
     {
         this(parent, new SimpleDateFormat(format));
     }
     
-    public DateTimeWidget(Widget parent, DateFormat format)
+    public DateTimeWidget(ContainerWidget parent, DateFormat format)
     {
         super(parent, format.format(new Date()));
         this.format = format;

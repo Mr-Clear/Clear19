@@ -19,10 +19,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.data.system.SystemData;
+import de.klierlinge.clear19.widgets.ContainerWidget;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.SystemScreen;
-import de.klierlinge.clear19.widgets.Widget;
 import de.klierlinge.clear19.widgets.geometry.Size;
 import net.djpowell.lcdjni.AppletCapability;
 import net.djpowell.lcdjni.DeviceType;
@@ -34,7 +34,7 @@ import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
 
-public class App extends Widget implements KeyCallback
+public class App extends ContainerWidget implements KeyCallback
 {
     private static final Logger logger = LogManager.getLogger(App.class.getName());
 

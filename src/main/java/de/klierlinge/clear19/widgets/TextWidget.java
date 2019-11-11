@@ -14,7 +14,7 @@ public class TextWidget extends Widget
     private VAllignment vAllignment = VAllignment.TOP;
     private Font font = new Font(Font.DIALOG, 0, 8);
 
-    public TextWidget(Widget parent, String text)
+    public TextWidget(ContainerWidget parent, String text)
     {
         super(parent);
         setText(text);

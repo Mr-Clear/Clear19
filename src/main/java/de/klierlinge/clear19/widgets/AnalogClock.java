@@ -10,7 +10,7 @@ public class AnalogClock extends Widget
 {
     Timer timer;
 
-    public AnalogClock(Widget parent)
+    public AnalogClock(ContainerWidget parent)
     {
         super(parent);
         getApp().scheduler.schedule(37, () -> setDirty());

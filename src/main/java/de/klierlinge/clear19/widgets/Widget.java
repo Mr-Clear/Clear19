@@ -2,9 +2,6 @@ package de.klierlinge.clear19.widgets;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,9 +12,9 @@ import de.klierlinge.clear19.widgets.geometry.Anchor;
 import de.klierlinge.clear19.widgets.geometry.AnchorH;
 import de.klierlinge.clear19.widgets.geometry.AnchorV;
 import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
-import de.klierlinge.clear19.widgets.geometry.Vector;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
+import de.klierlinge.clear19.widgets.geometry.Vector;
 
 public abstract class Widget
 {
@@ -25,7 +22,6 @@ public abstract class Widget
     private final Widget parent;
     private final App app;
     private final Screen screen;
-    private List<Widget> children = new ArrayList<>();
     private Rectangle rectangle = Rectangle.ZEROS;
     private boolean isVisible = true;
     private int layer;
@@ -33,20 +29,20 @@ public abstract class Widget
     private Color background = Color.BLACK;
     private Color foreground = Color.WHITE;
 
-    public Widget(Widget parent)
+    public Widget(ContainerWidget parent)
     {
         this.parent = parent;
         if (parent != null)
         {
-            parent.children.add(this);
-            setBackground(parent.background);
-            setForeground(parent.foreground);
+            parent.getChildren().add(this);
+            setBackground(parent.getBackground());
+            setForeground(parent.getForeground());
             setAbsRect(new Rectangle(parent.getAbsRect().getPosition(Anchor.CENTER_CENTER), Size.ZERO));
-            app = parent.app;
+            app = parent.getApp();
             if (this instanceof Screen)
                 screen = (Screen)this;
             else
-                screen = parent.screen;
+                screen = parent.getScreen();
         }
         else
         {
@@ -159,11 +155,6 @@ public abstract class Widget
         return screen;
     }
     
-    protected final List<Widget> getChildren()
-    {
-        return children;
-    }
-    
     public void setVisible(boolean isVisible)
     {
         if(this.isVisible != isVisible)
@@ -195,11 +186,6 @@ public abstract class Widget
 
     public void setDirty()
     {
-        setDirty(false);
-    }
-
-    public void setDirty(boolean childrenToo)
-    {
         if (!isDirty())
         {
             logger.trace("Set as dirty: " + this);
@@ -207,10 +193,6 @@ public abstract class Widget
             if (parent != null)
                 parent.setDirty();
         }
-        
-        if(childrenToo)
-            for(final var child : children)
-                child.setDirty(true);
     }
 
     protected void clearDirty()
@@ -223,33 +205,12 @@ public abstract class Widget
     {
         g.setColor(getBackground());
         paintBackground(g);
-        paintChildren(g);
         g.setColor(getForeground());
         paintForeground(g);
         clearDirty();
     }
 
-    @SuppressWarnings("unused")
-    public void paintForeground(Graphics2D g)
-    { /* Empty default implementation. */ }
-    
-    protected void paintChildren(Graphics2D g)
-    {
-        children.sort((a, b) -> Integer.compare(a.getLayer(), b.getLayer()));
-        for(Widget child : children)
-        {
-            if (child.isDirty() && child.isVisible())
-            {
-                final var oldTx = g.getTransform();
-                final var tx = new AffineTransform();
-                tx.setToTranslation(child.getAbsRect().getLeft(), child.getAbsRect().getTop());
-                g.setTransform(tx);
-                g.setClip(new java.awt.Rectangle(child.getAbsRect().getSize().toAwtDimension()));
-                child.paint(g);
-                g.setTransform(oldTx);
-            }
-        }
-    }
+    abstract public void paintForeground(Graphics2D g);
 
     protected void paintBackground(Graphics2D g)
     {

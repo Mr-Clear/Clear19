@@ -8,7 +8,7 @@ public class Border extends Widget
 {
     private final Orientation orientation;
 
-    public Border(Widget parent, Orientation orientation)
+    public Border(ContainerWidget parent, Orientation orientation)
     {
         super(parent);
         this.orientation = orientation;

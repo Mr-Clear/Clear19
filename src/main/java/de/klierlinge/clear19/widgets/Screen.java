@@ -12,7 +12,7 @@ import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
 
-public abstract class Screen extends Widget
+public abstract class Screen extends ContainerWidget
 {
     @SuppressWarnings("unused")
     private static final Logger logger = LogManager.getLogger(Screen.class.getName());
@@ -20,7 +20,7 @@ public abstract class Screen extends Widget
     private final TextWidget nameWidget;
     private boolean eraseAll = true;
     
-    public Screen(Widget parent, Graphics2D g, String name)
+    public Screen(ContainerWidget parent, Graphics2D g, String name)
     {
         super(parent);
         setAbsRect(new Rectangle(AnchoredPoint.ZERO, getPreferedSize(null)));

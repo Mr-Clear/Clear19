@@ -43,7 +43,6 @@ public class MainScreen extends Screen
                         (int)((1 - (double)d.free / d.total) * 100)));
         
         weatherWidget = new WeatherWidget(this);
-
         
         processesWidget = new DataUpdateTextWidget(this, getApp().systemData.processes,  (d) -> {
                     final var ps = new ArrayList<>((d.values()));

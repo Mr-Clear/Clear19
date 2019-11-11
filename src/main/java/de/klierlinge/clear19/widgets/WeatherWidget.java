@@ -21,14 +21,14 @@ import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
 import de.klierlinge.clear19.widgets.geometry.Vector;
 
-public class WeatherWidget extends Widget
+public class WeatherWidget extends ContainerWidget
 {
     private boolean layoutCorrect = false;
     private int columns = 5;
     private final ImageDownloader imageDownloader;
     List<WeatherPeriod> weatherPeriods = null;
 
-    public WeatherWidget(Widget parent) throws IOException
+    public WeatherWidget(ContainerWidget parent) throws IOException
     {
         super(parent);
         
@@ -93,16 +93,11 @@ public class WeatherWidget extends Widget
     }
 
     @Override
-    public void paintForeground(Graphics2D g)
+    public void paint(Graphics2D g)
     {
         if(!layoutCorrect)
             relayout(g);
-    }
-
-    @Override
-    protected void paintBackground(Graphics2D g)
-    {
-        /* Don't paint background. */
+        super.paint(g);
     }
 
     @Override
@@ -116,7 +111,7 @@ public class WeatherWidget extends Widget
     {
         WeatherPeriod period;
 
-        PeriodWidget(Widget parent, WeatherPeriod period)
+        PeriodWidget(ContainerWidget parent, WeatherPeriod period)
         {
             super(parent);
             this.period = period;
