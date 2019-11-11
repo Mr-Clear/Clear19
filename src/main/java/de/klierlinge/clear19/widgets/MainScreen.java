@@ -2,6 +2,7 @@ package de.klierlinge.clear19.widgets;
 
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import de.klierlinge.clear19.App;
@@ -22,20 +23,20 @@ public class MainScreen extends Screen
     final DataUpdateTextWidget processesWidget;
     final WeatherWidget weatherWidget;
 
-    public MainScreen(App parent, Graphics2D g)
+    public MainScreen(App parent, Graphics2D g) throws IOException
     {
         super(parent, g, "Main Screen");
 
         dateTimeWidget = new DateTimeWidget(this);
 
-        cpuWidget = new DataUpdateTextWidget(this, app.systemData.cpuLoad,
+        cpuWidget = new DataUpdateTextWidget(this, getApp().systemData.cpuLoad,
                 (d) -> String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
                         d.idle * 100,
                         d.user * 100,
                         d.sys * 100,
                         (d.irq + d.softIrq) * 100));
 
-        memoryWidget = new DataUpdateTextWidget(this, app.systemData.memory,
+        memoryWidget = new DataUpdateTextWidget(this, getApp().systemData.memory,
                 (d) -> String.format("%s / %s (%02d%%)",
                         Memory.humanReadableByteCount(d.total - d.free), 
                         Memory.humanReadableByteCount(d.total), 
@@ -44,7 +45,7 @@ public class MainScreen extends Screen
         weatherWidget = new WeatherWidget(this);
 
         
-        processesWidget = new DataUpdateTextWidget(this, app.systemData.processes,  (d) -> {
+        processesWidget = new DataUpdateTextWidget(this, getApp().systemData.processes,  (d) -> {
                     final var ps = new ArrayList<>((d.values()));
                     ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
                     final var lines = new ArrayList<String>(4);
@@ -109,7 +110,7 @@ public class MainScreen extends Screen
         {
             case UP -> 
             {
-                app.setCurrentScreen(app.systemScreen);
+                getApp().setCurrentScreen(getApp().systemScreen);
             }
             default -> { /* Do nothing. */}
         }

@@ -23,9 +23,9 @@ public abstract class Widget
 {
     private static final Logger logger = LogManager.getLogger(Widget.class.getName());
     private final Widget parent;
-    protected final App app;
-    protected final Screen screen;
-    protected List<Widget> children = new ArrayList<>();
+    private final App app;
+    private final Screen screen;
+    private List<Widget> children = new ArrayList<>();
     private Rectangle rectangle = Rectangle.ZEROS;
     private boolean isVisible = true;
     private int layer;
@@ -149,9 +149,19 @@ public abstract class Widget
         return parent;
     }
     
+    public final App getApp()
+    {
+        return app;
+    }
+    
     public Screen getScreen()
     {
         return screen;
+    }
+    
+    protected final List<Widget> getChildren()
+    {
+        return children;
     }
     
     public void setVisible(boolean isVisible)

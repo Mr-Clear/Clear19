@@ -14,6 +14,7 @@ import java.util.Set;
 import javax.swing.JFrame;
 import javax.swing.WindowConstants;
 
+import org.apache.log4j.BasicConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,7 +52,7 @@ public class App extends Widget implements KeyCallback
 
     public final SystemData systemData = new SystemData();
     
-    public App()
+    public App() throws IOException
     {
         super(null);
         logger.info("START");
@@ -115,7 +116,7 @@ public class App extends Widget implements KeyCallback
     
     public Screen getCurrentScreen()
     {
-        return (Screen)children.get(0);
+        return (Screen)getChildren().get(0);
     }
     
     public void setCurrentScreen(Screen screen)
@@ -124,8 +125,8 @@ public class App extends Widget implements KeyCallback
         {
             final var lastScreen = getCurrentScreen();
             lastScreen.onHide(screen);
-            children.clear();
-            children.add(screen);
+            getChildren().clear();
+            getChildren().add(screen);
             screen.onShow(lastScreen);
             screen.setDirty(true);
             logger.debug("Changed Screen from " + lastScreen.getName() + " to " + screen.getName() + ".");
@@ -214,6 +215,8 @@ public class App extends Widget implements KeyCallback
     @SuppressWarnings("unused")
     public static void main(String[] args)
     {
+        BasicConfigurator.configure();
+        
         try
         {
             new App();            

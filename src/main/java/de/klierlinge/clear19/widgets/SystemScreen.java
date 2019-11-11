@@ -27,21 +27,21 @@ public class SystemScreen extends Screen
 
         dateTimeWidget = new DateTimeWidget(this);
 
-        cpuWidget = new DataUpdateTextWidget(this, app.systemData.cpuLoad,
+        cpuWidget = new DataUpdateTextWidget(this, getApp().systemData.cpuLoad,
                 (d) -> String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
                         d.idle * 100,
                         d.user * 100,
                         d.sys * 100,
                         (d.irq + d.softIrq) * 100));
 
-        memoryWidget = new DataUpdateTextWidget(this, app.systemData.memory,
+        memoryWidget = new DataUpdateTextWidget(this, getApp().systemData.memory,
                 (d) -> String.format("%s / %s (%02d%%)",
                         Memory.humanReadableByteCount(d.total - d.free), 
                         Memory.humanReadableByteCount(d.total), 
                         (int)((1 - (double)d.free / d.total) * 100)));
 
         
-        processesWidget = new DataUpdateTextWidget(this, app.systemData.processes,  (d) -> {
+        processesWidget = new DataUpdateTextWidget(this, getApp().systemData.processes,  (d) -> {
                     final var ps = new ArrayList<>((d.values()));
                     ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
                     final var lines = new ArrayList<String>(4);
@@ -104,7 +104,7 @@ public class SystemScreen extends Screen
         {
             case DOWN -> 
             {
-                app.setCurrentScreen(app.mainScreen);
+                getApp().setCurrentScreen(getApp().mainScreen);
             }
             default -> { /* Do nothing. */}
         }

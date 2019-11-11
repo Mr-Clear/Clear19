@@ -34,7 +34,7 @@ public abstract class Screen extends Widget
         nameWidget.fitFontSize(g, getSize());
         nameWidget.pack(g, Anchor.TOP_LEFT);
         nameWidget.setLayer(1000);
-        app.scheduler.scheduleOnce(3000, () -> onButtonUp(null));
+        getApp().scheduler.scheduleOnce(3000, () -> onButtonUp(null));
     }
     
     public String getName()
@@ -45,7 +45,7 @@ public abstract class Screen extends Widget
     @Override
     public Size getPreferedSize(Graphics2D g)
     {
-        return app.getPreferedSize(g);
+        return getApp().getPreferedSize(g);
     }
 
     @Override
