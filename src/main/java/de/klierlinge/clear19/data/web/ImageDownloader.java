@@ -11,7 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -36,15 +40,17 @@ public class ImageDownloader
     private final static Logger logger = LogManager.getLogger(ImageDownloader.class.getName());
     private final Path cachePath;
 
-    private final Cache<String, Image> cache = CacheBuilder.newBuilder().maximumSize(10000).build();
+    private final Cache<String, BufferedImage> cache = CacheBuilder.newBuilder().maximumSize(10000).build();
 
-    private final BlockingDeque<DownloadJob> diskLoadStack = new LinkedBlockingDeque<>();
+    private final BlockingDeque<String> diskLoadStack = new LinkedBlockingDeque<>();
     private final Set<String> currentlyLoading = new HashSet<>();
-    private final BlockingDeque<DownloadJob> internetLoadStack = new LinkedBlockingDeque<>();
+    private final BlockingDeque<String> internetLoadStack = new LinkedBlockingDeque<>();
     
     private final Function<String, String> cacheFileNameCreator;
     private volatile boolean running = true;
 
+    private final Map<String, List<Consumer<Image>>> callbacks = new HashMap<>();
+    
     /**
      * @param cachePath Root-path of the disk-cache.
      * @throws IOException
@@ -79,12 +85,12 @@ public class ImageDownloader
         logger.traceExit();
     }
 
-    protected static Image download(String url, Path diskCache) throws IOException
+    protected static BufferedImage download(String url, Path diskCache) throws IOException
     {
         logger.traceEntry("url: {}, cache: {}", url, diskCache);
         Files.createDirectories(diskCache.getParent());
 
-        Image image = null;
+        BufferedImage image = null;
         try (var httpClient = HttpClientBuilder.create().setUserAgent("Clear Maps").build())
         {
             final var httpGet = new HttpGet(url);
@@ -151,10 +157,10 @@ public class ImageDownloader
      * @param url URL to get.
      * @return Image for the tile or null, when the tile is not in cache.
      */
-    public Image getImage(String url, Consumer<Image> callback)
+    public BufferedImage getImage(String url, Consumer<Image> callback)
     {
         logger.traceEntry("tile: {}", url);
-        final Image image;
+        final BufferedImage image;
         synchronized(currentlyLoading)
         {
             image = cache.getIfPresent(url);
@@ -165,9 +171,17 @@ public class ImageDownloader
             return image;
         }
 
-        var job = new DownloadJob(url, callback);
+        if(callback != null)
+        {
+            synchronized(callbacks)
+            {
+                if(!callbacks.containsKey(url))
+                    callbacks.put(url, new ArrayList<>(10));
+                callbacks.get(url).add(callback);
+            }
+        }
 
-        enqueueDisk(job);
+        enqueueDisk(url);
 
         logger.traceExit(null);
         return null;
@@ -183,9 +197,9 @@ public class ImageDownloader
      * 
      * @param tile Tile to enqueue.
      */
-    private synchronized void enqueueDisk(DownloadJob job)
+    private synchronized void enqueueDisk(String job)
     {
-        logger.traceEntry("tile: {}", job.url);
+        logger.traceEntry("tile: {}", job);
         diskLoadStack.push(job);
         logger.traceExit();
     }
@@ -195,9 +209,9 @@ public class ImageDownloader
      * 
      * @param tile Tile to enqueue.
      */
-    private synchronized void enqueueInternet(DownloadJob job)
+    private synchronized void enqueueInternet(String job)
     {
-        logger.traceEntry("tile: {}", job.url);
+        logger.traceEntry("tile: {}", job);
         internetLoadStack.addFirst(job);
         logger.traceExit();
     }
@@ -217,7 +231,7 @@ public class ImageDownloader
         {
             while(running)
             {
-                final DownloadJob job;
+                final String job;
                 try
                 {
                     job = diskLoadStack.takeFirst();
@@ -229,13 +243,13 @@ public class ImageDownloader
                 }
                 synchronized(currentlyLoading)
                 {
-                    if(cache.getIfPresent(job.url) != null || currentlyLoading.contains(job.url))
+                    if(cache.getIfPresent(job) != null || currentlyLoading.contains(job))
                         continue;
-                    currentlyLoading.add(job.url);
+                    currentlyLoading.add(job);
                 }
 
-                final var diskCache = getCacheFileName(job.url);
-                final Image image;
+                final var diskCache = getCacheFileName(job);
+                final BufferedImage image;
 
                 if(Files.exists(diskCache))
                 {
@@ -249,7 +263,7 @@ public class ImageDownloader
 
                         synchronized(currentlyLoading)
                         {
-                            currentlyLoading.remove(job.url);
+                            currentlyLoading.remove(job);
                         }
                         enqueueInternet(job);
                         continue;
@@ -257,7 +271,7 @@ public class ImageDownloader
 
                     if(image == null)
                     {
-                        logger.warn("Error detected in image: " + job.url);
+                        logger.warn("Error detected in image: " + job);
                         try
                         {
                             Files.delete(diskCache);
@@ -269,7 +283,7 @@ public class ImageDownloader
 
                         synchronized(currentlyLoading)
                         {
-                            currentlyLoading.remove(job.url);
+                            currentlyLoading.remove(job);
                         }
                         enqueueInternet(job);
                         continue;
@@ -277,12 +291,20 @@ public class ImageDownloader
 
                     synchronized(currentlyLoading)
                     {
-                        currentlyLoading.remove(job.url);
-                        cache.put(job.url, image);
+                        currentlyLoading.remove(job);
+                        cache.put(job, image);
                     }
 
-                    if(job.callback != null)
-                        job.callback.accept(image);
+                    synchronized(callbacks)
+                    {
+                        final var list = callbacks.get(job);
+                        if(list != null)
+                        {
+                            for(final var callback : list)
+                                callback.accept(image);
+                        }
+                        callbacks.remove(job);
+                    }
 
                     // TODO: Redownload if expired.
                 }
@@ -290,7 +312,7 @@ public class ImageDownloader
                 {
                     synchronized(currentlyLoading)
                     {
-                        currentlyLoading.remove(job.url);
+                        currentlyLoading.remove(job);
                     }
                     enqueueInternet(job);
                 }
@@ -300,9 +322,9 @@ public class ImageDownloader
 
     private class InternetLoader implements Runnable
     {
-        private final BlockingDeque<DownloadJob> loadStack;
+        private final BlockingDeque<String> loadStack;
 
-        public InternetLoader(BlockingDeque<DownloadJob> loadStack)
+        public InternetLoader(BlockingDeque<String> loadStack)
         {
             this.loadStack = loadStack;
         }
@@ -312,7 +334,7 @@ public class ImageDownloader
         {
             while(running)
             {
-                final DownloadJob job;
+                final String job;
                 try
                 {
                     job = loadStack.takeFirst();
@@ -325,45 +347,54 @@ public class ImageDownloader
 
                 synchronized(currentlyLoading)
                 {
-                    if(cache.getIfPresent(job.url) != null || currentlyLoading.contains(job.url))
+                    if(cache.getIfPresent(job) != null || currentlyLoading.contains(job))
                         continue;
-                    currentlyLoading.add(job.url);
+                    currentlyLoading.add(job);
                 }
 
-                final var diskCache = getCacheFileName(job.url);
-                final Image image;
+                final var diskCache = getCacheFileName(job);
+                final BufferedImage image;
                 try
                 {
-                    logger.debug("Downloading " + job.url);
-                    image = download(job.url, diskCache);
+                    logger.debug("Downloading " + job);
+                    image = download(job, diskCache);
                 }
                 catch(IOException e)
                 {
-                    logger.error("Download failed: " + job.url, e);
+                    logger.error("Download failed: " + job, e);
                     synchronized(currentlyLoading)
                     {
-                        currentlyLoading.remove(job.url);
+                        currentlyLoading.remove(job);
                     }
                     continue;
                 }
 
                 if(image == null)
                 {
-                    logger.warn("Failed to lad image image: " + job.url);
+                    logger.warn("Failed to lad image image: " + job);
                     synchronized(currentlyLoading)
                     {
-                        currentlyLoading.remove(job.url);
+                        currentlyLoading.remove(job);
                     }
                     continue;
                 }
 
                 synchronized(currentlyLoading)
                 {
-                    currentlyLoading.remove(job.url);
-                    cache.put(job.url, image);
+                    currentlyLoading.remove(job);
+                    cache.put(job, image);
                 }
-                if(job.callback != null)
-                    job.callback.accept(image);
+
+                synchronized(callbacks)
+                {
+                    final var list = callbacks.get(job);
+                    if(list != null)
+                    {
+                        for(final var callback : list)
+                            callback.accept(image);
+                    }
+                    callbacks.remove(job);
+                }
             }
         }
     }
@@ -373,18 +404,6 @@ public class ImageDownloader
         try(var fis = new FileInputStream(file))
         {
             return ImageIO.read(fis);
-        }
-    }
-    
-    private static class DownloadJob
-    {
-        final String url;
-        final Consumer<Image> callback;
-
-        DownloadJob(String url, Consumer<Image> callback)
-        {
-            this.url = url;
-            this.callback = callback;
         }
     }
 }

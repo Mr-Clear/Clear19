@@ -3,6 +3,7 @@ package de.klierlinge.clear19.widgets;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.image.RescaleOp;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -127,7 +128,13 @@ public class WeatherWidget extends Widget
             g.setFont(new Font("Arial", 0, 10));
             if(period != null)
             {
-                g.drawImage(imageDownloader.getImage(period.getIcon(), (i) -> setDirty()), 0, 0,getWidth(), getHeight(), null);
+                var image = imageDownloader.getImage(period.getIcon(), (i) -> setDirty());
+                if(image != null)
+                {
+                    RescaleOp op = new RescaleOp(.5f, 0, null);
+                    image = op.filter(image, null);
+                    g.drawImage(image, 0, 0,getWidth(), getHeight(), null);
+                }
                 
                 g.drawString(String.format("%2d:00-%2d:00", period.getStart().getHour(), period.getStart().getHour() + 1), 0, 10);
                 g.drawString(String.format("%2d°C %d/8", period.getTemp(), period.getCloudiness()), 0, 20);
