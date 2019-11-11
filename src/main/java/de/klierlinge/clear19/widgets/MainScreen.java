@@ -95,6 +95,7 @@ public class MainScreen extends Screen
         
         bH1.setRelRect(memoryWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Vector(getWidth(), dateTimeWidget.getRelBottom() + 3));
 
+        weatherWidget.layout(g);
         weatherWidget.setRelRect(getRelPos(BOTTOM_LEFT), weatherWidget.getPreferedSize(g));
         
         processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));

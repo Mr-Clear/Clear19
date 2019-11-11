@@ -66,6 +66,11 @@ public class Vector
         return true;
     }
 
+    public Size toSize()
+    {
+        return new Size(getX(), getY());
+    }
+    
     @Override
     public String toString()
     {

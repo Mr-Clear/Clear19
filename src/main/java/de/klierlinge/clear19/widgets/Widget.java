@@ -58,7 +58,7 @@ public abstract class Widget
     
     public Rectangle getRelRect()
     {
-        return rectangle.withPosition(rectangle.getPosition(Anchor.TOP_LEFT).add(parent.getAbsPos(Anchor.TOP_LEFT)));
+        return rectangle.withPosition(rectangle.getPosition(Anchor.TOP_LEFT).add(parent.getAbsPos(Anchor.TOP_LEFT).reversed()));
     }
 
     public void setAbsRect(Rectangle rectangle)
