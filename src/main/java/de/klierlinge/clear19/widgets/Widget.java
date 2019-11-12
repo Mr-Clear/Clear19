@@ -7,7 +7,6 @@ import java.util.Objects;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.klierlinge.clear19.App;
 import de.klierlinge.clear19.widgets.geometry.Anchor;
 import de.klierlinge.clear19.widgets.geometry.AnchorH;
 import de.klierlinge.clear19.widgets.geometry.AnchorV;
@@ -20,10 +19,10 @@ public abstract class Widget
 {
     private static final Logger logger = LogManager.getLogger(Widget.class.getName());
     private final Widget parent;
-    private final App app;
+    private final AppWidget<?> app;
     private final Screen screen;
     private Rectangle rectangle = Rectangle.ZEROS;
-    private boolean isVisible = true;
+    protected boolean isVisible = true;
     private int layer;
     private boolean dirty = true;
     private Color background = Color.BLACK;
@@ -46,7 +45,7 @@ public abstract class Widget
         }
         else
         {
-            app = (App)this;
+            app = (AppWidget<?>)this;
             screen = null;
         }
     }
@@ -145,7 +144,7 @@ public abstract class Widget
         return parent;
     }
     
-    public final App getApp()
+    public final AppWidget<?> getApp()
     {
         return app;
     }
@@ -166,7 +165,7 @@ public abstract class Widget
 
     public boolean isVisible()
     {
-        return isVisible && (getScreen() == null || app.getCurrentScreen() == getScreen());
+        return isVisible && (getScreen() == null || getScreen().isVisible());
     }
 
     public int getLayer()

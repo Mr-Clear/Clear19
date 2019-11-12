@@ -13,7 +13,7 @@ public class AnalogClock extends Widget
     public AnalogClock(ContainerWidget parent)
     {
         super(parent);
-        getApp().scheduler.schedule(37, () -> setDirty());
+        getApp().getScheduler().schedule(37, () -> setDirty());
     }
 
     @Override

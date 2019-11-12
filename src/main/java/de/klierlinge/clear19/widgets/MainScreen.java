@@ -1,5 +1,11 @@
 package de.klierlinge.clear19.widgets;
 
+import static de.klierlinge.clear19.widgets.geometry.Anchor.BOTTOM_LEFT;
+import static de.klierlinge.clear19.widgets.geometry.Anchor.BOTTOM_RIGHT;
+import static de.klierlinge.clear19.widgets.geometry.Anchor.TOP_LEFT;
+import static de.klierlinge.clear19.widgets.geometry.Anchor.TOP_RIGHT;
+import static de.klierlinge.clear19.widgets.geometry.AnchorV.TOP;
+
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.io.IOException;
@@ -10,8 +16,6 @@ import de.klierlinge.clear19.App.Button;
 import de.klierlinge.clear19.data.system.Memory;
 import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
-import static  de.klierlinge.clear19.widgets.geometry.Anchor.*;
-import static  de.klierlinge.clear19.widgets.geometry.AnchorV.*;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Vector;
 
@@ -29,14 +33,14 @@ public class MainScreen extends Screen
 
         dateTimeWidget = new DateTimeWidget(this);
 
-        cpuWidget = new DataUpdateTextWidget(this, getApp().systemData.cpuLoad,
+        cpuWidget = new DataUpdateTextWidget(this, getApp().getSystemData().cpuLoad,
                 (d) -> String.format("IDL:%02.0f USR:%02.0f SYS:%02.0f IRQ:%02.0f",
                         d.idle * 100,
                         d.user * 100,
                         d.sys * 100,
                         (d.irq + d.softIrq) * 100));
 
-        memoryWidget = new DataUpdateTextWidget(this, getApp().systemData.memory,
+        memoryWidget = new DataUpdateTextWidget(this, getApp().getSystemData().memory,
                 (d) -> String.format("%s / %s (%02d%%)",
                         Memory.humanReadableByteCount(d.total - d.free), 
                         Memory.humanReadableByteCount(d.total), 
@@ -44,10 +48,10 @@ public class MainScreen extends Screen
         
         weatherWidget = new WeatherWidget(this);
         
-        processesWidget = new DataUpdateTextWidget(this, getApp().systemData.processes,  (d) -> {
-                    final var ps = new ArrayList<>((d.values()));
+        processesWidget = new DataUpdateTextWidget(this, getApp().getSystemData().processes,  (d) -> {
+                    final var<ProcessData> ps = new ArrayList<>((d.values()));
                     ps.sort((a, b) -> Double.valueOf(b.totalLoad()).compareTo(a.totalLoad()));
-                    final var lines = new ArrayList<String>(4);
+                    final var<String> lines = new ArrayList<String>(4);
                     for(var i = 0; i < 4; i++)
                     {
                         if (i < ps.size())
@@ -110,7 +114,7 @@ public class MainScreen extends Screen
         {
             case UP -> 
             {
-                getApp().setCurrentScreen(getApp().systemScreen);
+                ((App)getApp()).setCurrentScreen(App.Screens.SYSTEM);
             }
             default -> { /* Do nothing. */}
         }

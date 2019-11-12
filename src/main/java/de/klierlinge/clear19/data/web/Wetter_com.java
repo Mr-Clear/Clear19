@@ -18,7 +18,7 @@ public class Wetter_com extends DataProvider<Wetter_com.WeatherData>
     protected Wetter_com(App app)
     {
         super(new WeatherData());
-        app.scheduler.schedule(1000 * 60 * 5, this::update);
+        app.getScheduler().schedule(1000 * 60 * 5, this::update);
     }
     
     private void update()

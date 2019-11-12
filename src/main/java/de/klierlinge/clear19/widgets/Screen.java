@@ -34,7 +34,7 @@ public abstract class Screen extends ContainerWidget
         nameWidget.fitFontSize(g, getSize());
         nameWidget.pack(g, Anchor.TOP_LEFT);
         nameWidget.setLayer(1000);
-        getApp().scheduler.scheduleOnce(3000, () -> onButtonUp(null));
+        getApp().getScheduler().scheduleOnce(3000, () -> onButtonUp(null));
     }
     
     public String getName()
@@ -74,6 +74,12 @@ public abstract class Screen extends ContainerWidget
             g.fillRect(0, 0, getWidth() - 1, getHeight() - 1);
             eraseAll = false;
         }
+    }
+
+    @Override
+    public boolean isVisible()
+    {
+        return isVisible;
     }
 
     public void onShow(@SuppressWarnings("unused") Screen last)

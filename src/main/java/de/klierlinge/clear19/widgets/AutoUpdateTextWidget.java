@@ -7,6 +7,6 @@ public class AutoUpdateTextWidget extends TextWidget
     public AutoUpdateTextWidget(ContainerWidget parent, long updateInterval, Supplier<String> supplier)
     {
         super(parent, supplier.get());
-        getApp().scheduler.schedule(updateInterval, () -> setText(supplier.get()));
+        getApp().getScheduler().schedule(updateInterval, () -> setText(supplier.get()));
     }
 }

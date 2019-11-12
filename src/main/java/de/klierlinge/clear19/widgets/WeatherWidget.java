@@ -1,5 +1,6 @@
 package de.klierlinge.clear19.widgets;
 
+import static de.klierlinge.clear19.widgets.geometry.Anchor.BOTTOM_LEFT;
 import static de.klierlinge.clear19.widgets.geometry.Anchor.BOTTOM_RIGHT;
 import static de.klierlinge.clear19.widgets.geometry.Anchor.TOP_LEFT;
 
@@ -18,7 +19,6 @@ import de.klierlinge.clear19.data.web.Wetter_com;
 import de.klierlinge.clear19.data.web.Wetter_com.WeatherPeriod;
 import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
-import static de.klierlinge.clear19.widgets.geometry.Anchor.*;
 import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
@@ -28,6 +28,7 @@ public class WeatherWidget extends ContainerWidget
 {
     private boolean layoutCorrect = false;
     private int columns = 5;
+    @SuppressWarnings("unused")
     private final ImageDownloader imageDownloader;
     List<WeatherPeriod> weatherPeriods = null;
 
@@ -37,7 +38,7 @@ public class WeatherWidget extends ContainerWidget
         
         setForeground(Color.WHITE);
         
-        getApp().scheduler.schedule(1000, () -> setDirty());
+        getApp().getScheduler().schedule(1000, () -> setDirty());
         imageDownloader = new ImageDownloader("imageCache", 1, (f) -> {
                 try
                 {
@@ -116,6 +117,7 @@ public class WeatherWidget extends ContainerWidget
 
     private class PeriodWidget extends ContainerWidget
     {
+        @SuppressWarnings("unused")
         WeatherPeriod period;
         final TextWidget periodWidget;
         final TextWidget tempWidget;
@@ -161,6 +163,7 @@ public class WeatherWidget extends ContainerWidget
         }
         
 
+        @Override
         public void paintForeground(Graphics2D g)
         {
           g.setColor(Color.RED);

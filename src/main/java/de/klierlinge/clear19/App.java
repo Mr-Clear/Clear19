@@ -8,7 +8,9 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -18,8 +20,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import de.klierlinge.clear19.data.system.SystemData;
-import de.klierlinge.clear19.widgets.ContainerWidget;
+import de.klierlinge.clear19.widgets.AppWidget;
 import de.klierlinge.clear19.widgets.MainScreen;
 import de.klierlinge.clear19.widgets.Screen;
 import de.klierlinge.clear19.widgets.SystemScreen;
@@ -34,15 +35,12 @@ import net.djpowell.lcdjni.LcdRGBABitmap;
 import net.djpowell.lcdjni.Priority;
 import net.djpowell.lcdjni.SyncType;
 
-public class App extends ContainerWidget implements KeyCallback
+public class App extends AppWidget<App.Screens> implements KeyCallback
 {
     private static final Logger logger = LogManager.getLogger(App.class.getName());
 
     private final BufferedImage image;
-    public final Screen mainScreen;
-    public final Screen systemScreen;
-
-    public final Scheduler scheduler = new Scheduler();
+    private final Map<Screens, Screen> screens = new HashMap<>();
 
     private LcdConnection lcdCon;
     private LcdDevice lcdDevice;
@@ -50,17 +48,14 @@ public class App extends ContainerWidget implements KeyCallback
     private final Set<Button> pressedButtons = new HashSet<>();
     private final ImagePanel imagePanel;
 
-    public final SystemData systemData = new SystemData();
-    
     public final Object exitObserver = new Object();
-    
+
     public App() throws IOException
     {
-        super(null);
         logger.info("START");
-        
+
         setForeground(Color.LIGHT_GRAY);
-        
+
         final var frame = new JFrame("Clear19");
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setLocation(500, 500);
@@ -89,14 +84,14 @@ public class App extends ContainerWidget implements KeyCallback
             lcdBmp = null;
             imageSize = new Size(320, 240);
         }
-        
+
         image = new BufferedImage(imageSize.getWidth(), imageSize.getHeight(), BufferedImage.TYPE_INT_RGB);
         imagePanel.setImage(image);
 
-        mainScreen = new MainScreen(this, getGraphics());
-        systemScreen = new SystemScreen(this, getGraphics());
-        setCurrentScreen(mainScreen);
-        
+        screens.put(Screens.MAIN, new MainScreen(this, getGraphics()));
+        screens.put(Screens.SYSTEM, new SystemScreen(this, getGraphics()));
+        setCurrentScreen(Screens.MAIN);
+
         frame.setVisible(true);
 
         frame.addWindowListener(new WindowAdapter()
@@ -108,32 +103,32 @@ public class App extends ContainerWidget implements KeyCallback
             }
         });
 
-        scheduler.schedule(10, () -> {
-            if (isDirty())
+        getScheduler().schedule(10, () -> {
+            if(isDirty())
                 updateLcd();
         });
-        
+
         getCurrentScreen().onShow(null);
-        
+
         synchronized(exitObserver)
         {
             boolean noExcept = false;
             while(!noExcept)
-            try
-            {
-                exitObserver.wait();
-                noExcept = true;
-            }
-            catch(InterruptedException e)
-            {
-                logger.debug("Interrupted while waiting for exit.", e);
-            }
+                try
+                {
+                    exitObserver.wait();
+                    noExcept = true;
+                }
+                catch(InterruptedException e)
+                {
+                    logger.debug("Interrupted while waiting for exit.", e);
+                }
         }
-        
-        scheduler.close();
-        synchronized(scheduler)
+
+        getScheduler().close();
+        synchronized(getScheduler())
         {
-            if (lcdBmp != null)
+            if(lcdBmp != null)
             {
                 try
                 {
@@ -150,31 +145,18 @@ public class App extends ContainerWidget implements KeyCallback
         }
         logger.info("END");
     }
-    
-    public Screen getCurrentScreen()
+
+    @Override
+    protected Screen getScreenByEnum(Screens screenEnum)
     {
-        return (Screen)getChildren().get(0);
+        return screens.get(screenEnum);
     }
-    
-    public void setCurrentScreen(Screen screen)
-    {
-        if(screen != getCurrentScreen())
-        {
-            final var lastScreen = getCurrentScreen();
-            lastScreen.onHide(screen);
-            getChildren().clear();
-            getChildren().add(screen);
-            screen.onShow(lastScreen);
-            screen.setDirty(true);
-            logger.debug("Changed Screen from " + lastScreen.getName() + " to " + screen.getName() + ".");
-        }
-    }
-    
+
     public Size getImageSize()
     {
         return new Size(image.getWidth(), image.getHeight());
     }
-    
+
     private void updateLcd()
     {
         logger.trace("Update LCD");
@@ -183,12 +165,12 @@ public class App extends ContainerWidget implements KeyCallback
             paint(g);
             g.dispose();
         }
-        
-        synchronized(scheduler)
+
+        synchronized(getScheduler())
         {
             imagePanel.repaint();
-            
-            if (lcdBmp != null)
+
+            if(lcdBmp != null)
             {
                 final var g = (Graphics2D)lcdBmp.getGraphics();
                 g.drawImage(image, 0, 0, null);
@@ -198,7 +180,7 @@ public class App extends ContainerWidget implements KeyCallback
             }
         }
     }
-    
+
     private Graphics2D getGraphics()
     {
         final var g = (Graphics2D)image.getGraphics();
@@ -211,7 +193,7 @@ public class App extends ContainerWidget implements KeyCallback
         g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_OFF);
         return g;
     }
-    
+
     private void exit()
     {
         synchronized(exitObserver)
@@ -225,22 +207,22 @@ public class App extends ContainerWidget implements KeyCallback
     {
         paintChildren(g);
         clearDirty();
-    } 
+    }
 
     @Override
     public Size getPreferedSize(Graphics2D g)
     {
         return new Size(image.getWidth(), image.getHeight());
     }
-    
+
     @SuppressWarnings("unused")
     public static void main(String[] args)
     {
         BasicConfigurator.configure();
-        
+
         try
         {
-            new App();            
+            new App();
         }
         catch(Throwable t)
         {
@@ -249,24 +231,19 @@ public class App extends ContainerWidget implements KeyCallback
         }
     }
 
-
     @SuppressWarnings("hiding")
     public enum Button
     {
-        LEFT(KeyCallback.LEFT),
-        RIGHT(KeyCallback.RIGHT),
-        OK(KeyCallback.OK),
-        CANCEL(KeyCallback.CANCEL),
-        UP(KeyCallback.UP),
-        DOWN(KeyCallback.DOWN),
-        MENU(KeyCallback.MENU);
-        
+        LEFT(KeyCallback.LEFT), RIGHT(KeyCallback.RIGHT), OK(KeyCallback.OK), CANCEL(KeyCallback.CANCEL), UP(KeyCallback.UP), DOWN(KeyCallback.DOWN), MENU(
+                KeyCallback.MENU);
+
         public final int keyValue;
+
         private Button(int keyValue)
         {
             this.keyValue = keyValue;
         }
-        
+
         public static Button fromKeyValue(int keyValue)
         {
             for(final var b : Button.values())
@@ -286,7 +263,7 @@ public class App extends ContainerWidget implements KeyCallback
     public void onKeyDown(int button)
     {
         final var b = Button.fromKeyValue(button);
-        if (b != null)
+        if(b != null)
         {
             getCurrentScreen().onButtonDown(b);
             pressedButtons.add(b);
@@ -297,15 +274,20 @@ public class App extends ContainerWidget implements KeyCallback
     public void onKeyUp(int button)
     {
         final var b = Button.fromKeyValue(button);
-        if (b != null)
+        if(b != null)
         {
             getCurrentScreen().onButtonUp(b);
             pressedButtons.remove(b);
         }
     }
-    
+
     public Set<Button> getPressedButtons()
     {
         return Collections.unmodifiableSet(pressedButtons);
+    }
+
+    public enum Screens
+    {
+        MAIN, SYSTEM
     }
 }
