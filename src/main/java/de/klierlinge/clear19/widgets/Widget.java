@@ -13,7 +13,7 @@ import de.klierlinge.clear19.widgets.geometry.AnchorV;
 import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
-import de.klierlinge.clear19.widgets.geometry.Vector;
+import de.klierlinge.clear19.widgets.geometry.Point;
 
 public abstract class Widget
 {
@@ -36,7 +36,7 @@ public abstract class Widget
             parent.getChildren().add(this);
             setBackground(parent.getBackground());
             setForeground(parent.getForeground());
-            setAbsRect(new Rectangle(parent.getAbsRect().getPosition(Anchor.CENTER_CENTER), Size.ZERO));
+            setRectangle(new Rectangle(parent.getRectangle().getPosition(Anchor.CENTER_CENTER), Size.ZERO));
             app = parent.getApp();
             if (this instanceof Screen)
                 screen = (Screen)this;
@@ -50,45 +50,35 @@ public abstract class Widget
         }
     }
     
-    public Rectangle getAbsRect()
+    protected Rectangle getAbsRect()
     {
         return rectangle;
     }
     
-    public Rectangle getRelRect()
+    public Rectangle getRectangle()
     {
-        return rectangle.withPosition(rectangle.getPosition(Anchor.TOP_LEFT).add(parent.getAbsPos(Anchor.TOP_LEFT).reversed()));
+        return rectangle.withPosition(rectangle.getPosition(Anchor.TOP_LEFT).add(parent.getAbsRect().getPosition(Anchor.TOP_LEFT).reversed()));
     }
 
-    public void setAbsRect(Rectangle rectangle)
+    protected void setAbsRect(Rectangle rectangle)
     {
         this.rectangle = rectangle;
         setDirty();
     }
     
-    public void setRelRect(Rectangle rectangle)
+    public void setRectangle(Rectangle rectangle)
     {
-        setAbsRect(rectangle.moved(parent.getAbsPos(Anchor.TOP_LEFT)));
+        setAbsRect(rectangle.moved(parent.getAbsRect().getPosition(Anchor.TOP_LEFT)));
     }
 
-    public void setAbsRect(AnchoredPoint from, Vector to)
+    public void setRectangle(AnchoredPoint from, Point to)
     {
-        setAbsRect(new Rectangle(from, to));
+        setRectangle(new Rectangle(from, to));
     }
 
-    public void setRelRect(AnchoredPoint from, Vector to)
+    public void setRectangle(AnchoredPoint position, Size size)
     {
-        setRelRect(new Rectangle(from, to));
-    }
-
-    public void setAbsRect(AnchoredPoint position, Size size)
-    {
-        setAbsRect(new Rectangle(position, size));
-    }
-
-    public void setRelRect(AnchoredPoint position, Size size)
-    {
-        setRelRect(new Rectangle(position, size));
+        setRectangle(new Rectangle(position, size));
     }
     
     public void setSize(Size size, Anchor anchor)
@@ -96,9 +86,9 @@ public abstract class Widget
         setAbsRect(getAbsRect().withSize(size, anchor));
     }
     
-    public void setWidth(int height, AnchorH anchor)
+    public void setWidth(int width, AnchorH anchor)
     {
-        setAbsRect(getAbsRect().withWidth(height, anchor));
+        setAbsRect(getAbsRect().withWidth(width, anchor));
     }
     
     public void setHeight(int height, AnchorV anchor)
@@ -235,44 +225,24 @@ public abstract class Widget
     {
         return getAbsRect().getHeight();
     }
-    public AnchoredPoint getAbsPos(Anchor anchor)
+    public AnchoredPoint getPosition(Anchor anchor)
     {
-        return getAbsRect().getPosition(anchor);
+        return getRectangle().getPosition(anchor);
     }
-    public int getAbsLeft()
+    public int getLeft()
     {
-        return getAbsRect().getLeft();
+        return getRectangle().getLeft();
     }
-    public int getAbsRight()
+    public int getRight()
     {
-        return getAbsRect().getRight();
+        return getRectangle().getRight();
     }
-    public int getAbsTop()
+    public int getTop()
     {
-        return getAbsRect().getTop();
+        return getRectangle().getTop();
     }
-    public int getAbsBottom()
+    public int getBottom()
     {
-        return getAbsRect().getBottom();
-    }
-    public AnchoredPoint getRelPos(Anchor anchor)
-    {
-        return getRelRect().getPosition(anchor);
-    }
-    public int getRelLeft()
-    {
-        return getRelRect().getLeft();
-    }
-    public int getRelRight()
-    {
-        return getRelRect().getRight();
-    }
-    public int getRelTop()
-    {
-        return getRelRect().getTop();
-    }
-    public int getRelBottom()
-    {
-        return getRelRect().getBottom();
+        return getRectangle().getBottom();
     }
 }

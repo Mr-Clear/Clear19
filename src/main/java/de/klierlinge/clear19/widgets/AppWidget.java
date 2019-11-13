@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger;
 
 import de.klierlinge.clear19.Scheduler;
 import de.klierlinge.clear19.data.system.SystemData;
+import de.klierlinge.clear19.widgets.geometry.Rectangle;
 
 public abstract class AppWidget<T extends Enum<T>> extends ContainerWidget
 {
@@ -58,4 +59,16 @@ public abstract class AppWidget<T extends Enum<T>> extends ContainerWidget
     }
     
     abstract protected Screen getScreenByEnum(T screenEnum);
+    
+    @Override
+    public Rectangle getRectangle()
+    {
+        return getAbsRect();
+    }
+    
+    @Override
+    public void setRectangle(Rectangle rectangle)
+    {
+        setAbsRect(rectangle);
+    }
 }

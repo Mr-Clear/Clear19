@@ -22,7 +22,7 @@ import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
 import de.klierlinge.clear19.widgets.geometry.AnchoredPoint;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
 import de.klierlinge.clear19.widgets.geometry.Size;
-import de.klierlinge.clear19.widgets.geometry.Vector;
+import de.klierlinge.clear19.widgets.geometry.Point;
 
 public class WeatherWidget extends ContainerWidget
 {
@@ -75,8 +75,8 @@ public class WeatherWidget extends ContainerWidget
             {
                 border = new Border(this, Orientation.VERTICAL);
                 final var width = border.getPreferedSize(g).getWidth();
-                border.setRelRect(new Rectangle(getWidth() / columns * (i + 1) - width / 2, 0, width, getHeight(), TOP_LEFT));
-                right = border.getRelLeft();
+                border.setRectangle(new Rectangle(getWidth() / columns * (i + 1) - width / 2, 0, width, getHeight(), TOP_LEFT));
+                right = border.getLeft();
             }
             else
             {
@@ -87,14 +87,14 @@ public class WeatherWidget extends ContainerWidget
             if (lastBorder == null)
                 left = 0;
             else
-                left = lastBorder.getRelRight();
+                left = lastBorder.getRight();
             
             System.out.println("LEFT: " + left + "  RIGHT: " + right);
             
             final var period = new PeriodWidget(this, weatherPeriods.get(i));
-            period.setRelRect(new AnchoredPoint(left, 0, TOP_LEFT), new Vector(right, getHeight()));
+            period.setRectangle(new AnchoredPoint(left, 0, TOP_LEFT), new Point(right, getHeight()));
             period.layout(g);
-            period.setRelRect(new AnchoredPoint(left, 0, TOP_LEFT), new Vector(right, period.getPreferedSize(g).getHeight()));
+            period.setRectangle(new AnchoredPoint(left, 0, TOP_LEFT), new Point(right, period.getPreferedSize(g).getHeight()));
             
             lastBorder = border;
         }
@@ -153,13 +153,13 @@ public class WeatherWidget extends ContainerWidget
         public void layout(Graphics2D g)
         {
             System.out.println(getWidth());
-            periodWidget.setRelRect(Vector.ZERO.anchored(TOP_LEFT), new Size(getWidth(), periodWidget.getPreferedSize(g).getHeight()));
-            System.out.println(periodWidget.getRelRect());
-            tempWidget.setRelRect(periodWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), tempWidget.getPreferedSize(g).getHeight()));
-            rainWidget.setRelRect(tempWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), rainWidget.getPreferedSize(g).getHeight()));
-            imageWidget.setRelRect(rainWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), getWidth() * 122 / 143));
-            textWidget.setRelRect(imageWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), textWidget.getPreferedSize(g).getHeight()));
-            System.out.println(textWidget.getRelRect());
+            periodWidget.setRectangle(Point.ZERO.anchored(TOP_LEFT), new Size(getWidth(), periodWidget.getPreferedSize(g).getHeight()));
+            System.out.println(periodWidget.getRectangle());
+            tempWidget.setRectangle(periodWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), tempWidget.getPreferedSize(g).getHeight()));
+            rainWidget.setRectangle(tempWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), rainWidget.getPreferedSize(g).getHeight()));
+            imageWidget.setRectangle(rainWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), getWidth() * 122 / 143));
+            textWidget.setRectangle(imageWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), new Size(getWidth(), textWidget.getPreferedSize(g).getHeight()));
+            System.out.println(textWidget.getRectangle());
         }
         
 
@@ -203,7 +203,7 @@ public class WeatherWidget extends ContainerWidget
         @Override
         public Size getPreferedSize(Graphics2D g)
         {
-            return textWidget.getRelPos(BOTTOM_RIGHT).toSize();
+            return textWidget.getPosition(BOTTOM_RIGHT).toSize();
         }
     }
 }

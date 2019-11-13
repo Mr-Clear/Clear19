@@ -15,7 +15,7 @@ public final class Size
         this.height = height;
     }
     
-    public Size(Vector a, Vector b)
+    public Size(Point a, Point b)
     {
         width = Math.abs(a.getX() - b.getX());
         height = Math.abs(a.getY() - b.getY());
@@ -31,14 +31,19 @@ public final class Size
         return height;
     }
     
-    public Vector toVector()
+    public Point toVector()
     {
-        return new Vector(getWidth(), getHeight());
+        return new Point(getWidth(), getHeight());
     }
 
     public Dimension toAwtDimension()
     {
         return new Dimension(width, height);
+    }
+
+    public AnchoredPoint getPos(Anchor anchor)
+    {
+        return new Rectangle(AnchoredPoint.ZERO, this).getPosition(anchor);
     }
 
     @Override

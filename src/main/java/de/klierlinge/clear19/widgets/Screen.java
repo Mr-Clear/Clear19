@@ -27,10 +27,10 @@ public abstract class Screen extends ContainerWidget
 
         this.name = name;
         nameWidget = new TextWidget(this, name);
-        setAbsRect(AnchoredPoint.ZERO, getPreferedSize(null));
+        setRectangle(AnchoredPoint.ZERO, getPreferedSize(null));
         
         nameWidget.setVisible(true);
-        nameWidget.setRelRect(getAbsRect());
+        nameWidget.setRectangle(getRectangle());
         nameWidget.fitFontSize(g, getSize());
         nameWidget.pack(g, Anchor.TOP_LEFT);
         nameWidget.setLayer(1000);
@@ -56,7 +56,7 @@ public abstract class Screen extends ContainerWidget
             final var oldTx = g.getTransform();
             final var oldClip = g.getClip();
             final var tx = new AffineTransform();
-            tx.setToTranslation(nameWidget.getAbsLeft(), nameWidget.getAbsTop());
+            tx.setToTranslation(nameWidget.getLeft(), nameWidget.getTop());
             g.setTransform(tx);
             g.setClip(new java.awt.Rectangle(nameWidget.getSize().toAwtDimension()));
             nameWidget.paint(g);

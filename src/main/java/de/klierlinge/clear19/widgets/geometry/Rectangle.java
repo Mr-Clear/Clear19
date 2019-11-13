@@ -74,7 +74,7 @@ public final class Rectangle
         this(pos.getX(), pos.getY(), size.getWidth(), size.getHeight(), pos.getAnchor());
     }
 
-    public Rectangle(AnchoredPoint from, Vector to)
+    public Rectangle(AnchoredPoint from, Point to)
     {
         this(from, new Size(from, to));
     }
@@ -110,7 +110,7 @@ public final class Rectangle
         return new Rectangle(newX, newY, width, height, anchor);
     }
     
-    public Rectangle moved(Vector vector)
+    public Rectangle moved(Point vector)
     {
         return new Rectangle(getLeft() + vector.getX(), getTop() + vector.getY(), getWidth(), getHeight(), Anchor.TOP_LEFT);
     }

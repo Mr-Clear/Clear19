@@ -1,13 +1,13 @@
 package de.klierlinge.clear19.widgets.geometry;
 
-public class Vector
+public class Point
 {
-    public static final Vector ZERO = new Vector(0, 0);
+    public static final Point ZERO = new Point(0, 0);
     
     private final int x;
     private final int y;
     
-    public Vector(int x, int y)
+    public Point(int x, int y)
     {
         super();
         this.x = x;
@@ -24,14 +24,14 @@ public class Vector
         return y;
     }
 
-    public Vector add(Vector other)
+    public Point add(Point other)
     {
-        return new Vector(getX() + other.getX(), getY() + other.getY());
+        return new Point(getX() + other.getX(), getY() + other.getY());
     }
     
-    public Vector reversed()
+    public Point reversed()
     {
-        return new Vector(-x, -y);
+        return new Point(-x, -y);
     }
     
     public AnchoredPoint anchored(Anchor anchor)
@@ -58,7 +58,7 @@ public class Vector
             return false;
         if(getClass() != obj.getClass())
             return false;
-        Vector other = (Vector)obj;
+        Point other = (Point)obj;
         if(x != other.x)
             return false;
         if(y != other.y)

@@ -17,7 +17,7 @@ import de.klierlinge.clear19.data.system.Memory;
 import de.klierlinge.clear19.widgets.Border.Orientation;
 import de.klierlinge.clear19.widgets.TextWidget.HAllignment;
 import de.klierlinge.clear19.widgets.geometry.Rectangle;
-import de.klierlinge.clear19.widgets.geometry.Vector;
+import de.klierlinge.clear19.widgets.geometry.Point;
 
 public class MainScreen extends Screen
 {
@@ -77,33 +77,33 @@ public class MainScreen extends Screen
         final var font = new Font("Consolas", Font.PLAIN, 10);
         
         final var bV3 = new Border(this, Orientation.VERTICAL);
-        bV3.setRelRect(new Rectangle(w4 * 3 - 1, 0, 3, 100, TOP_LEFT));
+        bV3.setRectangle(new Rectangle(w4 * 3 - 1, 0, 3, 100, TOP_LEFT));
         
         final var bH1 = new Border(this, Orientation.HORIZONTAL);
         
-        dateTimeWidget.setRelRect(new Rectangle(bV3.getRelPos(TOP_RIGHT).anchored(TOP_LEFT), getRelPos(BOTTOM_RIGHT)));
+        dateTimeWidget.setRectangle(new Rectangle(bV3.getPosition(TOP_RIGHT).anchored(TOP_LEFT), getPosition(BOTTOM_RIGHT)));
         dateTimeWidget.setFont(font);
         dateTimeWidget.fitFontSize(g);
         dateTimeWidget.pack(g, TOP_LEFT);
         
-        bV3.setRelRect(bV3.getRelRect().withHeight(dateTimeWidget.getHeight() + 1, TOP));
+        bV3.setRectangle(bV3.getRectangle().withHeight(dateTimeWidget.getHeight() + 1, TOP));
 
-        cpuWidget.setRelRect(getRelPos(TOP_LEFT), new Vector(bV3.getRelLeft(), dateTimeWidget.getRelBottom() / 2));
+        cpuWidget.setRectangle(getPosition(TOP_LEFT), new Point(bV3.getLeft(), dateTimeWidget.getBottom() / 2));
         cpuWidget.setFont(font);
         cpuWidget.setHAllignment(HAllignment.CENTER);
         cpuWidget.fitFontSize(g);
 
         memoryWidget.setFont(cpuWidget.getFont());
         memoryWidget.setHAllignment(HAllignment.CENTER);
-        memoryWidget.setRelRect(cpuWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), cpuWidget.getSize());
+        memoryWidget.setRectangle(cpuWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), cpuWidget.getSize());
         
-        bH1.setRelRect(memoryWidget.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), new Vector(getWidth(), dateTimeWidget.getRelBottom() + 3));
+        bH1.setRectangle(memoryWidget.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), new Point(getWidth(), dateTimeWidget.getBottom() + 3));
 
         weatherWidget.layout(g);
-        weatherWidget.setRelRect(getRelPos(BOTTOM_LEFT), weatherWidget.getPreferedSize(g));
+        weatherWidget.setRectangle(getPosition(BOTTOM_LEFT), weatherWidget.getPreferedSize(g));
         
         processesWidget.setFont(new Font("Consolas", Font.PLAIN, 10));
-        processesWidget.setRelRect(bH1.getRelPos(BOTTOM_LEFT).anchored(TOP_LEFT), weatherWidget.getRelPos(TOP_RIGHT));
+        processesWidget.setRectangle(bH1.getPosition(BOTTOM_LEFT).anchored(TOP_LEFT), weatherWidget.getPosition(TOP_RIGHT));
         processesWidget.fitFontSize(g);
     }
 

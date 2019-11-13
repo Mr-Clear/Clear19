@@ -46,10 +46,10 @@ public class ContainerWidget extends Widget
             if (child.isDirty() && child.isVisible())
             {
                 final var oldTx = g.getTransform();
-                final var tx = new AffineTransform();
-                tx.setToTranslation(child.getAbsRect().getLeft(), child.getAbsRect().getTop());
+                final var tx = new AffineTransform(oldTx);
+                tx.setToTranslation(child.getRectangle().getLeft(), child.getRectangle().getTop());
                 g.setTransform(tx);
-                g.setClip(new java.awt.Rectangle(child.getAbsRect().getSize().toAwtDimension()));
+                g.setClip(new java.awt.Rectangle(child.getRectangle().getSize().toAwtDimension()));
                 child.paint(g);
                 g.setTransform(oldTx);
             }
