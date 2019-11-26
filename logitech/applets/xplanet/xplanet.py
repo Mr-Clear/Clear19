@@ -82,7 +82,7 @@ class DataStore(object):
     def signal_frame_done(self):
         self.__lock.acquire()
         self.__framesDone += 1
-        print("frames done: {0}".format(self.__framesDone))
+        logging.debug("frames done: %2", self.__framesDone)
         self.__lock.release()
 
     def update(self):
@@ -121,7 +121,7 @@ class DataStore(object):
 
     def store(self, slot, frames):
         self.__lock.acquire()
-        print("committing {0}".format(slot))
+        logging.debug("committing %s", slot)
         self.__data[slot] = frames
         self.__lock.release()
 

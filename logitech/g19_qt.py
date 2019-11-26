@@ -1,6 +1,8 @@
+
 from PyQt4 import QtCore
 from PyQt4 import QtGui
 
+import logging
 
 def convert_image(img):
     data = [0] * (320 * 240 * 2)
@@ -31,7 +33,7 @@ class Fuck(QtGui.QWidget):
 
 def logit(func):
     def wrapped(*lols):
-        print("called")
+        logging.debug("called")
         return fund(*lols)
     return wrapped
 

@@ -2,6 +2,7 @@
 # coding: utf-8
 """Userspace driver"""
 
+import logging
 import time
 import signal
 from appmgr import AppMgr
@@ -12,7 +13,7 @@ APPMGR = AppMgr()
 def shutdown(*args):
     """SIGTERM/SIGHUP callback"""
     del args
-    print("SIG shutdown")
+    logging.info("SIG shutdown")
     APPMGR.shutdown()
     exit()
 

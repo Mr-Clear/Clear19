@@ -1,6 +1,7 @@
 from .g19_keys import (Data, Key)
 from .runnable import Runnable
 
+import logging
 import threading
 import time
 
@@ -202,7 +203,7 @@ class G19Receiver(Runnable):
         #             if proc.process_input(evt):
         #                 break
         #     else:
-        #         print "mm ignored: ", data
+        #         logging.debug("mm ignored: ", data)
         #     gotData = True
 
         data = self.__g19.read_g_and_m_keys()
@@ -213,12 +214,12 @@ class G19Receiver(Runnable):
                     if proc.process_input(evt):
                         break
             else:
-                print("m/g ignored: ", data)
+                logging.debug("m/g ignored: %s", data)
             gotData = True
 
         data = self.__g19.read_display_menu_keys()
         if data:
-            print("dis: ", data)
+            logging.debug("dis: %s", data)
             gotData = True
 
         if not gotData:

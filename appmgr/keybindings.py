@@ -3,6 +3,8 @@
 from pykeyboard import PyKeyboard
 from logitech.g19_keys import (Data, Key)
 
+import logging
+
 class KeyBindings(object):
     '''Simple color changing.
 
@@ -91,6 +93,6 @@ class KeyBindings(object):
         self._update_leds()
 
         processed = processed or self.__execute_macros(evt)
-        print(processed)
+        logging.debug(processed)
 
         return processed

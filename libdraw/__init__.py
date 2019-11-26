@@ -2,7 +2,7 @@
 #
 """ Helper for drawing"""
 import os
-import timeit
+import logging
 import PIL.Image as Img
 import PIL.ImageDraw as Draw
 import PIL.ImageFont as Font
@@ -234,4 +234,4 @@ class Drawer(object):
 
 
 if __name__ == '__main__':
-    print("Пошёл на хуй")
+    logging.info("Пошёл на хуй")
