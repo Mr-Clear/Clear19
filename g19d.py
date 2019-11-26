@@ -7,24 +7,27 @@ import time
 import signal
 from appmgr import AppMgr
 
-APPMGR = AppMgr()
+APP_MGR = AppMgr()
 
 
-def shutdown(*args):
+def shutdown():
     """SIGTERM/SIGHUP callback"""
-    del args
     logging.info("SIG shutdown")
-    APPMGR.shutdown()
+    APP_MGR.shutdown()
     exit()
+
 
 def main():
     """Main"""
+
+    logging.basicConfig(level=logging.DEBUG)
 
     signal.signal(signal.SIGTERM, shutdown)
     signal.signal(signal.SIGHUP, shutdown)
 
     time.sleep(1)
-    APPMGR.routine()
+    APP_MGR.routine()
+
 
 if __name__ == '__main__':
     main()

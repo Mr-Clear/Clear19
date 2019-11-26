@@ -53,9 +53,9 @@ class Frame(object):
         @return 16bit highcolor value in little-endian.
 
         """
-        red_bits = color_rgb[0] * 2**5 / 255
-        green_bits = color_rgb[1] * 2**6 / 255
-        blue_bits = color_rgb[2] * 2**5 / 255
+        red_bits = int(color_rgb[0] * 2**5 / 255)
+        green_bits = int(color_rgb[1] * 2**6 / 255)
+        blue_bits = int(color_rgb[2] * 2**5 / 255)
 
         red_bits = red_bits if red_bits <= 0b00011111 else 0b00011111
         green_bits = green_bits if green_bits <= 0b00111111 else 0b00111111
@@ -228,10 +228,3 @@ class Drawer(object):
         draw = Draw.Draw(img)
         draw.text([0, 0], text, (0, 0, 0), font=font)
         self.draw_image(position, [320, font_size], img)
-
-
-
-
-
-if __name__ == '__main__':
-    logging.info("Пошёл на хуй")

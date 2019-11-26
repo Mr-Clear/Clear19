@@ -16,25 +16,15 @@ from coloradapter import ColorAdapter
 from appmgr.keybindings import KeyBindings
 
 
-# def print_notification(bus, message):
-#     keys = ["app_name", "replaces_id", "app_icon", "summary",
-#             "body", "actions", "hints", "expire_timeout"]
-#     args = message.get_args_list()
-#     print "print_notification"
-#     if len(args) == 8:
-#         notification = dict([(keys[i], args[i]) for i in range(8)])
-#         print notification["summary"], notification["body"]
-
 class AppMgr(object):
     """docstring for AppMgr."""
+
     def __init__(self):
-        fmat = '%(levelname)-8s [%(asctime)s] <%(funcName)s:%(lineno)s> %(message)s'
-        fname = '/tmp/g19driver.log'
-        logging.basicConfig(format=fmat, filename=fname, level=logging.INFO)
+        log_format = '%(levelname)-8s [%(asctime)s] <%(funcName)s:%(lineno)s> %(message)s'
+        logging.basicConfig(format=log_format, level=logging.DEBUG)
         # logging.debug(u'AppMgr initializes...')
         super(AppMgr, self).__init__()
-        # logging.debug(u'AppMgr has inited class')
-        # self.__applet = AppMgrApplet()
+        logging.debug(u'AppMgr has inited class')
         random.seed()
         self.__exit = False
         self.__lcd = G19(True)
@@ -67,14 +57,17 @@ class AppMgr(object):
             # logging.debug(u'Notification thread init dbus')
             DBusGMainLoop(set_as_default=True)
             session_bus = dbus.SessionBus()
-            session_bus.add_match_string_non_blocking("eavesdrop=true, interface='org.freedesktop.Notifications', member='Notify'")
+            session_bus.add_match_string_non_blocking(
+                "eavesdrop=true, interface='org.freedesktop.Notifications', member='Notify'")
             session_bus.add_message_filter(self.__print_notification)
             # logging.debug(u'Notification thread running loop...')
+            # noinspection PyUnresolvedReferences
             self.__loop.run()
         except KeyboardInterrupt:
             logging.info('Notification thread has catch KeyboardInterrupt')
             self.shutdown()
 
+    # noinspection PyUnusedLocal
     def __print_notification(self, bus, message):
         # logging.debug(u'Printing notification...')
         keys = ["app_name", "replaces_id", "app_icon", "summary",
@@ -84,7 +77,7 @@ class AppMgr(object):
         if len(args) == 8:
             notification = dict([(keys[i], args[i]) for i in range(8)])
             logging.info('Notification: %s: %s', notification["summary"], notification["body"])
-            # logging.debug(u'Remebering current app')
+            # logging.debug(u'Remembering current app')
             drawer = libdraw.Drawer(libdraw.Frame())
             notification_app = Notification(drawer, notification)
             # logging.debug(u'Starting up notification app')
@@ -94,13 +87,10 @@ class AppMgr(object):
             # logging.debug(u'Setting interrupt')
             self.__lcd.set_interrupt()
             timeout = notification["expire_timeout"] / 1000 \
-                      if notification["expire_timeout"] > 2000 \
-                      else 4
+                if notification["expire_timeout"] > 2000 \
+                else 4
             # logging.debug(u'Waiting %d secs...', timeout)
             sleep(timeout)
-            # # logging.debug(u'Starting up app')
-            # self.__cur_app.startup()
-            # logging.debug(u'Unsetting interrupt')
             self.__lcd.unset_interrupt()
             # logging.debug(u'Sending frame')
             self.__lcd.send_frame(self.__drawer.get_frame_data())
@@ -130,30 +120,34 @@ class AppMgr(object):
         self.__cur_app.ambient_callback(color_rgb)
 
     def shutdown(self):
-        """Shutdown appmgr"""
+        """Shutdown app_mgr"""
         logging.info('Shutting down')
         if self.__exit:
             # logging.debug(u'Already exited... (\'-\' )')
             return
         self.__exit = True
+        # noinspection PyUnresolvedReferences
         if self.__loop.is_running():
             # logging.debug(u'Stopping loop')
+            # noinspection PyUnresolvedReferences
             self.__loop.quit()
         if self.__notification_thread.isAlive() and threading.current_thread() != self.__notification_thread:
             # logging.debug(u'Waiting notification app')
             self.__notification_thread.join()
-        # logging.debug(u'Reseting lcd...')
+        # logging.debug(u'Resenting lcd...')
         self.__lcd.reset()
         # logging.debug(u'Stopping event handler')
         self.__lcd.stop_event_handling()
         # logging.debug(u'Shutting down ColorAdapter')
         self.__color_adapter.shutdown()
 
+
 class Applet(object):
     """docstring for Applet."""
-    def __init__(self, drawer, period=1):
+
+    def __init__(self, drawer, period=1.0):
         super(Applet, self).__init__()
-        # logging.debug(u'Initing applet')
+        # logging.debug(u'Initializing applet')
         self._drawer = drawer
         self._period = period
 
@@ -169,16 +163,18 @@ class Applet(object):
         """Callback for ambient_light"""
         pass
 
+
 class UrPidor(Applet):
     """docstring for UrPidor."""
+
     def __init__(self, drawer):
         super(UrPidor, self).__init__(drawer, 0.7)
         self.name = "Watch"
-        self.__background = Img.open("/home/grayhook/Изображения/usny.jpg")
+        self.__background = Img.open("edda.jpg")
         self.__background = self.__background.resize((320, 240), Img.CUBIC)
 
         self.__watch_alpha = 0.6
-        self.__bg_color = [177, 31, 80, self.__watch_alpha]
+        self.__bg_color = [177, 31, 31, self.__watch_alpha]
 
     def startup(self):
         """Draw init image on screen"""
@@ -189,22 +185,14 @@ class UrPidor(Applet):
         drawer.draw_rectangle([0, 90], [320, 85], self.__bg_color)
         drawer.draw_textline([32, 90], 72, time)
 
-
     def routine(self):
         """Applet's routine"""
         start_time = timeit.default_timer()
         drawer = self._drawer
         time = datetime.datetime.now().strftime("%H:%M:%S")
-        # tdelta = datetime.datetime(2018, 7, 13, 19, 50) - datetime.datetime.now()
-        # time = digit_fit_width(tdelta.days, 2) + ":" + \
-        #        digit_fit_width(tdelta.seconds // 3600, 2) + ":" +\
-        #        digit_fit_width(tdelta.seconds // 60 % 60, 2) + ":" +\
-        #        digit_fit_width(tdelta.seconds % 60, 2)
-
-        # drawer.draw_image([0, 0], [320, 240, 0, 90, 320, 175], self.__background)
         drawer.draw_image([0, 0], [320, 240], self.__background)
-        drawer.draw_rectangle([0, 90], [320, 85], self.__bg_color)
-        drawer.draw_textline([32, 90], 72, time)
+        drawer.draw_rectangle([0, 180], [320, 60], self.__bg_color)
+        drawer.draw_textline([32, 168], 72, time)
 
         # drawer.draw_text([0, 94], 64, time)
         # print "draw_screen: " + str(timeit.default_timer() - start_time)
@@ -221,11 +209,12 @@ class UrPidor(Applet):
 
 class Notification(Applet):
     """docstring for UrPidor."""
+
     def __init__(self, drawer, message):
         super(Notification, self).__init__(drawer, 0.7)
-        # logging.debug(u'Initing notification applet')
+        # logging.debug(u'Initializing notification applet')
         self.name = "Notification"
-        self.__background = Img.open("/home/grayhook/Изображения/usny.jpg")
+        self.__background = Img.open("edda.jpg")
         self.__background = self.__background.resize((320, 240), Img.CUBIC)
         self.__watch_alpha = 0.6
         self.__bg_color = [66, 240, 120, self.__watch_alpha]
@@ -241,22 +230,20 @@ class Notification(Applet):
         drawer.draw_image([0, 0], [320, 240], self.__background)
         # logging.debug(u'Draw rectangle 1')
         drawer.draw_rectangle([0, 0], [320, 240], self.__bg_color)
-        # logging.debug(u'Draw textline 1')
+        # logging.debug(u'Draw text line 1')
         drawer.draw_textline([15, 200], 32, time)
-        # logging.debug(u'Draw textline 2')
+        # logging.debug(u'Draw text line 2')
         drawer.draw_textline([15, 10], 32, self.__message["summary"])
         # logging.debug(u'Draw text fitted')
         try:
             drawer.draw_text_fitted([15, 50], 24, self.__message["body"])
         except Exception as e:
             logging.error(e)
-        # logging.debug(u'Drawing finishd')
-
+        # logging.debug(u'Drawing finished')
 
     def routine(self):
         """Applet's routine"""
         pass
-
 
 
 def digit_fit_width(digit, width):

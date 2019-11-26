@@ -13,6 +13,6 @@ setup(
         'console_scripts': [
             'g19d = g19d:main',
         ],
-    }, install_requires=['pyusb', 'PIL']
+    }, install_requires=['pyusb', 'PIL', 'gi']
 )
 
