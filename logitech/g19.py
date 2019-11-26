@@ -4,33 +4,35 @@ import logging
 import threading
 import time
 import usb
+
 import PIL.Image as Img
 
+
 class G19(object):
-    '''Simple access to Logitech G19 features.
+    """Simple access to Logitech G19 features.
 
     All methods are thread-safe if not denoted otherwise.
 
-    '''
+    """
 
-    def __init__(self, resetOnStart=False):
-        '''Initializes and opens the USB device.'''
-        self.__usbDevice = G19UsbController(resetOnStart)
-        self.__usbDeviceMutex = threading.Lock()
-        self.__keyReceiver = G19Receiver(self)
-        self.__threadDisplay = None
+    def __init__(self, reset_on_start=False):
+        """Initializes and opens the USB device."""
+        self.__usb_device = G19UsbController(reset_on_start)
+        self.__usb_device_mutex = threading.Lock()
+        self.__key_receiver = G19Receiver(self)
+        self.__thread_display = None
         self.__interrupt = False
 
     @staticmethod
     def convert_image_to_frame(filename):
-        '''Loads image from given file.
+        """Loads image from given file.
 
-        Format will be auto-detected.  If neccessary, the image will be resized
+        Format will be auto-detected.  If necessary, the image will be resized
         to 320x240.
 
         @return Frame data to be used with send_frame().
 
-        '''
+        """
         img = Img.open(filename)
         access = img.load()
         if img.size != (320, 240):
@@ -47,22 +49,22 @@ class G19(object):
 
     @staticmethod
     def rgb_to_uint16(r, g, b):
-        '''Converts a RGB value to 16bit highcolor (5-6-5).
+        """Converts a RGB value to 16bit highcolor (5-6-5).
 
         @return 16bit highcolor value in little-endian.
 
-        '''
-        rBits = int(r * 2**5 / 255)
-        gBits = int(g * 2**6 / 255)
-        bBits = int(b * 2**5 / 255)
+        """
+        r_bits = int(r * 2 ** 5 / 255)
+        g_bits = int(g * 2 ** 6 / 255)
+        b_bits = int(b * 2 ** 5 / 255)
 
-        rBits = rBits if rBits <= 0b00011111 else 0b00011111
-        gBits = gBits if gBits <= 0b00111111 else 0b00111111
-        bBits = bBits if bBits <= 0b00011111 else 0b00011111
+        r_bits = r_bits if r_bits <= 0b00011111 else 0b00011111
+        g_bits = g_bits if g_bits <= 0b00111111 else 0b00111111
+        b_bits = b_bits if b_bits <= 0b00011111 else 0b00011111
 
-        valueH = (rBits << 3) | (gBits >> 3)
-        valueL = (gBits << 5) | bBits
-        return valueL << 8 | valueH
+        value_h = (r_bits << 3) | (g_bits >> 3)
+        value_l = (g_bits << 5) | b_bits
+        return value_l << 8 | value_h
 
     def set_interrupt(self):
         self.__interrupt = True
@@ -71,105 +73,105 @@ class G19(object):
         self.__interrupt = False
 
     def add_key_listener(self, applet):
-        '''Starts an applet.'''
-        self.__keyReceiver.add_input_processor(applet.get_input_processor())
+        """Starts an applet."""
+        self.__key_receiver.add_input_processor(applet.get_input_processor())
 
     def fill_display_with_color(self, r, g, b):
-        '''Fills display with given color.'''
-        # 16bit highcolor format: 5 red, 6 gree, 5 blue
+        """Fills display with given color."""
+        # 16bit highcolor format: 5 red, 6 green, 5 blue
         # saved in little-endian, because USB is little-endian
         value = self.rgb_to_uint16(r, g, b)
-        valueH = value & 0xff
-        valueL = value >> 8 & 0xff
-        frame = [valueL, valueH] * (320 * 240)
-        logging.debug(valueL)
-        logging.debug(valueH)
+        value_h = value & 0xff
+        value_l = value >> 8 & 0xff
+        frame = [value_l, value_h] * (320 * 240)
+        logging.debug(value_l)
+        logging.debug(value_h)
         self.send_frame(frame)
 
     def load_image(self, filename):
-        '''Loads image from given file.
+        """Loads image from given file.
 
-        Format will be auto-detected.  If neccessary, the image will be resized
+        Format will be auto-detected.  If necessary, the image will be resized
         to 320x240.
 
-        '''
+        """
         self.send_frame(self.convert_image_to_frame(filename))
 
-    def read_g_and_m_keys(self, maxLen=20):
-        '''Reads interrupt data from G, M and light switch keys.
+    def read_g_and_m_keys(self, max_len=20):
+        """Reads interrupt data from G, M and light switch keys.
 
         @return maxLen Maximum number of bytes to read.
         @return Read data or empty list.
 
-        '''
-        self.__usbDeviceMutex.acquire()
+        """
+        self.__usb_device_mutex.acquire()
         val = []
         try:
-            val = list(self.__usbDevice.handleIf1.interruptRead(
-                0x83, maxLen, 10))
+            val = list(self.__usb_device.handle_if_1.interruptRead(
+                0x83, max_len, 10))
         except usb.USBError:
             pass
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
         return val
 
     def read_display_menu_keys(self):
-        '''Reads interrupt data from display keys.
+        """Reads interrupt data from display keys.
 
         @return Read data or empty list.
 
-        '''
-        self.__usbDeviceMutex.acquire()
+        """
+        self.__usb_device_mutex.acquire()
         val = []
         try:
-            val = list(self.__usbDevice.handleIf0.interruptRead(0x81, 2, 10))
+            val = list(self.__usb_device.handle_if_0.interruptRead(0x81, 2, 10))
         except usb.USBError:
             pass
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
         return val
 
     def read_multimedia_keys(self):
-        '''Reads interrupt data from multimedia keys.
+        """Reads interrupt data from multimedia keys.
 
         @return Read data or empty list.
 
-        '''
-        self.__usbDeviceMutex.acquire()
+        """
+        self.__usb_device_mutex.acquire()
         val = []
         try:
-            val = list(self.__usbDevice.handleIfMM.interruptRead(0x82, 2, 10))
+            val = list(self.__usb_device.handle_if_mm.interruptRead(0x82, 2, 10))
         except usb.USBError as err:
             logging.error("USB error({0}): {1}".format(err.errno, err.strerror))
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
         return val
 
     def reset(self):
-        '''Initiates a bus reset to USB device.'''
-        self.__usbDeviceMutex.acquire()
+        """Initiates a bus reset to USB device."""
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.reset()
+            self.__usb_device.reset()
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def save_default_bg_color(self, r, g, b):
-        '''This stores given color permanently to keyboard.
+        """This stores given color permanently to keyboard.
 
         After a reset this will be color used by default.
 
-        '''
+        """
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
-        colorData = [7, r, g, b]
-        self.__usbDeviceMutex.acquire()
+        color_data = [7, r, g, b]
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.handleIf1.controlMsg(
-                rtype, 0x09, colorData, 0x308, 0x01, 1000)
+            self.__usb_device.handle_if_1.controlMsg(
+                rtype, 0x09, color_data, 0x308, 0x01, 1000)
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def send_frame(self, data):
-        '''Sends a frame to display.
+        """Sends a frame to display.
 
         @param data 320x240x2 bytes, containing the frame in little-endian
         16bit highcolor (5-6-5) format.
@@ -177,12 +179,12 @@ class G19(object):
         lower right.  This means (data[0], data[1]) is the first pixel and
         (data[239 * 2], data[239 * 2 + 1]) the lower left one.
 
-        '''
+        """
         if self.__interrupt:
             return
         if len(data) != (320 * 240 * 2):
             raise ValueError("illegal frame size: " + str(len(data))
-                    + " should be 320x240x2=" + str(320 * 240 * 2))
+                             + " should be 320x240x2=" + str(320 * 240 * 2))
         frame = [0x10, 0x0F, 0x00, 0x58, 0x02, 0x00, 0x00, 0x00,
                  0x00, 0x00, 0x00, 0x3F, 0x01, 0xEF, 0x00, 0x0F]
         for i in range(16, 256):
@@ -192,179 +194,179 @@ class G19(object):
 
         frame += data
 
-        self.__usbDeviceMutex.acquire()
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.handleIf0.bulkWrite(2, frame, 1000)
+            self.__usb_device.handle_if_0.bulkWrite(2, frame, 1000)
         except usb.USBError as err:
             logging.error("USB error({0}): {1}".format(err.errno, err.strerror))
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def set_bg_color(self, r, g, b):
-        '''Sets backlight to given color.'''
+        """Sets back light to given color."""
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
-        colorData = [7, r, g, b]
-        self.__usbDeviceMutex.acquire()
+        color_data = [7, r, g, b]
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.handleIf1.controlMsg(
-                rtype, 0x09, colorData, 0x307, 0x01, 10)
+            self.__usb_device.handle_if_1.controlMsg(
+                rtype, 0x09, color_data, 0x307, 0x01, 10)
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def set_enabled_m_keys(self, keys):
-        '''Sets currently lit keys as an OR-combination of LIGHT_KEY_M1..3,R.
+        """Sets currently lit keys as an OR-combination of LIGHT_KEY_M1..3,R.
 
         example:
             from logitech.g19_keys import Data
             lg19 = G19()
             lg19.set_enabled_m_keys(Data.LIGHT_KEY_M1 | Data.LIGHT_KEY_MR)
 
-        '''
+        """
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
-        self.__usbDeviceMutex.acquire()
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.handleIf1.controlMsg(
+            self.__usb_device.handle_if_1.controlMsg(
                 rtype, 0x09, [5, keys], 0x305, 0x01, 10)
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def set_display_brightness(self, val):
-        '''Sets display brightness.
+        """Sets display brightness.
 
         @param val in [0,100] (off..maximum).
 
-        '''
+        """
         data = [val, 0xe2, 0x12, 0x00, 0x8c, 0x11, 0x00, 0x10, 0x00]
         rtype = usb.TYPE_VENDOR | usb.RECIP_INTERFACE
-        self.__usbDeviceMutex.acquire()
+        self.__usb_device_mutex.acquire()
         try:
-            self.__usbDevice.handleIf1.controlMsg(rtype, 0x0a, data, 0x0, 0x0)
+            self.__usb_device.handle_if_1.controlMsg(rtype, 0x0a, data, 0x0, 0x0)
         finally:
-            self.__usbDeviceMutex.release()
+            self.__usb_device_mutex.release()
 
     def set_display_colorful(self):
-        '''This is an example how to create an image having a green to red
+        """This is an example how to create an image having a green to red
         transition from left to right and a black to blue from top to bottom.
 
-        '''
-        data = []
-        for i in range(320 * 240 * 2):
-            data.append(0)
+        """
+        data = [0] * 320 * 240 * 2
         for x in range(320):
             for y in range(240):
-                data[2*(x*240+y)] = self.rgb_to_uint16(
+                data[2 * (x * 240 + y)] = self.rgb_to_uint16(
                     255 * x / 320, 255 * (320 - x) / 320, 255 * y / 240) >> 8 & 0xff
-                data[2*(x*240+y)+1] = self.rgb_to_uint16(
+                data[2 * (x * 240 + y) + 1] = self.rgb_to_uint16(
                     255 * x / 320, 255 * (320 - x) / 320, 255 * y / 240) & 0xff
         self.send_frame(data)
 
     def start_event_handling(self):
-        '''Start event processing (aka keyboard driver).
+        """Start event processing (aka keyboard driver).
 
         This method is NOT thread-safe.
 
-        '''
+        """
         self.stop_event_handling()
-        self.__threadDisplay = threading.Thread(
-                target=self.__keyReceiver.run)
-        self.__keyReceiver.start()
-        self.__threadDisplay.start()
+        self.__thread_display = threading.Thread(
+            target=self.__key_receiver.run)
+        self.__key_receiver.start()
+        self.__thread_display.start()
 
     def stop_event_handling(self):
-        '''Stops event processing (aka keyboard driver).
+        """Stops event processing (aka keyboard driver).
 
         This method is NOT thread-safe.
 
-        '''
-        self.__keyReceiver.stop()
-        if self.__threadDisplay:
-            self.__threadDisplay.join()
-            self.__threadDisplay = None
+        """
+        self.__key_receiver.stop()
+        if self.__thread_display:
+            self.__thread_display.join()
+            self.__thread_display = None
 
 
 class G19UsbController(object):
-    '''Controller for accessing the G19 USB device.
+    """Controller for accessing the G19 USB device.
 
     The G19 consists of two composite USB devices:
         * 046d:c228
           The keyboard consisting of two interfaces:
               MI00: keyboard
                   EP 0x81(in)  - INT the keyboard itself
-              MI01: (ifacMM)
-                  EP 0x82(in)  - multimedia keys, incl. scroll and Winkey-switch
+              MI01: (ifaceMM)
+                  EP 0x82(in)  - multimedia keys, incl. scroll and Windows-key-switch
 
         * 046d:c229
           LCD display with two interfaces:
               MI00 (0x05): (iface0) via control data in: display keys
                   EP 0x81(in)  - INT
                   EP 0x02(out) - BULK display itself
-              MI01 (0x06): (iface1) backlight
+              MI01 (0x06): (iface1) back light
                   EP 0x83(in)  - INT G-keys, M1..3/MR key, light key
 
-    '''
+    """
 
-    def __init__(self, resetOnStart=False):
+    def __init__(self, reset_on_start=False):
         self.__lcd_device = self._find_device(0x046d, 0xc229)
         if not self.__lcd_device:
             raise usb.USBError("G19 LCD not found on USB bus")
-        # self.__kbd_device = self._find_device(0x046d, 0xc228)
-        # if not self.__kbd_device:
-        #     raise usb.USBError("G19 keyboard not found on USB bus")
-        self.handleIf0 = self.__lcd_device.open()
-        if resetOnStart:
-            self.handleIf0.reset()
-            self.handleIf0 = self.__lcd_device.open()
+        self.__kbd_device = self._find_device(0x046d, 0xc228)
+        if not self.__kbd_device:
+            raise usb.USBError("G19 keyboard not found on USB bus")
+        self.handle_if_0 = self.__lcd_device.open()
+        if reset_on_start:
+            self.handle_if_0.reset()
+            self.handle_if_0 = self.__lcd_device.open()
 
-        self.handleIf1 = self.__lcd_device.open()
-        # self.handleIfMM = self.__kbd_device.open()
-        # self.handleIfMM.reset()
-        # self.handleIfMM = self.__kbd_device.open()
+        self.handle_if_1 = self.__lcd_device.open()
+        self.handle_if_mm = self.__kbd_device.open()
+        self.handle_if_mm.reset()
+        self.handle_if_mm = self.__kbd_device.open()
 
         config = self.__lcd_device.configurations[0]
         iface0 = config.interfaces[0][0]
         iface1 = config.interfaces[0][1]
-        #
-        # try:
-        #     self.handleIfMM.setConfiguration(1)
-        # except usb.USBError:
-        #     pass
 
         try:
-            self.handleIf1.detachKernelDriver(iface1)
+            self.handle_if_mm.setConfiguration(1)
         except usb.USBError:
             pass
-        #
-        # try:
-        #     self.handleIfMM.detachKernelDriver(1)
-        # except usb.USBError:
-        #     pass
 
-        self.handleIf0.setConfiguration(1)
-        self.handleIf1.setConfiguration(1)
-        self.handleIf0.claimInterface(iface0)
-        self.handleIf1.claimInterface(iface1)
-        # self.handleIfMM.claimInterface(1)
+        try:
+            self.handle_if_1.detachKernelDriver(iface1)
+        except usb.USBError:
+            pass
+
+        try:
+            self.handle_if_mm.detachKernelDriver(1)
+        except usb.USBError:
+            pass
+
+        self.handle_if_0.setConfiguration(1)
+        self.handle_if_1.setConfiguration(1)
+        self.handle_if_0.claimInterface(iface0)
+        self.handle_if_1.claimInterface(iface1)
+        self.handle_if_mm.claimInterface(1)
 
     @staticmethod
-    def _find_device(idVendor, idProduct):
+    def _find_device(id_vendor, id_product):
         for bus in usb.busses():
             for dev in bus.devices:
-                if dev.idVendor == idVendor and \
-                        dev.idProduct == idProduct:
+                if dev.idVendor == id_vendor and \
+                        dev.idProduct == id_product:
                     return dev
         return None
 
     def reset(self):
-        '''Resets the device on the USB.'''
-        self.handleIf0.reset()
-        self.handleIf1.reset()
-        # self.handleIfMM.reset()
+        """Resets the device on the USB."""
+        self.handle_if_0.reset()
+        self.handle_if_1.reset()
+        self.handle_if_mm.reset()
+
 
 def main():
     lg19 = G19()
     lg19.start_event_handling()
     time.sleep(20)
     lg19.stop_event_handling()
+
 
 if __name__ == '__main__':
     main()
