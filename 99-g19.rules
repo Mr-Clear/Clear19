@@ -1,0 +1,3 @@
+# Copy this file to /etc/udev/rules.d/99-g19.rules
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c228", RUN{builtin}+="uaccess"
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="046d", ATTR{idProduct}=="c229", RUN{builtin}+="uaccess"
