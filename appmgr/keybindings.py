@@ -54,7 +54,7 @@ class KeyBindings(object):
     def __execute_macros(self, evnt):
         """Execute macros which bind on pressed key"""
         processed = False
-        for key in xrange(Key.G01, Key.G12):
+        for key in range(Key.G01, Key.G12):
             if key in evnt.keysDown:
                 state = True
                 callback = self.__macros_list.get((key, True), self.__press_key)
@@ -91,6 +91,6 @@ class KeyBindings(object):
         self._update_leds()
 
         processed = processed or self.__execute_macros(evt)
-        print processed
+        print(processed)
 
         return processed

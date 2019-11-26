@@ -28,8 +28,8 @@ from appmgr.keybindings import KeyBindings
 class AppMgr(object):
     """docstring for AppMgr."""
     def __init__(self):
-        fmat = u'%(levelname)-8s [%(asctime)s] <%(funcName)s:%(lineno)s> %(message)s'
-        fname = u'/tmp/g19driver.log'
+        fmat = '%(levelname)-8s [%(asctime)s] <%(funcName)s:%(lineno)s> %(message)s'
+        fname = '/tmp/g19driver.log'
         logging.basicConfig(format=fmat, filename=fname, level=logging.INFO)
         # logging.debug(u'AppMgr initializes...')
         super(AppMgr, self).__init__()
@@ -58,7 +58,7 @@ class AppMgr(object):
                                                       name='Notification thread')
         self.__notification_thread.start()
         # logging.debug(u'AppMgr\'s notification thread started')
-        logging.info(u'AppMgr has been inited')
+        logging.info('AppMgr has been inited')
 
     def __notification_thread_target(self):
         try:
@@ -72,7 +72,7 @@ class AppMgr(object):
             # logging.debug(u'Notification thread running loop...')
             self.__loop.run()
         except KeyboardInterrupt:
-            logging.info(u'Notification thread has catch KeyboardInterrupt')
+            logging.info('Notification thread has catch KeyboardInterrupt')
             self.shutdown()
 
     def __print_notification(self, bus, message):
@@ -83,7 +83,7 @@ class AppMgr(object):
         # logging.debug(u'Get notification\'s args')
         if len(args) == 8:
             notification = dict([(keys[i], args[i]) for i in range(8)])
-            logging.info(u'Notification: %s: %s', notification["summary"], notification["body"])
+            logging.info('Notification: %s: %s', notification["summary"], notification["body"])
             # logging.debug(u'Remebering current app')
             drawer = libdraw.Drawer(libdraw.Frame())
             notification_app = Notification(drawer, notification)
@@ -120,7 +120,7 @@ class AppMgr(object):
                 self.__lcd.send_frame(self.__drawer.get_frame_data())
                 sleep(self.__cur_app.get_period())
         except (KeyboardInterrupt, SystemExit):
-            logging.info(u'Catching KeyboardInterrupt')
+            logging.info('Catching KeyboardInterrupt')
             self.shutdown()
 
     def ambient_callback(self, color_rgb):
@@ -131,7 +131,7 @@ class AppMgr(object):
 
     def shutdown(self):
         """Shutdown appmgr"""
-        logging.info(u'Shutting down')
+        logging.info('Shutting down')
         if self.__exit:
             # logging.debug(u'Already exited... (\'-\' )')
             return
@@ -174,7 +174,7 @@ class UrPidor(Applet):
     def __init__(self, drawer):
         super(UrPidor, self).__init__(drawer, 0.7)
         self.name = "Watch"
-        self.__background = Img.open(u"/home/grayhook/Изображения/usny.jpg")
+        self.__background = Img.open("/home/grayhook/Изображения/usny.jpg")
         self.__background = self.__background.resize((320, 240), Img.CUBIC)
 
         self.__watch_alpha = 0.6
@@ -225,7 +225,7 @@ class Notification(Applet):
         super(Notification, self).__init__(drawer, 0.7)
         # logging.debug(u'Initing notification applet')
         self.name = "Notification"
-        self.__background = Img.open(u"/home/grayhook/Изображения/usny.jpg")
+        self.__background = Img.open("/home/grayhook/Изображения/usny.jpg")
         self.__background = self.__background.resize((320, 240), Img.CUBIC)
         self.__watch_alpha = 0.6
         self.__bg_color = [66, 240, 120, self.__watch_alpha]

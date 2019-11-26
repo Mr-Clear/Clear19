@@ -1,4 +1,4 @@
-from g19_receivers import G19Receiver
+from .g19_receivers import G19Receiver
 
 import sys
 import threading
@@ -52,9 +52,9 @@ class G19(object):
         @return 16bit highcolor value in little-endian.
 
         '''
-        rBits = r * 2**5 / 255
-        gBits = g * 2**6 / 255
-        bBits = b * 2**5 / 255
+        rBits = int(r * 2**5 / 255)
+        gBits = int(g * 2**6 / 255)
+        bBits = int(b * 2**5 / 255)
 
         rBits = rBits if rBits <= 0b00011111 else 0b00011111
         gBits = gBits if gBits <= 0b00111111 else 0b00111111
@@ -82,8 +82,8 @@ class G19(object):
         valueH = value & 0xff
         valueL = value >> 8 & 0xff
         frame = [valueL, valueH] * (320 * 240)
-        print valueL
-        print valueH
+        print(valueL)
+        print(valueH)
         self.send_frame(frame)
 
     def load_image(self, filename):
@@ -140,7 +140,7 @@ class G19(object):
         try:
             val = list(self.__usbDevice.handleIfMM.interruptRead(0x82, 2, 10))
         except usb.USBError as err:
-            print "USB error({0}): {1}".format(err.errno, err.strerror)
+            print("USB error({0}): {1}".format(err.errno, err.strerror))
         finally:
             self.__usbDeviceMutex.release()
         return val
@@ -196,7 +196,7 @@ class G19(object):
         try:
             self.__usbDevice.handleIf0.bulkWrite(2, frame, 1000)
         except usb.USBError as err:
-            print "USB error({0}): {1}".format(err.errno, err.strerror)
+            print("USB error({0}): {1}".format(err.errno, err.strerror))
         finally:
             self.__usbDeviceMutex.release()
 

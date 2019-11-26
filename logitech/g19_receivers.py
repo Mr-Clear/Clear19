@@ -1,5 +1,5 @@
-from g19_keys import (Data, Key)
-from runnable import Runnable
+from .g19_keys import (Data, Key)
+from .runnable import Runnable
 
 import threading
 import time
@@ -56,7 +56,7 @@ class State(object):
         keys = []
         while curVal != empty:
             foundAKey = False
-            for val in Data.gmKeys.keys():
+            for val in list(Data.gmKeys.keys()):
                 if val & curVal == val:
                     curVal ^= val
                     keys.append(Data.gmKeys[val])
@@ -79,7 +79,7 @@ class State(object):
             keys = []
             while curVal:
                 foundAKey = False
-                for val in Data.mmKeys.keys():
+                for val in list(Data.mmKeys.keys()):
                     if val & curVal == val:
                         curVal ^= val
                         keys.append(Data.mmKeys[val])
@@ -213,12 +213,12 @@ class G19Receiver(Runnable):
                     if proc.process_input(evt):
                         break
             else:
-                print "m/g ignored: ", data
+                print("m/g ignored: ", data)
             gotData = True
 
         data = self.__g19.read_display_menu_keys()
         if data:
-            print "dis: ", data
+            print("dis: ", data)
             gotData = True
 
         if not gotData:

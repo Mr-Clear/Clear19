@@ -31,7 +31,7 @@ class Fuck(QtGui.QWidget):
 
 def logit(func):
     def wrapped(*lols):
-        print "called"
+        print("called")
         return fund(*lols)
     return wrapped
 

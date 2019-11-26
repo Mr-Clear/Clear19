@@ -133,8 +133,8 @@ class Drawer(object):
             if end_y < size[3]:
                 return
 
-        for pixel_x in xrange(start_x, end_x):
-            for pixel_y in xrange(start_y, end_y):
+        for pixel_x in range(start_x, end_x):
+            for pixel_y in range(start_y, end_y):
                 self.draw_point([pixel_x, pixel_y], color_rgb)
 
     # DEPRECATED
@@ -178,8 +178,8 @@ class Drawer(object):
             if end[1] < size[3]:
                 return
 
-        for pixel_x in xrange(max(0, start[0]), min(320, end[0])):
-            for pixel_y in xrange(max(0, start[1]), min(240, end[1])):
+        for pixel_x in range(max(0, start[0]), min(320, end[0])):
+            for pixel_y in range(max(0, start[1]), min(240, end[1])):
                 # access_x = pixel_x - position[0]
                 # access_y = pixel_y - position[1]
                 if len(access[pixel_x - position[0], pixel_y - position[1]]) > 3:
@@ -198,7 +198,7 @@ class Drawer(object):
         font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
         height = font_size
         width = 0
-        for i in xrange(len(text)):
+        for i in range(len(text)):
             width += font.getsize(text[i])[0]
             if text[i] == '\n':
                 width = 0
@@ -219,7 +219,7 @@ class Drawer(object):
         """Draw text"""
         font = Font.truetype(os.path.dirname(__file__) + "/11676.otf", font_size)
         width = 0
-        for i in xrange(len(text)):
+        for i in range(len(text)):
             width += font.getsize(text[i])[0]
             if text[i] == '\n' or width > 320 - position[0]:
                 text = text[:i-1]
@@ -234,4 +234,4 @@ class Drawer(object):
 
 
 if __name__ == '__main__':
-    print "Пошёл на хуй"
+    print("Пошёл на хуй")

@@ -12,7 +12,7 @@ APPMGR = AppMgr()
 def shutdown(*args):
     """SIGTERM/SIGHUP callback"""
     del args
-    print "SIG shutdown"
+    print("SIG shutdown")
     APPMGR.shutdown()
     exit()
 
