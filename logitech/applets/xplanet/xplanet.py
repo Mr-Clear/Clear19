@@ -160,12 +160,12 @@ class XplanetInputProcessor(InputProcessor):
     def __init__(self, xplanet):
         self.__xplanet = xplanet
 
-    def process_input(self, inputEvent):
+    def process_input(self, input_event):
         processed = False
-        if Key.PLAY in inputEvent.keysDown:
+        if Key.PLAY in input_event.keysDown:
             self.__xplanet.start()
             processed = True
-        if Key.STOP in inputEvent.keysDown:
+        if Key.STOP in input_event.keysDown:
             self.__xplanet.stop()
             processed = True
         return processed
