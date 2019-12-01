@@ -147,7 +147,7 @@ class State(object):
         evt = None
         if len(data) == 4:
             keys = self._data_to_keys_g_and_m(data)
-            keys_down, keys_up = self._update_keys_down(Key.gmKeys, keys)
+            keys_down, keys_up = self._update_keys_down(Key.gm_keys, keys)
             new_state = self.clone()
             evt = InputEvent(old_state, new_state, keys_down, keys_up)
         return evt
@@ -166,7 +166,7 @@ class State(object):
         win_key_set = {Key.WINKEY_SWITCH}
         if data[0] == 1:
             # update state of all mm keys
-            possible_keys = Key.mmKeys.difference(win_key_set)
+            possible_keys = Key.mm_keys.difference(win_key_set)
             keys_down, keys_up = self._update_keys_down(possible_keys, keys)
         else:
             # update winkey state

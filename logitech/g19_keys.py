@@ -41,34 +41,9 @@ class Key(object):
     SCROLL_UP, \
     SCROLL_DOWN = list(range(UP + 1, UP + 9))
 
-    mmKeys = set([
-            WINKEY_SWITCH,
-            NEXT,
-            PREV,
-            STOP,
-            PLAY,
-            MUTE,
-            SCROLL_UP,
-            SCROLL_DOWN])
+    mm_keys = {WINKEY_SWITCH, NEXT, PREV, STOP, PLAY, MUTE, SCROLL_UP, SCROLL_DOWN}
 
-    gmKeys = set([
-            G01,
-            G02,
-            G03,
-            G04,
-            G05,
-            G06,
-            G07,
-            G08,
-            G09,
-            G10,
-            G11,
-            G12,
-            LIGHT,
-            M1,
-            M2,
-            M3,
-            MR])
+    gm_keys = {G01, G02, G03, G04, G05, G06, G07, G08, G09, G10, G11, G12, LIGHT, M1, M2, M3, MR}
 
 
 class Data(object):
@@ -84,16 +59,15 @@ class Data(object):
     # Incoming data always has 0x80 appended, e.g. pressing and releasing the menu
     # key results in two INTERRUPT transmissions: [0x04, 0x80] and [0x00, 0x80]
     # Pressing (and holding) UP and OK at the same time results in [0x88, 0x80].
-    displayKeys = {}
-    displayKeys[0x01] = Key.SETTINGS
-    displayKeys[0x02] = Key.BACK
-    displayKeys[0x04] = Key.MENU
-    displayKeys[0x08] = Key.OK
-    displayKeys[0x10] = Key.RIGHT
-    displayKeys[0x20] = Key.LEFT
-    displayKeys[0x40] = Key.DOWN
-    displayKeys[0x80] = Key.UP
-
+    display_keys = {}
+    display_keys[0x01] = Key.SETTINGS
+    display_keys[0x02] = Key.BACK
+    display_keys[0x04] = Key.MENU
+    display_keys[0x08] = Key.OK
+    display_keys[0x10] = Key.RIGHT
+    display_keys[0x20] = Key.LEFT
+    display_keys[0x40] = Key.DOWN
+    display_keys[0x80] = Key.UP
 
     ##
     ## G- and M-Keys
@@ -153,7 +127,6 @@ class Data(object):
     gmKeys[KEY_MR] = Key.MR
     gmKeys[KEY_LIGHT] = Key.LIGHT
 
-
     ##
     ## MM-keys
     ##
@@ -161,7 +134,7 @@ class Data(object):
     # multimedia keys
     # received as [0x01, key]
     # example: NEXT+SCROLL_UP:       [0x01, 0x21]
-    #          after scroll stopped: [0x01, 0x01]
+    #          after scroll __stopped: [0x01, 0x01]
     #          after release:        [0x01, 0x00]
     mmKeys = {}
     mmKeys[0x01] = Key.NEXT
@@ -175,4 +148,3 @@ class Data(object):
     # winkey switch to winkey off: [0x03, 0x01]
     # winkey switch to winkey on:  [0x03, 0x00]
     KEY_WIN_SWITCH = 0x0103
-
