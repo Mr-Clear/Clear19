@@ -3,6 +3,7 @@
 import logging
 from logitech.g19 import G19
 import time
+from PIL import Image, ImageDraw
 
 from clear19.key_listener import DisplayKey, GKey, KeyListener
 
@@ -28,8 +29,31 @@ except usb.core.USBError as err:
     exit(2)
 kl = KeyListener(g19)
 
+aa = 2
+image_size = (320 * aa, 240 * aa)
+
+img = Image.new("RGBA", image_size, (0, 0, 0, 255))
+
+speed = 2
+x = 0
+y = 0
+
 try:
-    time.sleep(100)
+    end = time.time() + 100
+    while time.time() < end:
+        keys = kl.pressed_keys()
+        if DisplayKey.UP in keys:
+            y = y - speed
+        if DisplayKey.DOWN in keys:
+            y = y + speed
+        if DisplayKey.LEFT in keys:
+            x = x - speed
+        if DisplayKey.RIGHT in keys:
+            x = x + speed
+        img = Image.new("RGBA", image_size, (0, 0, 0, 255))
+        draw = ImageDraw.Draw(img)
+        draw.ellipse([x * aa, y * aa, (x + 50) * aa, (y + 50) * aa], (255, 255, 255, 255))
+        g19.send_frame(g19.convert_image_to_frame(img))
 except KeyboardInterrupt:
     pass
 

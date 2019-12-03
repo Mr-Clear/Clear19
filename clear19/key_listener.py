@@ -59,15 +59,16 @@ class KeyListener:
     __pressed_display_keys: int = 0
     __pressed_g_keys: int = 0
     __pressed_keys: Set[Union[DisplayKey, GKey]] = set()
+    __poll_interval: float = 0.01
 
     def __init__(self, g19: G19):
         self.__g19 = g19
         self.__key_reader()
 
-    def stop(self):
+    def stop(self) -> None:
         self.__stopped = True
 
-    def __key_reader(self):
+    def __key_reader(self) -> None:
         down_keys = set()
         up_keys = set()
 
@@ -89,7 +90,7 @@ class KeyListener:
 
         data = self.__g19.read_g_and_m_keys()
         if data and data[0] == 2:
-            key_code =  data[1] | data[2] << 8 | data[3] << 16
+            key_code = data[1] | data[2] << 8 | data[3] << 16
             down_key_codes: int = ~self.__pressed_g_keys & key_code
             up_key_codes: int = self.__pressed_g_keys & ~key_code
             if down_key_codes:
@@ -103,11 +104,13 @@ class KeyListener:
             self.__pressed_g_keys = key_code
 
         if down_keys:
-                logging.debug("Down: {}".format(down_keys))
+            logging.debug("Down: {}".format(down_keys))
 
         if up_keys:
             logging.debug("Up: {}".format(up_keys))
 
         if not self.__stopped:
-            threading.Timer(.1, self.__key_reader).start()
+            threading.Timer(self.__poll_interval, self.__key_reader).start()
 
+    def pressed_keys(self) -> Set[Union[DisplayKey, GKey]]:
+        return self.__pressed_keys

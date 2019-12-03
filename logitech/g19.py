@@ -4,8 +4,7 @@ import logging
 import threading
 import time
 import usb
-
-import PIL.Image as Img
+from PIL import Image
 
 
 class G19(object):
@@ -24,7 +23,7 @@ class G19(object):
         self.__interrupt = False
 
     @staticmethod
-    def convert_image_to_frame(filename):
+    def convert_image_to_frame(img):
         """Loads image from given file.
 
         Format will be auto-detected.  If necessary, the image will be resized
@@ -33,15 +32,15 @@ class G19(object):
         @return Frame data to be used with send_frame().
 
         """
-        img = Img.open(filename)
+
         access = img.load()
         if img.size != (320, 240):
-            img = img.resize((320, 240), Img.CUBIC)
+            img = img.resize((320, 240), Image.CUBIC)
             access = img.load()
         data = []
         for x in range(320):
             for y in range(240):
-                r, g, b = access[x, y]
+                r, g, b, a = access[x, y]
                 val = G19.rgb_to_uint16(r, g, b)
                 data.append(val >> 8 & 0xff)
                 data.append(val & 0xff)
@@ -95,7 +94,7 @@ class G19(object):
         to 320x240.
 
         """
-        self.send_frame(self.convert_image_to_frame(filename))
+        self.send_frame(self.convert_image_to_frame(Image.open(filename)))
 
     def read_g_and_m_keys(self, max_len=20):
         """Reads interrupt data from G, M and light switch keys.
