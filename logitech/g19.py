@@ -131,22 +131,6 @@ class G19(object):
             self.__usb_device_mutex.release()
         return val
 
-    def read_multimedia_keys(self):
-        """Reads interrupt data from multimedia keys.
-
-        @return Read data or empty list.
-
-        """
-        self.__usb_device_mutex.acquire()
-        val = []
-        try:
-            val = list(self.__usb_device.handle_if_mm.interruptRead(0x82, 2, 10))
-        except usb.USBError as err:
-            logging.error("USB error({0}): {1}".format(err.errno, err.strerror))
-        finally:
-            self.__usb_device_mutex.release()
-        return val
-
     def reset(self):
         """Initiates a bus reset to USB device."""
         self.__usb_device_mutex.acquire()
@@ -316,26 +300,13 @@ class G19UsbController(object):
             self.handle_if_0 = self.__lcd_device.open()
 
         self.handle_if_1 = self.__lcd_device.open()
-        self.handle_if_mm = self.__kbd_device.open()
-        self.handle_if_mm.reset()
-        self.handle_if_mm = self.__kbd_device.open()
 
         config = self.__lcd_device.configurations[0]
         iface0 = config.interfaces[0][0]
         iface1 = config.interfaces[0][1]
 
         try:
-            self.handle_if_mm.setConfiguration(1)
-        except usb.USBError:
-            pass
-
-        try:
             self.handle_if_1.detachKernelDriver(iface1)
-        except usb.USBError:
-            pass
-
-        try:
-            self.handle_if_mm.detachKernelDriver(1)
         except usb.USBError:
             pass
 
@@ -343,7 +314,6 @@ class G19UsbController(object):
         self.handle_if_1.setConfiguration(1)
         self.handle_if_0.claimInterface(iface0)
         self.handle_if_1.claimInterface(iface1)
-        self.handle_if_mm.claimInterface(1)
 
     @staticmethod
     def _find_device(id_vendor, id_product):
@@ -358,7 +328,6 @@ class G19UsbController(object):
         """Resets the device on the USB."""
         self.handle_if_0.reset()
         self.handle_if_1.reset()
-        self.handle_if_mm.reset()
 
 
 def main():
