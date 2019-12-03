@@ -5,6 +5,7 @@ import threading
 import time
 import usb
 from PIL import Image
+from cairo import ImageSurface
 
 
 class G19(object):
@@ -24,7 +25,7 @@ class G19(object):
 
     @staticmethod
     def convert_image_to_frame(img):
-        """Loads image from given file.
+        """Converts PIL image to G19 compatible frame.
 
         Format will be auto-detected.  If necessary, the image will be resized
         to 320x240.
@@ -41,6 +42,28 @@ class G19(object):
         for x in range(320):
             for y in range(240):
                 r, g, b, a = access[x, y]
+                val = G19.rgb_to_uint16(r, g, b)
+                data.append(val >> 8 & 0xff)
+                data.append(val & 0xff)
+        return data
+
+    @staticmethod
+    def convert_surface_to_frame(surface: ImageSurface):
+        """Converts Cairo surface to G19 compatible frame.
+
+        Format will be auto-detected.  If necessary, the image will be resized
+        to 320x240.
+
+        @return Frame data to be used with send_frame().
+
+        """
+
+        buffer = surface.get_data()
+        data = []
+        for x in range(320):
+            for y in range(240):
+                i = (x + y * 320) * 4
+                b, g, r, a = buffer[i:i+4]
                 val = G19.rgb_to_uint16(r, g, b)
                 data.append(val >> 8 & 0xff)
                 data.append(val & 0xff)
