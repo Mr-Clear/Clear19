@@ -53,6 +53,20 @@ class GKey(Enum):
         return keys
 
 
+class Light(Enum):
+    M1 = 0x80
+    M2 = 0x40
+    M3 = 0x20
+    MR = 0x10
+
+    @staticmethod
+    def set_to_code(s: Set):
+        code = 0
+        for v in s:
+            code |= v.value
+        return code
+
+
 class KeyListener:
     __g19: G19
     __stopped: bool = False

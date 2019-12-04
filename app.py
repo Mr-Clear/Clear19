@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+from typing import Set
 import logging
 from logitech.g19 import G19
 import time
 import math
 import cairo
 
-from clear19.key_listener import DisplayKey, GKey, KeyListener
+from clear19.key_listener import DisplayKey, GKey, KeyListener, Light
 
 logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s', level=logging.DEBUG, force=True)
 logging.info("START")
@@ -38,6 +39,8 @@ speed = 2
 x = 160
 y = 120
 
+light: Set[Light] = set()
+
 try:
     start = time.time()
     while time.time() < start + 100:
@@ -50,6 +53,27 @@ try:
             x = x - speed
         if DisplayKey.RIGHT in keys:
             x = x + speed
+
+        if GKey.M1 in keys:
+            if Light.M1 in light:
+                light.remove(Light.M1)
+            else:
+                light.add(Light.M1)
+        if GKey.M2 in keys:
+            if Light.M2 in light:
+                light.remove(Light.M2)
+            else:
+                light.add(Light.M2)
+        if GKey.M3 in keys:
+            if Light.M3 in light:
+                light.remove(Light.M3)
+            else:
+                light.add(Light.M3)
+        if GKey.MR in keys:
+            if Light.MR in light:
+                light.remove(Light.MR)
+            else:
+                light.add(Light.MR)
 
         # http://seriot.ch/pycairo/
 
@@ -82,6 +106,8 @@ try:
         ctx.set_source_rgb(0.3, 0.2, 0.5)  # Solid color
         ctx.set_line_width(1)
         ctx.stroke()
+
+        g19.set_enabled_m_keys(Light.set_to_code(light))
 
         g19.send_frame(img.get_data())
 except KeyboardInterrupt:
