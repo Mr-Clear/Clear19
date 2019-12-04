@@ -47,6 +47,8 @@ bgr: numpy.uint8 = numpy.uint8(255)
 bgg: numpy.uint8 = numpy.uint8(255)
 bgb: numpy.uint8 = numpy.uint8(255)
 
+brightness: numpy.uint8 = numpy.uint8(100)
+
 try:
     start = time.time()
     while time.time() < start + 100:
@@ -106,6 +108,11 @@ try:
         if GKey.G12 in keys:
             bgb = numpy.uint8(255)
 
+        if DisplayKey.OK in keys:
+            brightness += 1
+            if brightness > 100:
+                brightness = numpy.uint8(0)
+
         # http://seriot.ch/pycairo/
 
         ctx = cairo.Context(img)
@@ -141,6 +148,8 @@ try:
         g19.set_enabled_m_keys(Light.set_to_code(light))
 
         g19.set_bg_color(bgr, bgg, bgb)
+
+        g19.set_display_brightness(brightness)
 
         g19.send_frame(img.get_data())
 except KeyboardInterrupt:
