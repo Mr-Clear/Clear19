@@ -32,7 +32,7 @@ kl = KeyListener(g19)
 
 image_size = (320, 240)
 
-img = cairo.ImageSurface(cairo.FORMAT_ARGB32, image_size[0], image_size[1])
+img = cairo.ImageSurface(cairo.FORMAT_RGB16_565, image_size[1], image_size[0])
 
 speed = 2
 x = 160
@@ -54,19 +54,21 @@ try:
         # http://seriot.ch/pycairo/
 
         ctx = cairo.Context(img)
+        ctx.rotate(-math.pi / 2)
+        ctx.scale(-1, 1)
 
-        pat = cairo.LinearGradient(0.0, 0.0, 0.0, 240)
+        pat = cairo.LinearGradient(0.0, 0.0, 0.0, image_size[1])
         pat.add_color_stop_rgba(1, 0.7, 0, 0, 0.5)  # First stop, 50% opacity
         pat.add_color_stop_rgba(0, 0.9, 0.7, 0.2, 1)  # Last stop, 100% opacity
 
-        ctx.rectangle(0, 0, 320, 240)  # Rectangle(x0, y0, x1, y1)
+        ctx.rectangle(0, 0, image_size[0], image_size[1])  # Rectangle(x0, y0, x1, y1)
         ctx.set_source(pat)
         ctx.fill()
 
         ctx.set_source_rgb(0, 0, 0)
         ctx.select_font_face("Consolas")
         ctx.set_font_size(28)
-        ctx.move_to(250, 220)
+        ctx.move_to(image_size[0] - 70, image_size[1] - 20)
         ctx.show_text("{:3.0f}".format(100 - time.time() + start))
 
         pat = cairo.RadialGradient(x - 10, y - 10, 5, x, y, 25)
@@ -81,7 +83,7 @@ try:
         ctx.set_line_width(1)
         ctx.stroke()
 
-        g19.send_frame(g19.convert_surface_to_frame(img))
+        g19.send_frame(img.get_data())
 except KeyboardInterrupt:
     pass
 finally:
