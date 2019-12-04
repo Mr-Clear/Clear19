@@ -214,8 +214,7 @@ class G19(object):
         color_data = [7, r, g, b]
         self.__usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_1.controlMsg(
-                rtype, 0x09, color_data, 0x307, 0x01, 10)
+            self.__usb_device.handle_if_1.controlMsg(rtype, 0x09, color_data, 0x307, 0x01, 10)
         finally:
             self.__usb_device_mutex.release()
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import numpy
 from typing import Set
 import logging
 from logitech.g19 import G19
@@ -9,7 +10,7 @@ import cairo
 
 from clear19.key_listener import DisplayKey, GKey, KeyListener, Light
 
-logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s', level=logging.DEBUG, force=True)
+logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
 logging.info("START")
 
 try:
@@ -25,21 +26,26 @@ except ModuleNotFoundError:
     exit(1)
 
 try:
-    g19 = G19()
+    g19: G19 = G19()
 except usb.core.USBError as err:
     logging.fatal("Failed to open USB connection: {0}".format(err))
     exit(2)
+# noinspection PyUnboundLocalVariable
 kl = KeyListener(g19)
 
 image_size = (320, 240)
 
 img = cairo.ImageSurface(cairo.FORMAT_RGB16_565, image_size[1], image_size[0])
 
-speed = 2
-x = 160
-y = 120
+speed: int = 2
+x: int = 160
+y: int = 120
 
 light: Set[Light] = set()
+
+bgr: numpy.uint8 = numpy.uint8(255)
+bgg: numpy.uint8 = numpy.uint8(255)
+bgb: numpy.uint8 = numpy.uint8(255)
 
 try:
     start = time.time()
@@ -75,6 +81,31 @@ try:
             else:
                 light.add(Light.MR)
 
+        if GKey.G01 in keys:
+            bgr = numpy.uint8(0)
+        if GKey.G07 in keys:
+            bgr = numpy.uint8(85)
+        if GKey.G02 in keys:
+            bgr = numpy.uint8(170)
+        if GKey.G08 in keys:
+            bgr = numpy.uint8(255)
+        if GKey.G03 in keys:
+            bgg = numpy.uint8(0)
+        if GKey.G09 in keys:
+            bgg = numpy.uint8(85)
+        if GKey.G04 in keys:
+            bgg = numpy.uint8(170)
+        if GKey.G10 in keys:
+            bgg = numpy.uint8(255)
+        if GKey.G05 in keys:
+            bgb = numpy.uint8(0)
+        if GKey.G11 in keys:
+            bgb = numpy.uint8(85)
+        if GKey.G06 in keys:
+            bgb = numpy.uint8(170)
+        if GKey.G12 in keys:
+            bgb = numpy.uint8(255)
+
         # http://seriot.ch/pycairo/
 
         ctx = cairo.Context(img)
@@ -108,6 +139,8 @@ try:
         ctx.stroke()
 
         g19.set_enabled_m_keys(Light.set_to_code(light))
+
+        g19.set_bg_color(bgr, bgg, bgb)
 
         g19.send_frame(img.get_data())
 except KeyboardInterrupt:

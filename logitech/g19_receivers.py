@@ -7,10 +7,10 @@ import time
 
 
 class InputProcessor(object):
-    '''Object to process key presses.'''
+    """Object to process key presses."""
 
     def process_input(self, input_event):
-        '''Processes given event.
+        """Processes given event.
 
         Should return as fast as possible.  Any time-consuming processing
         should be done in another thread.
@@ -18,22 +18,22 @@ class InputProcessor(object):
         @param input_event Event to process.
         @return True if event was consumed, or False if ignored.
 
-        '''
+        """
         return False
 
 
 class InputEvent(object):
-    '''Event created by a key press or release.'''
+    """Event created by a key press or release."""
 
     def __init__(self, old_state, new_state, keys_down, keys_up):
-        '''Creates an InputEvent.
+        """Creates an InputEvent.
 
         @param old_state State before event happened.
         @param new_state State after event happened.
         @param keys_down Keys newly pressed.
         @param keys_up Kys released by this event.
 
-        '''
+        """
         self.old_state = old_state
         self.new_state = new_state
         self.keys_down = keys_down
@@ -41,16 +41,17 @@ class InputEvent(object):
 
 
 class State(object):
-    '''Current state of keyboard.'''
+    """Current state of keyboard."""
 
     def __init__(self):
         self.__keys_down = set()
 
-    def _data_to_keys_g_and_m(self, data):
-        '''Converts a G/M keys data package to a set of keys defined as
+    @staticmethod
+    def _data_to_keys_g_and_m(data):
+        """Converts a G/M keys data package to a set of keys defined as
         pressed by it.
 
-        '''
+        """
         if len(data) != 4 or data[0] != 2:
             raise ValueError("not a multimedia key packet: " + str(data))
         empty = 0x400000
@@ -64,16 +65,16 @@ class State(object):
                     keys.append(Data.gmKeys[val])
                     found_a_key = True
             if not found_a_key:
-                raise ValueError("incorrect g/m key packet: " +
-                        str(data))
+                raise ValueError("incorrect g/m key packet: " + str(data))
 
         return set(keys)
 
-    def _data_to_keys_mm(self, data):
-        '''Converts a multimedia keys data package to a set of keys defined as
+    @staticmethod
+    def _data_to_keys_mm(data):
+        """Converts a multimedia keys data package to a set of keys defined as
         pressed by it.
 
-        '''
+        """
         if len(data) != 2 or data[0] not in [1, 3]:
             raise ValueError("not a multimedia key packet: " + str(data))
         if data[0] == 1:
@@ -87,8 +88,7 @@ class State(object):
                         keys.append(Data.mmKeys[val])
                         found_a_key = True
                 if not found_a_key:
-                    raise ValueError("incorrect multimedia key packet: " +
-                            str(data))
+                    raise ValueError("incorrect multimedia key packet: " + str(data))
         elif data == [3, 1]:
             keys = [Key.WINKEY_SWITCH]
         elif data == [3, 0]:
@@ -99,7 +99,7 @@ class State(object):
         return set(keys)
 
     def _update_keys_down(self, possible_keys, keys):
-        '''Updates internal keys_down set.
+        """Updates internal keys_down set.
 
         Updates the current state of all keys in 'possibleKeys' with state
         given in 'keys'.
@@ -116,7 +116,7 @@ class State(object):
         @param keys Current state of all keys in possibleKeys.
         @return A pair of sets listing newly pressed and newly released keys.
 
-        '''
+        """
         keys_down = set()
         keys_up = set()
         for key in possible_keys:
@@ -128,21 +128,21 @@ class State(object):
                 if key in self.__keys_down:
                     self.__keys_down.remove(key)
                     keys_up.add(key)
-        return (keys_down, keys_up)
+        return keys_down, keys_up
 
     def clone(self):
-        '''Returns an exact copy of this state.'''
+        """Returns an exact copy of this state."""
         state = State()
         state.__keys_down = set(self.__keys_down)
         return state
 
     def packet_received_g_and_m(self, data):
-        '''Mutates the state by given data packet from G- and M- keys.
+        """Mutates the state by given data packet from G- and M- keys.
 
         @param data Data packet received.
         @return InputEvent for data packet, or None if data packet was ignored.
 
-        '''
+        """
         old_state = self.clone()
         evt = None
         if len(data) == 4:
@@ -153,12 +153,12 @@ class State(object):
         return evt
 
     def packet_received_mm(self, data):
-        '''Mutates the state by given data packet from multimedia keys.
+        """Mutates the state by given data packet from multimedia keys.
 
         @param data Data packet received.
         @return InputEvent for data packet.
 
-        '''
+        """
         old_state = self.clone()
         if len(data) != 2:
             raise ValueError("incorrect multimedia key packet: " + str(data))
@@ -176,7 +176,7 @@ class State(object):
 
 
 class G19Receiver(Runnable):
-    '''This receiver consumes all data sent by special keys.'''
+    """This receiver consumes all data sent by special keys."""
 
     def __init__(self, g19):
         Runnable.__init__(self)
@@ -186,7 +186,7 @@ class G19Receiver(Runnable):
         self.__state = State()
 
     def add_input_processor(self, processor):
-        '''Adds an input processor.'''
+        """Adds an input processor."""
         self.__mutex.acquire()
         self.__ips.append(processor)
         self.__mutex.release()
@@ -194,17 +194,6 @@ class G19Receiver(Runnable):
     def execute(self):
         got_data = False
         processors = self.list_all_input_processors()
-
-        # data = self.__g19.read_multimedia_keys()
-        # if data:
-        #     evt = self.__state.packet_received_mm(data)
-        #     if evt:
-        #         for proc in processors:
-        #             if proc.process_input(evt):
-        #                 break
-        #     else:
-        #         logging.debug("mm ignored: ", data)
-        #     got_data = True
 
         data = self.__g19.read_g_and_m_keys()
         if data:
@@ -226,13 +215,13 @@ class G19Receiver(Runnable):
             time.sleep(0.03)
 
     def list_all_input_processors(self):
-        '''Returns a list of all input processors currently registered to this
+        """Returns a list of all input processors currently registered to this
         receiver.
 
         @return All registered processors.  This list is a copy of the internal
         one.
 
-        '''
+        """
         self.__mutex.acquire()
         all_processors = list(self.__ips)
         self.__mutex.release()
