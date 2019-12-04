@@ -1,70 +1,8 @@
 import logging
 import threading
-from enum import Enum
-from typing import Set, Union, List
+from typing import Set, Union
 
-from logitech.g19 import G19
-
-
-class DisplayKey(Enum):
-    SETTINGS = 0x01
-    BACK = 0x02
-    MENU = 0x04
-    OK = 0x08
-    RIGHT = 0x10
-    LEFT = 0x20
-    DOWN = 0x40
-    UP = 0x80
-
-    @staticmethod
-    def get_display_keys(key_code: int) -> List:
-        keys = []
-        for key in DisplayKey:
-            if key_code & key.value > 0:
-                keys.append(key)
-        return keys
-
-
-class GKey(Enum):
-    G01 = 0x000001
-    G02 = 0x000002
-    G03 = 0x000004
-    G04 = 0x000008
-    G05 = 0x000010
-    G06 = 0x000020
-    G07 = 0x000040
-    G08 = 0x000080
-    G09 = 0x000100
-    G10 = 0x000200
-    G11 = 0x000400
-    G12 = 0x000800
-    M1 = 0x001000
-    M2 = 0x002000
-    M3 = 0x004000
-    MR = 0x008000
-    LIGHT = 0x080000
-
-    @staticmethod
-    def get_g_keys(key_code: int) -> List:
-        keys = []
-        for key in GKey:
-            if key_code & key.value > 0:
-                keys.append(key)
-        return keys
-
-
-class Light(Enum):
-    M1 = 0x80
-    M2 = 0x40
-    M3 = 0x20
-    MR = 0x10
-
-    @staticmethod
-    def set_to_code(s: Set):
-        code = 0
-        for v in s:
-            code |= v.value
-        return code
+from clear19.g19 import DisplayKey, G19, GKey
 
 
 class KeyListener:

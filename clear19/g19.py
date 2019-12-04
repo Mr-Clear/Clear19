@@ -1,11 +1,69 @@
-from .g19_receivers import G19Receiver
-
 import logging
 import threading
-import time
 import usb
-from PIL import Image
-from cairo import ImageSurface
+from enum import Enum
+from typing import Set, List
+
+
+class DisplayKey(Enum):
+    SETTINGS = 0x01
+    BACK = 0x02
+    MENU = 0x04
+    OK = 0x08
+    RIGHT = 0x10
+    LEFT = 0x20
+    DOWN = 0x40
+    UP = 0x80
+
+    @staticmethod
+    def get_display_keys(key_code: int) -> List:
+        keys = []
+        for key in DisplayKey:
+            if key_code & key.value > 0:
+                keys.append(key)
+        return keys
+
+
+class GKey(Enum):
+    G01 = 0x000001
+    G02 = 0x000002
+    G03 = 0x000004
+    G04 = 0x000008
+    G05 = 0x000010
+    G06 = 0x000020
+    G07 = 0x000040
+    G08 = 0x000080
+    G09 = 0x000100
+    G10 = 0x000200
+    G11 = 0x000400
+    G12 = 0x000800
+    M1 = 0x001000
+    M2 = 0x002000
+    M3 = 0x004000
+    MR = 0x008000
+    LIGHT = 0x080000
+
+    @staticmethod
+    def get_g_keys(key_code: int) -> List:
+        keys = []
+        for key in GKey:
+            if key_code & key.value > 0:
+                keys.append(key)
+        return keys
+
+
+class KeyLight(Enum):
+    M1 = 0x80
+    M2 = 0x40
+    M3 = 0x20
+    MR = 0x10
+
+    @staticmethod
+    def set_to_code(s: Set):
+        code = 0
+        for v in s:
+            code |= v.value
+        return code
 
 
 class G19(object):
@@ -19,105 +77,14 @@ class G19(object):
         """Initializes and opens the USB device."""
         self.__usb_device = G19UsbController(reset_on_start)
         self.__usb_device_mutex = threading.Lock()
-        self.__key_receiver = G19Receiver(self)
         self.__thread_display = None
         self.__interrupt = False
-
-    @staticmethod
-    def convert_image_to_frame(img):
-        """Converts PIL image to G19 compatible frame.
-
-        Format will be auto-detected.  If necessary, the image will be resized
-        to 320x240.
-
-        @return Frame data to be used with send_frame().
-
-        """
-
-        access = img.load()
-        if img.size != (320, 240):
-            img = img.resize((320, 240), Image.CUBIC)
-            access = img.load()
-        data = []
-        for x in range(320):
-            for y in range(240):
-                r, g, b, a = access[x, y]
-                val = G19.rgb_to_uint16(r, g, b)
-                data.append(val >> 8 & 0xff)
-                data.append(val & 0xff)
-        return data
-
-    @staticmethod
-    def convert_surface_to_frame(surface: ImageSurface):
-        """Converts Cairo surface to G19 compatible frame.
-
-        Format will be auto-detected.  If necessary, the image will be resized
-        to 320x240.
-
-        @return Frame data to be used with send_frame().
-
-        """
-
-        buffer = surface.get_data()
-        data = []
-        for x in range(320):
-            for y in range(240):
-                i = (x + y * 320) * 4
-                b, g, r, a = buffer[i:i+4]
-                val = G19.rgb_to_uint16(r, g, b)
-                data.append(val >> 8 & 0xff)
-                data.append(val & 0xff)
-        return data
-
-    @staticmethod
-    def rgb_to_uint16(r, g, b):
-        """Converts a RGB value to 16bit highcolor (5-6-5).
-
-        @return 16bit highcolor value in little-endian.
-
-        """
-        r_bits = int(r * 2 ** 5 / 255)
-        g_bits = int(g * 2 ** 6 / 255)
-        b_bits = int(b * 2 ** 5 / 255)
-
-        r_bits = r_bits if r_bits <= 0b00011111 else 0b00011111
-        g_bits = g_bits if g_bits <= 0b00111111 else 0b00111111
-        b_bits = b_bits if b_bits <= 0b00011111 else 0b00011111
-
-        value_h = (r_bits << 3) | (g_bits >> 3)
-        value_l = (g_bits << 5) | b_bits
-        return value_l << 8 | value_h
 
     def set_interrupt(self):
         self.__interrupt = True
 
     def unset_interrupt(self):
         self.__interrupt = False
-
-    def add_key_listener(self, applet):
-        """Starts an applet."""
-        self.__key_receiver.add_input_processor(applet.get_input_processor())
-
-    def fill_display_with_color(self, r, g, b):
-        """Fills display with given color."""
-        # 16bit highcolor format: 5 red, 6 green, 5 blue
-        # saved in little-endian, because USB is little-endian
-        value = self.rgb_to_uint16(r, g, b)
-        value_h = value & 0xff
-        value_l = value >> 8 & 0xff
-        frame = [value_l, value_h] * (320 * 240)
-        logging.debug(value_l)
-        logging.debug(value_h)
-        self.send_frame(frame)
-
-    def load_image(self, filename):
-        """Loads image from given file.
-
-        Format will be auto-detected.  If necessary, the image will be resized
-        to 320x240.
-
-        """
-        self.send_frame(self.convert_image_to_frame(Image.open(filename)))
 
     def read_g_and_m_keys(self, max_len=20):
         """Reads interrupt data from G, M and light switch keys.
@@ -218,7 +185,7 @@ class G19(object):
         finally:
             self.__usb_device_mutex.release()
 
-    def set_enabled_m_keys(self, keys):
+    def set_enabled_m_keys(self, keys: Set[KeyLight]):
         """Sets currently lit keys as an OR-combination of LIGHT_KEY_M1..3,R.
 
         example:
@@ -231,7 +198,7 @@ class G19(object):
         self.__usb_device_mutex.acquire()
         try:
             self.__usb_device.handle_if_1.controlMsg(
-                rtype, 0x09, [5, keys], 0x305, 0x01, 10)
+                rtype, 0x09, [5, KeyLight.set_to_code(keys)], 0x305, 0x01, 10)
         finally:
             self.__usb_device_mutex.release()
 
@@ -248,43 +215,6 @@ class G19(object):
             self.__usb_device.handle_if_1.controlMsg(rtype, 0x0a, data, 0x0, 0x0)
         finally:
             self.__usb_device_mutex.release()
-
-    def set_display_colorful(self):
-        """This is an example how to create an image having a green to red
-        transition from left to right and a black to blue from top to bottom.
-
-        """
-        data = [0] * 320 * 240 * 2
-        for x in range(320):
-            for y in range(240):
-                data[2 * (x * 240 + y)] = self.rgb_to_uint16(
-                    255 * x / 320, 255 * (320 - x) / 320, 255 * y / 240) >> 8 & 0xff
-                data[2 * (x * 240 + y) + 1] = self.rgb_to_uint16(
-                    255 * x / 320, 255 * (320 - x) / 320, 255 * y / 240) & 0xff
-        self.send_frame(data)
-
-    def start_event_handling(self):
-        """Start event processing (aka keyboard driver).
-
-        This method is NOT thread-safe.
-
-        """
-        self.stop_event_handling()
-        self.__thread_display = threading.Thread(
-            target=self.__key_receiver.run)
-        self.__key_receiver.start()
-        self.__thread_display.start()
-
-    def stop_event_handling(self):
-        """Stops event processing (aka keyboard driver).
-
-        This method is NOT thread-safe.
-
-        """
-        self.__key_receiver.stop()
-        if self.__thread_display:
-            self.__thread_display.join()
-            self.__thread_display = None
 
 
 class G19UsbController(object):
@@ -349,14 +279,3 @@ class G19UsbController(object):
         """Resets the device on the USB."""
         self.handle_if_0.reset()
         self.handle_if_1.reset()
-
-
-def main():
-    lg19 = G19()
-    lg19.start_event_handling()
-    time.sleep(20)
-    lg19.stop_event_handling()
-
-
-if __name__ == '__main__':
-    main()
