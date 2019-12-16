@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 import logging
 import threading
 import usb
 from enum import Enum
 from typing import Set, List
+
+from clear19.widgets.geometry.size import Size
 
 
 class DisplayKey(Enum):
@@ -16,7 +20,7 @@ class DisplayKey(Enum):
     UP = 0x80
 
     @staticmethod
-    def get_display_keys(key_code: int) -> List:
+    def get_display_keys(key_code: int) -> List[DisplayKey]:
         keys = []
         for key in DisplayKey:
             if key_code & key.value > 0:
@@ -44,7 +48,7 @@ class GKey(Enum):
     LIGHT = 0x080000
 
     @staticmethod
-    def get_g_keys(key_code: int) -> List:
+    def get_g_keys(key_code: int) -> List[GKey]:
         keys = []
         for key in GKey:
             if key_code & key.value > 0:
@@ -59,7 +63,7 @@ class KeyLight(Enum):
     MR = 0x10
 
     @staticmethod
-    def set_to_code(s: Set):
+    def set_to_code(s: Set) -> int:
         code = 0
         for v in s:
             code |= v.value
@@ -79,6 +83,10 @@ class G19(object):
         self.__usb_device_mutex = threading.Lock()
         self.__thread_display = None
         self.__interrupt = False
+
+    @property
+    def image_size(self) -> Size:
+        return Size(320, 240)
 
     def set_interrupt(self):
         self.__interrupt = True
@@ -155,9 +163,9 @@ class G19(object):
         """
         if self.__interrupt:
             return
-        if len(data) != (320 * 240 * 2):
+        if len(data) != (self.image_size.width * self.image_size.height * 2):
             raise ValueError("illegal frame size: " + str(len(data))
-                             + " should be 320x240x2=" + str(320 * 240 * 2))
+                             + " should be 320x240x2=" + str(self.image_size.width * self.image_size.height * 2))
         frame = [0x10, 0x0F, 0x00, 0x58, 0x02, 0x00, 0x00, 0x00,
                  0x00, 0x00, 0x00, 0x3F, 0x01, 0xEF, 0x00, 0x0F]
         for i in range(16, 256):

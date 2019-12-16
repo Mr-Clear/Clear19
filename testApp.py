@@ -8,8 +8,8 @@ from typing import Set
 
 import cairo
 
-from clear19.g19 import DisplayKey, G19, GKey, KeyLight
-from clear19.key_listener import KeyListener
+from clear19.logitech.g19 import DisplayKey, G19, GKey, KeyLight
+from clear19.logitech.key_listener import KeyListener
 
 logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
 logging.info("START")
@@ -29,7 +29,7 @@ except ModuleNotFoundError:
 try:
     g19: G19 = G19()
 except usb.core.USBError as err:
-    logging.fatal("Failed to open USB connection: {0}".format(err))
+    logging.critical("Failed to open USB connection: {0}".format(err))
     exit(2)
 # noinspection PyUnboundLocalVariable
 kl = KeyListener(g19)

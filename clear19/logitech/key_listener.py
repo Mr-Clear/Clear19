@@ -2,7 +2,7 @@ import logging
 import threading
 from typing import Set, Union
 
-from clear19.g19 import DisplayKey, G19, GKey
+from clear19.logitech.g19 import DisplayKey, G19, GKey
 
 
 class KeyListener:
