@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import signal
-from time import sleep
+from datetime import timedelta
+from queue import Queue
+from typing import Union
 
 import usb
 
@@ -11,6 +13,7 @@ import cairo
 import logging
 import math
 
+from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry.size import Size
 from clear19.widgets.main_screen import MainScreen
 from clear19.widgets.widget import AppWidget
@@ -20,7 +23,7 @@ logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=lo
 
 class App(AppWidget):
     __image: cairo.ImageSurface
-    __g19: G19
+    __g19: Union[G19, None]
     __screen_size: Size
     __running: bool
 
@@ -29,13 +32,14 @@ class App(AppWidget):
             try:
                 logging.debug("Connect LCD")
                 self.__g19 = G19()
-                self.__image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
-                                                  int(self.__g19.image_size.height),
-                                                  int(self.__g19.image_size.width))
                 self.__screen_size = self.__g19.image_size
             except usb.core.USBError as err:
                 logging.error("Cannot connect to keyboard: " + str(err))
+                self.__g19 = None
                 self.__screen_size = Size(320, 240)
+            self.__image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
+                                              int(self.screen_size.height),
+                                              int(self.screen_size.width))
 
             self.current_screen = MainScreen(self)
 
@@ -44,11 +48,14 @@ class App(AppWidget):
             signal.signal(signal.SIGINT, self.__on_signal)
             signal.signal(signal.SIGTERM, self.__on_signal)
             self.__running = True
+            schedule_queue: Queue[TaskParameters] = Queue()
+            self.scheduler.schedule_to_queue(timedelta(milliseconds=10), schedule_queue, "UPDATE")
             while self.__running:
-                if self.dirty:
-                    self.update_lcd()
-                else:
-                    sleep(0.01)
+                p = schedule_queue.get()
+                if p.command == "UPDATE":
+                    if self.dirty:
+                        self.update_lcd()
+            self.scheduler.stop_scheduler()
 
         finally:
             if self.__g19 is not None:
@@ -58,7 +65,8 @@ class App(AppWidget):
     def update_lcd(self):
         ctx = self.get_lcd_context()
         self.paint(ctx)
-        self.__g19.send_frame(self.__image.get_data())
+        if self.__g19:
+            self.__g19.send_frame(self.__image.get_data())
 
     def get_lcd_context(self) -> cairo.Context:
         ctx = cairo.Context(self.__image)

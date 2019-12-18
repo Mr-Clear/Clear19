@@ -6,6 +6,7 @@ from typing import List
 
 from cairo import Context
 
+from clear19.scheduler import Scheduler
 from clear19.widgets import color
 from clear19.widgets.color import Color
 from clear19.widgets.geometry import rectangle, size, anchored_point
@@ -88,6 +89,10 @@ class Widget(ABC):
         ctx.rectangle(0, 0, *self.size.tuple)
         ctx.fill()
 
+    @property
+    def app(self) -> AppWidget:
+        return self.parent.app
+
 
 class ContainerWidget(Widget, ABC):
     __children: List[Widget] = []
@@ -126,6 +131,7 @@ class AppWidget(ContainerWidget):
     __metaclass__ = abc.ABCMeta
 
     __current_screen: Screen
+    __scheduler: Scheduler = Scheduler()
 
     def __init__(self, parent):
         if self.current_screen is None:
@@ -151,3 +157,11 @@ class AppWidget(ContainerWidget):
     @current_screen.setter
     def current_screen(self, current_screen: Screen):
         self.__current_screen = current_screen
+
+    @property
+    def scheduler(self) -> Scheduler:
+        return self.__scheduler
+
+    @property
+    def app(self) -> AppWidget:
+        return self
