@@ -1,25 +1,20 @@
+from __future__ import annotations
 from typing import Tuple
 
+from dataclasses import dataclass
 
+
+@dataclass(frozen=True)
 class Size:
-    _width: float
-    _height: float
-
-    def __init__(self, width: float, height: float):
-        self._width = width
-        self._height = height
-
-    @property
-    def width(self) -> float:
-        return self._width
-
-    @property
-    def height(self) -> float:
-        return self._height
+    width: float
+    height: float
 
     @property
     def tuple(self) -> Tuple[float, float]:
         return self.width, self.height
+
+    def fits_into(self, other: Size) -> bool:
+        return self.width <= other.width and self.height <= other.height
 
 
 ZERO: Size = Size(0, 0)
