@@ -34,7 +34,7 @@ If invoked by "python main.py":
 --- Color ---
 
 By selecting M1..3 you select red/green/blue for manipulation.  Using the scroll
-you can adjust the current backlight value.
+you can adjust the current back light value.
 
 
 --- Color ---
@@ -63,7 +63,7 @@ Fire up a python shell.  The main API is logitech.g19.G19 atm:
 # if you get an error: lg19 = G19(True)
 >>> lg19 = G19()
 
-# setting backlight to red
+# setting back light to red
 >>> lg19.set_bg_color(255, 0, 0)
 
 # fill your display with green
@@ -72,8 +72,8 @@ Fire up a python shell.  The main API is logitech.g19.G19 atm:
 # test your screen
 >>> lg19.set_display_colorful()
 
-# set backlight to blue after reset
-# this will be your backlight color after a bus reset (or switching the keyboard
+# set back light to blue after reset
+# this will be your back light color after a bus reset (or switching the keyboard
 # off and no)
 >>> lg19.save_default_bg_color(0, 0, 255)
 
