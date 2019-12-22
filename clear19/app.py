@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+import os
 import signal
+import traceback
 from datetime import timedelta
 from queue import Queue
 from typing import Union
@@ -52,9 +54,8 @@ class App(AppWidget):
             self.scheduler.schedule_to_queue(timedelta(milliseconds=10), schedule_queue, "UPDATE")
             while self.__running:
                 p = schedule_queue.get()
-                if p.command == "UPDATE":
-                    if self.dirty:
-                        self.update_lcd()
+                if p.command == "UPDATE" and self.dirty:
+                    self.update_lcd()
             self.scheduler.stop_scheduler()
 
         finally:
@@ -86,5 +87,10 @@ class App(AppWidget):
 
 if __name__ == "__main__":
     logging.info("START")
-    App()
+    # noinspection PyBroadException
+    try:
+        App()
+    except Exception as e:
+        logging.critical("Exception in App\n{}".format(''.join(traceback.format_exception(None, e, e.__traceback__))))
+        os._exit(os.EX_SOFTWARE)
     logging.info("END")
