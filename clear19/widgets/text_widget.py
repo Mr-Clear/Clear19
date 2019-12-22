@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import dataclasses
+from datetime import datetime, timedelta
 
 import cairo
 from dataclasses import dataclass
 from cairo import Context, ImageSurface
 
+from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry.size import Size
 from clear19.widgets.widget import Widget, ContainerWidget
 
@@ -108,3 +110,24 @@ class TextWidget(Widget):
         if text is None:
             text = self.text
         self.font = self.font.fit_size(self.size, text)
+
+
+class TimeWidget(TextWidget):
+    __time_format: str
+
+    def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font()):
+        super().__init__(parent, datetime.now().strftime(time_format), font)
+        self.__time_format = time_format
+        self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self.update)
+
+    @property
+    def time_format(self) -> str:
+        return self.__time_format
+
+    @time_format.setter
+    def time_format(self, time_format: str):
+        self.__time_format = time_format
+        self.update()
+
+    def update(self, _: TaskParameters = None):
+        self.text = datetime.now().strftime(self.time_format)
