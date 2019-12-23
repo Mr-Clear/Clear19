@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from datetime import datetime, timedelta
+from enum import Enum
 
 import cairo
 from dataclasses import dataclass
@@ -60,7 +61,7 @@ class Font:
         max_height: float = 0
         y: float = font_ascent
         for line in text.split('\n'):
-            _, _, text_width, _, _, _ = ctx.text_extents(line)
+            x_bearing, y_bearing, text_width, height, x_advance, y_advance = ctx.text_extents(line)
             if text_width > max_width:
                 max_width = text_width
             max_height = y
@@ -70,22 +71,55 @@ class Font:
 
 
 class TextWidget(Widget):
+    class HAlignment(Enum):
+        LEFT = 0
+        CENTER = 1
+        RIGHT = 2
+
+    class VAlignment(Enum):
+        TOP = 0
+        CENTER = 1
+        BOTTOM = 2
+
     __text: str
     __font: Font
+    __h_alignment: HAlignment
+    __v_alignment: VAlignment
 
-    def __init__(self, parent: ContainerWidget, text: str = "", font: Font = Font()):
+    def __init__(self, parent: ContainerWidget, text: str = "", font: Font = Font(),
+                 h_alignment: HAlignment = HAlignment.LEFT, v_alignment: VAlignment = VAlignment.TOP):
         super().__init__(parent)
         self.__text = text
         self.__font = font
+        self.__h_alignment = h_alignment
+        self.__v_alignment = v_alignment
 
     def paint_foreground(self, ctx: Context):
         self.font.set(ctx)
         font_ascent, font_descent, font_height, font_max_x_advance, font_max_y_advance = ctx.font_extents()
-        y: float = font_ascent
-        for line in self.text.split('\n'):
-            ctx.move_to(0, y)
-            ctx.show_text(line)
+        lines = self.text.split('\n')
+        text_height = len(lines) * font_ascent + font_descent
+        if self.v_alignment == TextWidget.VAlignment.TOP:
+            y = 0
+        elif self.v_alignment == TextWidget.VAlignment.CENTER:
+            y = self.size.height / 2 - text_height / 2
+        elif self.v_alignment == TextWidget.VAlignment.BOTTOM:
+            y = self.size.height - text_height
+        else:
+            raise Exception("Unknown v alignment: {}".format(self.v_alignment))
+        for line in lines:
             y += font_ascent
+            line_size = self.font.extents(line, ctx)
+            if self.h_alignment == TextWidget.HAlignment.LEFT:
+                x = 0
+            elif self.h_alignment == TextWidget.HAlignment.CENTER:
+                x = self.size.width / 2 - line_size.width / 2
+            elif self.h_alignment == TextWidget.HAlignment.RIGHT:
+                x = self.size.width - line_size.width
+            else:
+                raise Exception("Unknown v alignment: {}".format(self.v_alignment))
+            ctx.move_to(x, y)
+            ctx.show_text(line)
 
     @property
     def text(self) -> str:
@@ -111,12 +145,32 @@ class TextWidget(Widget):
             text = self.text
         self.font = self.font.fit_size(self.size, text)
 
+    @property
+    def h_alignment(self) -> HAlignment:
+        return self.__h_alignment
+
+    @h_alignment.setter
+    def h_alignment(self, h_alignment: HAlignment):
+        self.__h_alignment = h_alignment
+        self.dirty = True
+
+    @property
+    def v_alignment(self) -> VAlignment:
+        return self.__v_alignment
+
+    @v_alignment.setter
+    def v_alignment(self, v_alignment: VAlignment):
+        self.__v_alignment = v_alignment
+        self.dirty = True
+
 
 class TimeWidget(TextWidget):
     __time_format: str
 
-    def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font()):
-        super().__init__(parent, datetime.now().strftime(time_format), font)
+    def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font(),
+                 h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
+                 v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
+        super().__init__(parent, datetime.now().strftime(time_format), font, h_alignment, v_alignment)
         self.__time_format = time_format
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self.update)
 
