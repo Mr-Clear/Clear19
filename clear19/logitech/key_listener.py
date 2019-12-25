@@ -34,7 +34,7 @@ class KeyListener:
         self.__g19 = g19
         self.__queue = queue
         self.__scheduler = scheduler
-        self.__job_queue = Queue()
+        self.__job_queue = Queue(maxsize=1)
         self.__running = True
         self.__pressed_display_keys = 0
         self.__pressed_g_keys = 0
@@ -48,6 +48,7 @@ class KeyListener:
         self.__scheduler.stop_job(self.__job_id)
         self.__running = False
 
+    # noinspection PyCallByClass
     def __key_reader(self) -> None:
         while self.__running:
             self.__job_queue.get()

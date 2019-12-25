@@ -52,7 +52,10 @@ class App(AppWidget):
             self.__screens = {Screens.MAIN: MainScreen(self), Screens.TIME: TimeScreen(self)}
             self.set_screen(Screens.MAIN)
 
-            key_listener = KeyListener(self.__g19, schedule_queue, self.scheduler)
+            if self.__g19:
+                key_listener = KeyListener(self.__g19, schedule_queue, self.scheduler)
+            else:
+                key_listener = None
 
             signal.signal(signal.SIGINT, self.__on_signal)
             signal.signal(signal.SIGTERM, self.__on_signal)
@@ -75,7 +78,8 @@ class App(AppWidget):
                         logging.critical("Unknown key event: {}".format(p))
                 else:
                     logging.warning("Unknown queue content: {}".format(p))
-            key_listener.stop()
+            if key_listener:
+                key_listener.stop()
             self.scheduler.stop_scheduler()
 
         finally:

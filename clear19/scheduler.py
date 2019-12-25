@@ -1,10 +1,11 @@
 import inspect
 import logging
+import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from heapq import heappush, heappop
 from math import floor
-from queue import Queue
+from queue import Queue, Full
 from threading import Thread, Condition, Lock
 from typing import Callable, Any, List, Dict
 
@@ -94,7 +95,14 @@ class Scheduler:
         :param priority: When scheduled on the exact same time, the event with the lower priority will be called first.
         :return: Job id. The job can be stopped with this id.
         """
-        return self.schedule_synchronous(interval, lambda p: queue.put(p), command, start, priority)
+        return self.schedule_synchronous(interval, lambda p: self.__put_to_queue(p, queue), command, start, priority)
+
+    @staticmethod
+    def __put_to_queue(task_parameters: TaskParameters, queue: 'Queue[TaskParameters]'):
+        try:
+            queue.put(task_parameters, block=False)
+        except Full:
+            pass
 
     def stop_job(self, job_id: int):
         """
@@ -133,7 +141,12 @@ class Scheduler:
                                 self.__jobs.pop(job.job_id)
                         else:
                             job.run_count += 1
-                            job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
+                            # noinspection PyBroadException
+                            try:
+                                job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
+                            except Exception as e:
+                                logging.info("Exception in scheduled job: {}".format(''.join(
+                                    traceback.format_exception(None, e, e.__traceback__))))
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
                                 heappush(self.__queue, job)
