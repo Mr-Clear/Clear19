@@ -83,7 +83,7 @@ class Scheduler:
             self.__queue_lock.notify()
         return job_id
 
-    def schedule_to_queue(self, interval: timedelta, queue: Queue,
+    def schedule_to_queue(self, interval: timedelta, queue: 'Queue[TaskParameters]',
                           command: Any = None, start: datetime = datetime.now(), priority: float = 100):
         """
         Schedules an periodic event that will be send a TaskParameters object to given queue.

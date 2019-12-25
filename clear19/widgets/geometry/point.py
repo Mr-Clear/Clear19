@@ -2,20 +2,20 @@ from typing import Tuple
 
 
 class Point:
-    _x: float
-    _y: float
+    __x: float
+    __y: float
 
     def __init__(self, x: float, y: float):
-        self._x = x
-        self._y = y
+        self.__x = x
+        self.__y = y
 
     @property
     def x(self) -> float:
-        return self._x
+        return self.__x
 
     @property
     def y(self) -> float:
-        return self._y
+        return self.__y
 
     @property
     def tuple(self) -> Tuple[float, float]:

@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import abc
+import logging
 from abc import ABC, abstractmethod
-from typing import List
+from enum import Enum
+from typing import List, Type, Optional
 
 from cairo import Context
 
+from clear19.logitech.g19 import G19Key
 from clear19.scheduler import Scheduler
 from clear19.widgets import color
 from clear19.widgets.color import Color
@@ -17,13 +20,18 @@ from clear19.widgets.geometry.size import Size
 
 
 class Widget(ABC):
+    __metaclass__ = abc.ABCMeta
     __parent: ContainerWidget
-    __rectangle: Rectangle = rectangle.ZERO
-    __dirty: bool = True
-    __background: Color = color.BLACK
-    __foreground: Color = color.WHITE
+    __rectangle: Rectangle
+    __dirty: bool
+    __background: Color
+    __foreground: Color
 
     def __init__(self, parent: ContainerWidget):
+        self.__rectangle = rectangle.ZERO
+        self.__dirty = True
+        self.__background = color.BLACK
+        self. __foreground = color.WHITE
         self.__parent = parent
 
     @property
@@ -93,11 +101,16 @@ class Widget(ABC):
     def app(self) -> AppWidget:
         return self.parent.app
 
+    def repaint(self):
+        self.dirty = True
 
-class ContainerWidget(Widget, ABC):
-    __children: List[Widget] = []
+
+class ContainerWidget(Widget):
+    __metaclass__ = abc.ABCMeta
+    __children: List[Widget]
 
     def __init__(self, parent: ContainerWidget):
+        self.__children = []
         super().__init__(parent)
     
     @property
@@ -117,8 +130,14 @@ class ContainerWidget(Widget, ABC):
             child.paint(ctx)
             ctx.restore()
 
+    def repaint(self):
+        self.dirty = True
+        for child in self.children:
+            child.repaint()
 
-class Screen(ContainerWidget, ABC):
+
+class Screen(ContainerWidget):
+    __metaclass__ = abc.ABCMeta
     __name: str
 
     def __init__(self, parent: AppWidget, name: str):
@@ -126,16 +145,26 @@ class Screen(ContainerWidget, ABC):
         self.rectangle = parent.rectangle
         self.__name = name
 
+    @property
+    def name(self) -> str:
+        return self.__name
+
+    def on_key_down(self, key: G19Key):
+        pass
+
+    def on_key_up(self, key: G19Key):
+        pass
+
 
 class AppWidget(ContainerWidget):
     __metaclass__ = abc.ABCMeta
 
-    __current_screen: Screen
-    __scheduler: Scheduler = Scheduler()
+    __current_screen: Optional[Screen]
+    __scheduler: Scheduler
 
     def __init__(self, parent):
-        if self.current_screen is None:
-            raise Exception("App started while no current screen is set.")
+        self.__scheduler = Scheduler()
+        self.__current_screen = None
         super().__init__(parent)
 
     def paint(self, ctx: Context):
@@ -151,12 +180,19 @@ class AppWidget(ContainerWidget):
         return Rectangle(anchored_point.ZERO, self.screen_size)
 
     @property
-    def current_screen(self) -> Screen:
+    def current_screen(self) -> Optional[Screen]:
         return self.__current_screen
 
     @current_screen.setter
     def current_screen(self, current_screen: Screen):
         self.__current_screen = current_screen
+        self.__current_screen.repaint()
+        self.dirty = True
+        logging.info("Screen changed to {}.".format(self.__current_screen.name))
+
+    @abstractmethod
+    def set_screen(self, screen: Enum):
+        pass
 
     @property
     def scheduler(self) -> Scheduler:
@@ -165,3 +201,7 @@ class AppWidget(ContainerWidget):
     @property
     def app(self) -> AppWidget:
         return self
+
+    @abstractmethod
+    def screens(self) -> Type[Enum]:
+        pass

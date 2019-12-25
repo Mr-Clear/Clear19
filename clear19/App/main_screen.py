@@ -1,7 +1,9 @@
+from clear19.App.screens import Screens
+from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.geometry.anchor import Anchor
 from clear19.widgets.geometry.anchored_point import AnchoredPoint
 from clear19.widgets.geometry.rectangle import Rectangle
-from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
+from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.widget import Screen, AppWidget
 
 
@@ -18,3 +20,7 @@ class MainScreen(Screen):
         self.t.fit_font_size()
 
         self.children.append(self.t)
+
+    def on_key_down(self, key: G19Key):
+        if key == DisplayKey.UP:
+            self.app.set_screen(Screens.TIME)

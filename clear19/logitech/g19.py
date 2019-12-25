@@ -9,7 +9,11 @@ from typing import Set, List
 from clear19.widgets.geometry.size import Size
 
 
-class DisplayKey(Enum):
+class G19Key(Enum):
+    pass
+
+
+class DisplayKey(G19Key):
     SETTINGS = 0x01
     BACK = 0x02
     MENU = 0x04
@@ -28,7 +32,7 @@ class DisplayKey(Enum):
         return keys
 
 
-class GKey(Enum):
+class GKey(G19Key):
     G01 = 0x000001
     G02 = 0x000002
     G03 = 0x000004
