@@ -1,21 +1,11 @@
+from dataclasses import dataclass
 from typing import Tuple
 
 
+@dataclass
 class Point:
-    __x: float
-    __y: float
-
-    def __init__(self, x: float, y: float):
-        self.__x = x
-        self.__y = y
-
-    @property
-    def x(self) -> float:
-        return self.__x
-
-    @property
-    def y(self) -> float:
-        return self.__y
+    x: float
+    y: float
 
     @property
     def tuple(self) -> Tuple[float, float]:

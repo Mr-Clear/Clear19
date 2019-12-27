@@ -24,14 +24,14 @@ class Widget(ABC):
     __parent: ContainerWidget
     __rectangle: Rectangle
     __dirty: bool
-    __background: Color
-    __foreground: Color
+    _background: Color
+    _foreground: Color
 
     def __init__(self, parent: ContainerWidget):
         self.__rectangle = rectangle.ZERO
         self.__dirty = True
-        self.__background = color.BLACK
-        self. __foreground = color.WHITE
+        self._background = parent.background
+        self. _foreground = parent.foreground
         self.__parent = parent
 
     @property
@@ -60,26 +60,32 @@ class Widget(ABC):
     def position(self, anchor: Anchor) -> AnchoredPoint:
         return self.__rectangle.position(anchor)
 
+    def set_position(self, point: AnchoredPoint):
+        self.rectangle = Rectangle(point, self.size)
+
     @property
     def size(self) -> Size:
         return self.rectangle.size
 
+    def set_size(self, size: Size, anchor: Anchor):
+        self.rectangle = Rectangle(self.rectangle.position(anchor), size)
+
     @property
     def background(self) -> Color:
-        return self.__background
+        return self._background
 
     @background.setter
     def background(self, background: Color):
-        self.__background = background
+        self._background = background
         self.dirty = True
 
     @property
     def foreground(self) -> Color:
-        return self.__foreground
+        return self._foreground
 
     @foreground.setter
     def foreground(self, foreground: Color):
-        self.__foreground = foreground
+        self._foreground = foreground
         self.dirty = True
 
     def paint(self, ctx: Context):
@@ -103,6 +109,19 @@ class Widget(ABC):
 
     def repaint(self):
         self.dirty = True
+
+    def preferred_size(self) -> Size:
+        return self.size
+
+    def on_key_down(self, key: G19Key) -> bool:
+        return False
+
+    def on_key_up(self, key: G19Key) -> bool:
+        return False
+
+    def __str__(self) -> str:
+        return "{}(rectangle={}, background={}, foreground={})".format(self.__class__.__name__, self.rectangle,
+                                                                       self.background, self.foreground)
 
 
 class ContainerWidget(Widget):
@@ -149,26 +168,36 @@ class Screen(ContainerWidget):
     def name(self) -> str:
         return self.__name
 
-    def on_key_down(self, key: G19Key):
-        pass
+    def on_key_down(self, key: G19Key) -> bool:
+        for child in self.children:
+            if child.on_key_down(key):
+                return True
+        return False
 
-    def on_key_up(self, key: G19Key):
-        pass
+    def on_key_up(self, key: G19Key) -> bool:
+        for child in self.children:
+            if child.on_key_up(key):
+                return True
+        return False
 
 
 class AppWidget(ContainerWidget):
     __metaclass__ = abc.ABCMeta
 
-    __current_screen: Optional[Screen]
+    __current_screen: Optional[Enum]
     __scheduler: Scheduler
+    __last_screens: List[Enum]
 
-    def __init__(self, parent):
+    def __init__(self):
         self.__scheduler = Scheduler()
         self.__current_screen = None
-        super().__init__(parent)
+        self.__last_screens = []
+        self._background = color.BLACK
+        self._foreground = color.WHITE
+        super().__init__(self)
 
     def paint(self, ctx: Context):
-        self.current_screen.paint(ctx)
+        self._current_screen_object.paint(ctx)
         self.dirty = False
 
     @property
@@ -180,19 +209,32 @@ class AppWidget(ContainerWidget):
         return Rectangle(anchored_point.ZERO, self.screen_size)
 
     @property
-    def current_screen(self) -> Optional[Screen]:
+    def current_screen(self) -> Optional[Enum]:
         return self.__current_screen
 
     @current_screen.setter
-    def current_screen(self, current_screen: Screen):
-        self.__current_screen = current_screen
-        self.__current_screen.repaint()
-        self.dirty = True
-        logging.info("Screen changed to {}.".format(self.__current_screen.name))
+    def current_screen(self, current_screen: Enum):
+        if self.__current_screen != current_screen:
+            if self.__current_screen:
+                if self.__last_screens and self.__last_screens[-1] == current_screen:
+                    del self.__last_screens[-1]
+                else:
+                    self.__last_screens.append(self.current_screen)
+            self.__current_screen = current_screen
+            self.repaint()
+            logging.info("Screen changed to {}.".format(self.__current_screen.name))
+
+    @property
+    def _current_screen_object(self) -> Screen:
+        return self._screen_object(self.__current_screen)
 
     @abstractmethod
-    def set_screen(self, screen: Enum):
+    def _screen_object(self, screen: Enum) -> Screen:
         pass
+
+    def navigate_back(self):
+        if self.__last_screens:
+            self.app.current_screen = self.__last_screens[-1]
 
     @property
     def scheduler(self) -> Scheduler:
@@ -204,4 +246,8 @@ class AppWidget(ContainerWidget):
 
     @abstractmethod
     def screens(self) -> Type[Enum]:
+        pass
+
+    @abstractmethod
+    def exit(self, exit_code: int = 0):
         pass

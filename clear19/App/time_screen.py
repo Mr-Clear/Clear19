@@ -16,5 +16,8 @@ class TimeScreen(Screen):
         self.children.append(w)
 
     def on_key_down(self, key: G19Key):
+        if super().on_key_down(key):
+            return True
         if key == DisplayKey.DOWN:
-            self.app.set_screen(Screens.MAIN)
+            self.app.current_screen = Screens.MAIN
+            return True

@@ -57,5 +57,8 @@ class Rectangle:
         elif anchor == Anchor.BOTTOM_RIGHT:
             return AnchoredPoint(self.__top_left.x + self.__size.width, self.__top_left.y + self.__size.height, anchor)
 
+    def __str__(self) -> str:
+        return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)
+
 
 ZERO: Rectangle = Rectangle(anchored_point.ZERO, size.ZERO)

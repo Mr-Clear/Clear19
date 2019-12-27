@@ -163,6 +163,14 @@ class TextWidget(Widget):
         self.__v_alignment = v_alignment
         self.dirty = True
 
+    @property
+    def preferred_size(self) -> Size:
+        return self.font.extents(self.text)
+
+    def __str__(self) -> str:
+        return "{}(rectangle={}, background={}, foreground={}, text={}, font={}" \
+            .format(self.__class__.__name__, self.rectangle, self.background, self.foreground, self.text, self.font)
+
 
 class TimeWidget(TextWidget):
     __time_format: str

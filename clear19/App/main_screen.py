@@ -22,5 +22,8 @@ class MainScreen(Screen):
         self.children.append(self.t)
 
     def on_key_down(self, key: G19Key):
+        if super().on_key_down(key):
+            return True
         if key == DisplayKey.UP:
-            self.app.set_screen(Screens.TIME)
+            self.app.current_screen = Screens.TIME
+            return True

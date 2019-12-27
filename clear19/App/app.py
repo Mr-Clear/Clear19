@@ -6,10 +6,12 @@ from datetime import timedelta
 from queue import Queue
 from typing import Union, Type, Dict
 
+import sys
 import usb
 
+from clear19.App.menu_screen import MenuScreen
 from clear19.App.screens import Screens
-from clear19.logitech.g19 import G19
+from clear19.logitech.g19 import G19, DisplayKey
 
 import cairo
 
@@ -24,6 +26,8 @@ from clear19.App.time_screen import TimeScreen
 from clear19.widgets.widget import AppWidget, Screen
 
 logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
+
+app_exit_code: int = 0
 
 
 class App(AppWidget):
@@ -48,9 +52,11 @@ class App(AppWidget):
                                               int(self.screen_size.height),
                                               int(self.screen_size.width))
 
-            super().__init__(self)
-            self.__screens = {Screens.MAIN: MainScreen(self), Screens.TIME: TimeScreen(self)}
-            self.set_screen(Screens.MAIN)
+            super().__init__()
+            self.__screens = {Screens.MAIN: MainScreen(self),
+                              Screens.TIME: TimeScreen(self),
+                              Screens.MENU: MenuScreen(self)}
+            self.current_screen = Screens.MAIN
 
             if self.__g19:
                 key_listener = KeyListener(self.__g19, schedule_queue, self.scheduler)
@@ -71,9 +77,9 @@ class App(AppWidget):
                         logging.warning("Unknown command: {}".format(p.command))
                 elif isinstance(p, KeyListener.KeyEvent):
                     if p.type == KeyListener.KeyEvent.Type.DOWN:
-                        self.current_screen.on_key_down(p.key)
+                        self.on_key_down(p)
                     elif p.type == KeyListener.KeyEvent.Type.UP:
-                        self.current_screen.on_key_up(p.key)
+                        self.on_key_up(p)
                     else:
                         logging.critical("Unknown key event: {}".format(p))
                 else:
@@ -86,6 +92,16 @@ class App(AppWidget):
             if self.__g19 is not None:
                 logging.debug("Reset LCD")
                 self.__g19.reset()
+
+    def on_key_down(self, evt: KeyListener.KeyEvent):
+        if not self._current_screen_object.on_key_down(evt.key):
+            if evt.key == DisplayKey.SETTINGS:
+                self.app.current_screen = Screens.MENU
+            elif evt.key == DisplayKey.BACK:
+                self.navigate_back()
+
+    def on_key_up(self, evt: KeyListener.KeyEvent):
+        self._current_screen_object.on_key_up(evt.key)
 
     def update_lcd(self):
         ctx = self.get_lcd_context()
@@ -111,8 +127,13 @@ class App(AppWidget):
     def screens(self) -> Type[Screens]:
         return Screens
 
-    def set_screen(self, screen: Screens):
-        self.current_screen = self.__screens[screen]
+    def _screen_object(self, screen: Screens) -> Screen:
+        return self.__screens[screen]
+
+    def exit(self, exit_code: int = 0):
+        global app_exit_code
+        app_exit_code = exit_code
+        self.__running = False
 
 
 if __name__ == "__main__":
@@ -124,3 +145,4 @@ if __name__ == "__main__":
         logging.critical("Exception in App\n{}".format(''.join(traceback.format_exception(None, e, e.__traceback__))))
         os._exit(os.EX_SOFTWARE)
     logging.info("END")
+    sys.exit(app_exit_code)
