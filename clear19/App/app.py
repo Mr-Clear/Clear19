@@ -1,28 +1,25 @@
 #!/usr/bin/env python3
+import logging
+import math
 import os
 import signal
+import sys
 import traceback
 from datetime import timedelta
 from queue import Queue
 from typing import Union, Type, Dict
 
-import sys
+import cairo
 import usb
 
+from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
 from clear19.App.screens import Screens
+from clear19.App.time_screen import TimeScreen
 from clear19.logitech.g19 import G19, DisplayKey
-
-import cairo
-
-import logging
-import math
-
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry.size import Size
-from clear19.App.main_screen import MainScreen
-from clear19.App.time_screen import TimeScreen
 from clear19.widgets.widget import AppWidget, Screen
 
 logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)

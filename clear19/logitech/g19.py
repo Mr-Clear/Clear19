@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import logging
 import threading
-import usb
 from enum import Enum
 from typing import Set, List
+
+import usb
 
 from clear19.widgets.geometry.size import Size
 

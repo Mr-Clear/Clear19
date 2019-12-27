@@ -25,6 +25,7 @@ class TaskParameters:
 
 class Scheduler:
     """A non drifting scheduler for periodic events."""
+
     @dataclass(order=True)
     class _Job:
         next_run: datetime

@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Tuple
 
 from dataclasses import dataclass
+from typing import Tuple
 
 
 @dataclass(frozen=True)

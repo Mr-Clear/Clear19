@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import dataclasses
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 
 import cairo
-from dataclasses import dataclass
 from cairo import Context, ImageSurface
 
 from clear19.scheduler import TaskParameters

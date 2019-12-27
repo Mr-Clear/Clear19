@@ -16,6 +16,7 @@ class KeyListener:
         class Type(Enum):
             DOWN = 1
             UP = 2
+
         type: Type
         key: G19Key
 

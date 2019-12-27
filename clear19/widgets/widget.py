@@ -31,7 +31,7 @@ class Widget(ABC):
         self.__rectangle = rectangle.ZERO
         self.__dirty = True
         self._background = parent.background
-        self. _foreground = parent.foreground
+        self._foreground = parent.foreground
         self.__parent = parent
 
     @property
@@ -48,11 +48,11 @@ class Widget(ABC):
             self.__dirty = dirty
             if dirty and self.parent is not None:
                 self.parent.dirty = True
-        
+
     @property
     def rectangle(self) -> Rectangle:
         return self.__rectangle
-    
+
     @rectangle.setter
     def rectangle(self, rectangle: Rectangle):
         self.__rectangle = rectangle
@@ -131,7 +131,7 @@ class ContainerWidget(Widget):
     def __init__(self, parent: ContainerWidget):
         self.__children = []
         super().__init__(parent)
-    
+
     @property
     def children(self) -> List[Widget]:
         return self.__children
