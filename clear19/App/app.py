@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import math
-import os
 import signal
-import sys
-import traceback
 from datetime import timedelta
 from queue import Queue
 from typing import Union, Type, Dict
@@ -21,10 +18,6 @@ from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry.size import Size
 from clear19.widgets.widget import AppWidget, Screen
 
-logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
-
-app_exit_code: int = 0
-
 
 class App(AppWidget):
     __image: cairo.ImageSurface
@@ -32,6 +25,7 @@ class App(AppWidget):
     __screen_size: Size
     __running: bool
     __screens: Dict[Screens, Screen]
+    __exit_code: int = 0
 
     def __init__(self):
         try:
@@ -110,6 +104,10 @@ class App(AppWidget):
     def screen_size(self) -> Size:
         return self.__screen_size
 
+    @property
+    def exit_code(self) -> int:
+        return self.__exit_code
+
     # noinspection PyUnusedLocal
     def __on_signal(self, signum, frame):
         logging.info("Received signal {}({})".format(signum, signal.Signals(signum).name))
@@ -122,18 +120,5 @@ class App(AppWidget):
         return self.__screens[screen]
 
     def exit(self, exit_code: int = 0):
-        global app_exit_code
-        app_exit_code = exit_code
+        self.__exit_code = exit_code
         self.__running = False
-
-
-if __name__ == "__main__":
-    logging.info("START")
-    # noinspection PyBroadException
-    try:
-        App()
-    except Exception as e:
-        logging.critical("Exception in App\n{}".format(''.join(traceback.format_exception(None, e, e.__traceback__))))
-        os._exit(os.EX_SOFTWARE)
-    logging.info("END")
-    sys.exit(app_exit_code)
