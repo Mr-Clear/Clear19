@@ -3,9 +3,11 @@ from __future__ import annotations
 import logging
 import threading
 from enum import Enum
-from typing import Set, List
+from threading import Lock
+from typing import Set, List, Optional
 
 import usb
+from usb import Device
 
 from clear19.widgets.geometry.size import Size
 
@@ -82,22 +84,24 @@ class G19(object):
 
     """
 
+    _usb_device: G19UsbController
+    _usb_device_mutex: Lock
+    _interrupt: bool = False
+
     def __init__(self, reset_on_start=False):
         """Initializes and opens the USB device."""
-        self.__usb_device = G19UsbController(reset_on_start)
-        self.__usb_device_mutex = threading.Lock()
-        self.__thread_display = None
-        self.__interrupt = False
+        self._usb_device = G19UsbController(reset_on_start)
+        self._usb_device_mutex = threading.Lock()
 
     @property
     def image_size(self) -> Size:
         return Size(320, 240)
 
     def set_interrupt(self):
-        self.__interrupt = True
+        self._interrupt = True
 
     def unset_interrupt(self):
-        self.__interrupt = False
+        self._interrupt = False
 
     def read_g_and_m_keys(self, max_len=20):
         """Reads interrupt data from G, M and light switch keys.
@@ -106,15 +110,15 @@ class G19(object):
         @return Read data or empty list.
 
         """
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         val = []
         try:
-            val = list(self.__usb_device.handle_if_1.interruptRead(
+            val = list(self._usb_device.handle_if_1.interruptRead(
                 0x83, max_len, 10))
         except usb.USBError:
             pass
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
         return val
 
     def read_display_menu_keys(self):
@@ -123,23 +127,23 @@ class G19(object):
         @return Read data or empty list.
 
         """
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         val = []
         try:
-            val = list(self.__usb_device.handle_if_0.interruptRead(0x81, 2, 10))
+            val = list(self._usb_device.handle_if_0.interruptRead(0x81, 2, 10))
         except usb.USBError:
             pass
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
         return val
 
     def reset(self):
         """Initiates a bus reset to USB device."""
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.reset()
+            self._usb_device.reset()
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
     def save_default_bg_color(self, r, g, b):
         """This stores given color permanently to keyboard.
@@ -149,12 +153,12 @@ class G19(object):
         """
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
         color_data = [7, r, g, b]
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_1.controlMsg(
+            self._usb_device.handle_if_1.controlMsg(
                 rtype, 0x09, color_data, 0x308, 0x01, 1000)
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
     def send_frame(self, data):
         """Sends a frame to display.
@@ -166,7 +170,7 @@ class G19(object):
         (data[239 * 2], data[239 * 2 + 1]) the lower left one.
 
         """
-        if self.__interrupt:
+        if self._interrupt:
             return
         if len(data) != (self.image_size.width * self.image_size.height * 2):
             raise ValueError("illegal frame size: " + str(len(data))
@@ -180,23 +184,23 @@ class G19(object):
 
         frame += data
 
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_0.bulkWrite(2, frame, 1000)
+            self._usb_device.handle_if_0.bulkWrite(2, frame, 1000)
         except usb.USBError as err:
             logging.error("USB error({0}): {1}".format(err.errno, err.strerror))
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
     def set_bg_color(self, r, g, b):
         """Sets back light to given color."""
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
         color_data = [7, r, g, b]
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_1.controlMsg(rtype, 0x09, color_data, 0x307, 0x01, 10)
+            self._usb_device.handle_if_1.controlMsg(rtype, 0x09, color_data, 0x307, 0x01, 10)
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
     def set_enabled_m_keys(self, keys: Set[KeyLight]):
         """Sets currently lit keys as an OR-combination of LIGHT_KEY_M1..3,R.
@@ -208,12 +212,12 @@ class G19(object):
 
         """
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_1.controlMsg(
+            self._usb_device.handle_if_1.controlMsg(
                 rtype, 0x09, [5, KeyLight.set_to_code(keys)], 0x305, 0x01, 10)
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
     def set_display_brightness(self, val):
         """Sets display brightness.
@@ -223,11 +227,11 @@ class G19(object):
         """
         data = [val, 0xe2, 0x12, 0x00, 0x8c, 0x11, 0x00, 0x10, 0x00]
         rtype = usb.TYPE_VENDOR | usb.RECIP_INTERFACE
-        self.__usb_device_mutex.acquire()
+        self._usb_device_mutex.acquire()
         try:
-            self.__usb_device.handle_if_1.controlMsg(rtype, 0x0a, data, 0x0, 0x0)
+            self._usb_device.handle_if_1.controlMsg(rtype, 0x0a, data, 0x0, 0x0)
         finally:
-            self.__usb_device_mutex.release()
+            self._usb_device_mutex.release()
 
 
 class G19UsbController(object):
@@ -250,22 +254,24 @@ class G19UsbController(object):
                   EP 0x83(in)  - INT G-keys, M1..3/MR key, light key
 
     """
+    _lcd_device: Optional[Device]
+    _kbd_device: Optional[Device]
 
     def __init__(self, reset_on_start=False):
-        self.__lcd_device = self._find_device(0x046d, 0xc229)
-        if not self.__lcd_device:
+        self._lcd_device = self._find_device(0x046d, 0xc229)
+        if not self._lcd_device:
             raise usb.USBError("G19 LCD not found on USB bus")
-        self.__kbd_device = self._find_device(0x046d, 0xc228)
-        if not self.__kbd_device:
+        self._kbd_device = self._find_device(0x046d, 0xc228)
+        if not self._kbd_device:
             raise usb.USBError("G19 keyboard not found on USB bus")
-        self.handle_if_0 = self.__lcd_device.open()
+        self.handle_if_0 = self._lcd_device.open()
         if reset_on_start:
             self.handle_if_0.reset()
-            self.handle_if_0 = self.__lcd_device.open()
+            self.handle_if_0 = self._lcd_device.open()
 
-        self.handle_if_1 = self.__lcd_device.open()
+        self.handle_if_1 = self._lcd_device.open()
 
-        config = self.__lcd_device.configurations[0]
+        config = self._lcd_device.configurations[0]
         iface0 = config.interfaces[0][0]
         iface1 = config.interfaces[0][1]
 
@@ -280,7 +286,7 @@ class G19UsbController(object):
         self.handle_if_1.claimInterface(iface1)
 
     @staticmethod
-    def _find_device(id_vendor, id_product):
+    def _find_device(id_vendor, id_product) -> Optional[Device]:
         for bus in usb.busses():
             for dev in bus.devices:
                 if dev.idVendor == id_vendor and \

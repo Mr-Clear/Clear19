@@ -6,56 +6,56 @@ from clear19.widgets.geometry.size import Size
 
 
 class Rectangle:
-    __top_left: Point
-    __size: Size
+    _top_left: Point
+    _size: Size
 
     def __init__(self, point: AnchoredPoint, size: Size):
-        self.__size = size
+        self._size = size
         if point.anchor == Anchor.TOP_LEFT:
-            self.__top_left = Point(point.x, point.y)
+            self._top_left = Point(point.x, point.y)
         elif point.anchor == Anchor.TOP_CENTER:
-            self.__top_left = Point(point.x - size.width / 2, point.y)
+            self._top_left = Point(point.x - size.width / 2, point.y)
         elif point.anchor == Anchor.TOP_RIGHT:
-            self.__top_left = Point(point.x - size.width, point.y)
+            self._top_left = Point(point.x - size.width, point.y)
         elif point.anchor == Anchor.CENTER_LEFT:
-            self.__top_left = Point(point.x, point.y - size.height / 2)
+            self._top_left = Point(point.x, point.y - size.height / 2)
         elif point.anchor == Anchor.CENTER_CENTER:
-            self.__top_left = Point(point.x - size.width / 2, point.y - size.height / 2)
+            self._top_left = Point(point.x - size.width / 2, point.y - size.height / 2)
         elif point.anchor == Anchor.CENTER_RIGHT:
-            self.__top_left = Point(point.x - size.width, point.y - size.height / 2)
+            self._top_left = Point(point.x - size.width, point.y - size.height / 2)
         elif point.anchor == Anchor.BOTTOM_LEFT:
-            self.__top_left = Point(point.x, point.y - size.height)
+            self._top_left = Point(point.x, point.y - size.height)
         elif point.anchor == Anchor.BOTTOM_CENTER:
-            self.__top_left = Point(point.x - size.width / 2, point.y - size.height)
+            self._top_left = Point(point.x - size.width / 2, point.y - size.height)
         elif point.anchor == Anchor.BOTTOM_RIGHT:
-            self.__top_left = Point(point.x - size.width, point.y - size.height)
+            self._top_left = Point(point.x - size.width, point.y - size.height)
 
     @property
     def size(self) -> Size:
-        return self.__size
+        return self._size
 
     def position(self, anchor: Anchor) -> AnchoredPoint:
         if anchor == Anchor.TOP_LEFT:
-            return AnchoredPoint(self.__top_left.x, self.__top_left.y, anchor)
+            return AnchoredPoint(self._top_left.x, self._top_left.y, anchor)
         elif anchor == Anchor.TOP_CENTER:
-            return AnchoredPoint(self.__top_left.x + self.__size.width / 2, self.__top_left.y, anchor)
+            return AnchoredPoint(self._top_left.x + self._size.width / 2, self._top_left.y, anchor)
         elif anchor == Anchor.TOP_RIGHT:
-            return AnchoredPoint(self.__top_left.x + self.__size.width, self.__top_left.y, anchor)
+            return AnchoredPoint(self._top_left.x + self._size.width, self._top_left.y, anchor)
         elif anchor == Anchor.CENTER_LEFT:
-            return AnchoredPoint(self.__top_left.x, self.__top_left.y + self.__size.height / 2, anchor)
+            return AnchoredPoint(self._top_left.x, self._top_left.y + self._size.height / 2, anchor)
         elif anchor == Anchor.CENTER_CENTER:
-            return AnchoredPoint(self.__top_left.x + self.__size.width / 2, self.__top_left.y + self.__size.height / 2,
+            return AnchoredPoint(self._top_left.x + self._size.width / 2, self._top_left.y + self._size.height / 2,
                                  anchor)
         elif anchor == Anchor.CENTER_RIGHT:
-            return AnchoredPoint(self.__top_left.x + self.__size.width, self.__top_left.y + self.__size.height / 2,
+            return AnchoredPoint(self._top_left.x + self._size.width, self._top_left.y + self._size.height / 2,
                                  anchor)
         elif anchor == Anchor.BOTTOM_LEFT:
-            return AnchoredPoint(self.__top_left.x, self.__top_left.y + self.__size.height, anchor)
+            return AnchoredPoint(self._top_left.x, self._top_left.y + self._size.height, anchor)
         elif anchor == Anchor.BOTTOM_CENTER:
-            return AnchoredPoint(self.__top_left.x + self.__size.width / 2, self.__top_left.y + self.__size.height,
+            return AnchoredPoint(self._top_left.x + self._size.width / 2, self._top_left.y + self._size.height,
                                  anchor)
         elif anchor == Anchor.BOTTOM_RIGHT:
-            return AnchoredPoint(self.__top_left.x + self.__size.width, self.__top_left.y + self.__size.height, anchor)
+            return AnchoredPoint(self._top_left.x + self._size.width, self._top_left.y + self._size.height, anchor)
 
     def __str__(self) -> str:
         return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)

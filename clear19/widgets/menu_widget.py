@@ -19,16 +19,16 @@ class MenuWidgetEntry:
 
 
 class MenuWidget(ContainerWidget):
-    __menu: List[MenuWidgetEntry]
-    __font: Font
-    __current_entry: int
-    __widget: TextWidget = None
+    _menu: List[MenuWidgetEntry]
+    _font: Font
+    _current_entry: int
+    _widget: TextWidget = None
 
     def __init__(self, parent: ContainerWidget, menu: List[MenuWidgetEntry], font: Font, current_entry: int = 0):
         super().__init__(parent)
-        self.__menu = menu
-        self.__font = font
-        self.__current_entry = current_entry
+        self._menu = menu
+        self._font = font
+        self._current_entry = current_entry
         self.build_menu()
 
     def build_menu(self):
@@ -46,27 +46,27 @@ class MenuWidget(ContainerWidget):
 
     @property
     def menu(self) -> List[MenuWidgetEntry]:
-        return self.__menu
+        return self._menu
 
     @menu.setter
     def menu(self, menu: List[MenuWidgetEntry]):
-        self.__menu = menu
+        self._menu = menu
 
     @property
     def font(self) -> Font:
-        return self.__font
+        return self._font
 
     @font.setter
     def font(self, font: Font):
-        self.__font = font
+        self._font = font
 
     @property
     def current_entry(self) -> int:
-        return self.__current_entry
+        return self._current_entry
 
     @current_entry.setter
     def current_entry(self, current_entry: int):
-        self.__current_entry = current_entry
+        self._current_entry = current_entry
 
     def on_key_down(self, key: G19Key) -> bool:
         entry = self.menu[self.current_entry]

@@ -20,39 +20,39 @@ from clear19.widgets.widget import AppWidget, Screen
 
 
 class App(AppWidget):
-    __image: cairo.ImageSurface
-    __g19: Union[G19, None]
-    __screen_size: Size
-    __running: bool
-    __screens: Dict[Screens, Screen]
-    __exit_code: int = 0
+    _image: cairo.ImageSurface
+    _g19: Union[G19, None]
+    _screen_size: Size
+    _running: bool
+    _screens: Dict[Screens, Screen]
+    _exit_code: int = 0
 
     def __init__(self):
         try:
             schedule_queue: Queue[Union[TaskParameters, KeyListener.KeyEvent]] = Queue()
             logging.debug("Connect LCD")
-            self.__g19 = G19()
-            self.__screen_size = self.__g19.image_size
-            self.__image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
-                                              int(self.screen_size.height),
-                                              int(self.screen_size.width))
+            self._g19 = G19()
+            self._screen_size = self._g19.image_size
+            self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
+                                             int(self.screen_size.height),
+                                             int(self.screen_size.width))
 
             super().__init__()
-            self.__screens = {Screens.MAIN: MainScreen(self),
-                              Screens.TIME: TimeScreen(self),
-                              Screens.MENU: MenuScreen(self)}
+            self._screens = {Screens.MAIN: MainScreen(self),
+                             Screens.TIME: TimeScreen(self),
+                             Screens.MENU: MenuScreen(self)}
             self.current_screen = Screens.MAIN
 
-            if self.__g19:
-                key_listener = KeyListener(self.__g19, schedule_queue, self.scheduler)
+            if self._g19:
+                key_listener = KeyListener(self._g19, schedule_queue, self.scheduler)
             else:
                 key_listener = None
 
-            signal.signal(signal.SIGINT, self.__on_signal)
-            signal.signal(signal.SIGTERM, self.__on_signal)
-            self.__running = True
+            signal.signal(signal.SIGINT, self._on_signal)
+            signal.signal(signal.SIGTERM, self._on_signal)
+            self._running = True
             self.scheduler.schedule_to_queue(timedelta(milliseconds=10), schedule_queue, "UPDATE")
-            while self.__running:
+            while self._running:
                 p = schedule_queue.get()
                 if isinstance(p, TaskParameters):
                     if p.command == "UPDATE":
@@ -74,9 +74,9 @@ class App(AppWidget):
             self.scheduler.stop_scheduler()
 
         finally:
-            if self.__g19 is not None:
+            if self._g19 is not None:
                 logging.debug("Reset LCD")
-                self.__g19.reset()
+                self._g19.reset()
 
     def on_key_down(self, evt: KeyListener.KeyEvent):
         if not self._current_screen_object.on_key_down(evt.key):
@@ -91,34 +91,34 @@ class App(AppWidget):
     def update_lcd(self):
         ctx = self.get_lcd_context()
         self.paint(ctx)
-        if self.__g19:
-            self.__g19.send_frame(self.__image.get_data())
+        if self._g19:
+            self._g19.send_frame(self._image.get_data())
 
     def get_lcd_context(self) -> cairo.Context:
-        ctx = cairo.Context(self.__image)
+        ctx = cairo.Context(self._image)
         ctx.rotate(-math.pi / 2)
         ctx.scale(-1, 1)
         return ctx
 
     @property
     def screen_size(self) -> Size:
-        return self.__screen_size
+        return self._screen_size
 
     @property
     def exit_code(self) -> int:
-        return self.__exit_code
+        return self._exit_code
 
     # noinspection PyUnusedLocal
-    def __on_signal(self, signum, frame):
+    def _on_signal(self, signum, frame):
         logging.info("Received signal {}({})".format(signum, signal.Signals(signum).name))
-        self.__running = False
+        self._running = False
 
     def screens(self) -> Type[Screens]:
         return Screens
 
     def _screen_object(self, screen: Screens) -> Screen:
-        return self.__screens[screen]
+        return self._screens[screen]
 
     def exit(self, exit_code: int = 0):
-        self.__exit_code = exit_code
-        self.__running = False
+        self._exit_code = exit_code
+        self._running = False

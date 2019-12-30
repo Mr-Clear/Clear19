@@ -21,10 +21,10 @@ class Font:
     italic: bool = False
 
     def fit_size(self, space: Size, text: str, ctx: Context = None) -> Font:
-        return dataclasses.replace(self, size=Font.__narrow(self, space, text, 0, 10000, ctx))
+        return dataclasses.replace(self, size=Font._narrow(self, space, text, 0, 10000, ctx))
 
     @staticmethod
-    def __narrow(font: Font, space: Size, text: str, low: float, high: float, ctx) -> float:
+    def _narrow(font: Font, space: Size, text: str, low: float, high: float, ctx) -> float:
         mid: float = (low + high) / 2.0
 
         copy: Font = dataclasses.replace(font, size=mid)
@@ -38,13 +38,13 @@ class Font:
                 return 0
 
         if fit:
-            x = copy.__narrow(font, space, text, mid, high, ctx)
+            x = copy._narrow(font, space, text, mid, high, ctx)
             if x:
                 return x
             else:
                 return mid
         else:
-            return copy.__narrow(font, space, text, low, mid, ctx)
+            return copy._narrow(font, space, text, low, mid, ctx)
 
     def set(self, ctx: Context):
         ctx.select_font_face(self.name,
@@ -81,18 +81,18 @@ class TextWidget(Widget):
         CENTER = 1
         BOTTOM = 2
 
-    __text: str
-    __font: Font
-    __h_alignment: HAlignment
-    __v_alignment: VAlignment
+    _text: str
+    _font: Font
+    _h_alignment: HAlignment
+    _v_alignment: VAlignment
 
     def __init__(self, parent: ContainerWidget, text: str = "", font: Font = Font(),
                  h_alignment: HAlignment = HAlignment.LEFT, v_alignment: VAlignment = VAlignment.TOP):
         super().__init__(parent)
-        self.__text = text
-        self.__font = font
-        self.__h_alignment = h_alignment
-        self.__v_alignment = v_alignment
+        self._text = text
+        self._font = font
+        self._h_alignment = h_alignment
+        self._v_alignment = v_alignment
 
     def paint_foreground(self, ctx: Context):
         self.font.set(ctx)
@@ -123,21 +123,21 @@ class TextWidget(Widget):
 
     @property
     def text(self) -> str:
-        return self.__text
+        return self._text
 
     @text.setter
     def text(self, text: str):
-        if self.__text != text:
-            self.__text = text
+        if self._text != text:
+            self._text = text
             self.dirty = True
 
     @property
     def font(self) -> Font:
-        return self.__font
+        return self._font
 
     @font.setter
     def font(self, font: Font):
-        self.__font = font
+        self._font = font
         self.dirty = True
 
     def fit_font_size(self, text: str = None):
@@ -147,20 +147,20 @@ class TextWidget(Widget):
 
     @property
     def h_alignment(self) -> HAlignment:
-        return self.__h_alignment
+        return self._h_alignment
 
     @h_alignment.setter
     def h_alignment(self, h_alignment: HAlignment):
-        self.__h_alignment = h_alignment
+        self._h_alignment = h_alignment
         self.dirty = True
 
     @property
     def v_alignment(self) -> VAlignment:
-        return self.__v_alignment
+        return self._v_alignment
 
     @v_alignment.setter
     def v_alignment(self, v_alignment: VAlignment):
-        self.__v_alignment = v_alignment
+        self._v_alignment = v_alignment
         self.dirty = True
 
     @property
@@ -173,22 +173,22 @@ class TextWidget(Widget):
 
 
 class TimeWidget(TextWidget):
-    __time_format: str
+    _time_format: str
 
     def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
                  v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
         super().__init__(parent, datetime.now().strftime(time_format), font, h_alignment, v_alignment)
-        self.__time_format = time_format
+        self._time_format = time_format
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self.update)
 
     @property
     def time_format(self) -> str:
-        return self.__time_format
+        return self._time_format
 
     @time_format.setter
     def time_format(self, time_format: str):
-        self.__time_format = time_format
+        self._time_format = time_format
         self.update()
 
     def update(self, _: TaskParameters = None):
