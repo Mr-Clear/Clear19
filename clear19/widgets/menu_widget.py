@@ -5,7 +5,7 @@ from typing import Callable, List
 
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.anchored_point import AnchoredPoint
+from clear19.widgets.geometry.point import AnchoredPoint
 from clear19.widgets.geometry.rectangle import Rectangle
 from clear19.widgets.text_widget import Font, TextWidget
 from clear19.widgets.widget import ContainerWidget

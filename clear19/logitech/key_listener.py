@@ -24,7 +24,7 @@ class KeyListener:
     _pressed_display_keys: int = 0
     _pressed_g_keys: int = 0
     _pressed_keys: Set[Union[DisplayKey, GKey]]
-    _poll_interval: float = 0.01
+    _poll_interval: timedelta = timedelta(milliseconds=10)
     _queue: 'Queue[KeyEvent]'
     _scheduler: Scheduler
     _job_queue: 'Queue[TaskParameters]'
@@ -37,7 +37,7 @@ class KeyListener:
         self._scheduler = scheduler
         self._job_queue = Queue(maxsize=1)
         self._pressed_keys = set()
-        self._job_id = scheduler.schedule_to_queue(timedelta(seconds=self._poll_interval), self._job_queue,
+        self._job_id = scheduler.schedule_to_queue(self._poll_interval, self._job_queue,
                                                    priority=0, command="KEY")
         Thread(target=self._key_reader).start()
 

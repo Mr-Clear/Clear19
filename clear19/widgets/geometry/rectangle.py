@@ -1,6 +1,6 @@
-from clear19.widgets.geometry import anchored_point, size
+from clear19.widgets.geometry import size
 from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.anchored_point import AnchoredPoint
+from clear19.widgets.geometry.point import AnchoredPoint, ZERO_TOP_LEFT
 from clear19.widgets.geometry.point import Point
 from clear19.widgets.geometry.size import Size
 
@@ -61,4 +61,4 @@ class Rectangle:
         return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)
 
 
-ZERO: Rectangle = Rectangle(anchored_point.ZERO, size.ZERO)
+ZERO: Rectangle = Rectangle(ZERO_TOP_LEFT, size.ZERO)

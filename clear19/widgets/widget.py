@@ -12,9 +12,9 @@ from clear19.logitech.g19 import G19Key
 from clear19.scheduler import Scheduler
 from clear19.widgets import color
 from clear19.widgets.color import Color
-from clear19.widgets.geometry import rectangle, size, anchored_point
+from clear19.widgets.geometry import rectangle, size
 from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.anchored_point import AnchoredPoint
+from clear19.widgets.geometry.point import AnchoredPoint, ZERO_TOP_LEFT
 from clear19.widgets.geometry.rectangle import Rectangle
 from clear19.widgets.geometry.size import Size
 
@@ -98,7 +98,7 @@ class Widget(ABC):
         return
 
     def paint_background(self, ctx: Context):
-        ctx.rectangle(0, 0, *self.size.tuple)
+        ctx.rectangle(0, 0, *self.size)
         ctx.fill()
 
     @property
@@ -141,8 +141,8 @@ class ContainerWidget(Widget):
     def paint_children(self, ctx: Context):
         for child in self.children:
             ctx.save()
-            ctx.translate(*child.position(Anchor.TOP_LEFT).tuple)
-            ctx.rectangle(0, 0, *self.size.tuple)
+            ctx.translate(*child.position(Anchor.TOP_LEFT))
+            ctx.rectangle(0, 0, *self.size)
             ctx.clip()
             child.paint(ctx)
             ctx.restore()
@@ -203,7 +203,7 @@ class AppWidget(ContainerWidget):
 
     @property
     def rectangle(self) -> Rectangle:
-        return Rectangle(anchored_point.ZERO, self.screen_size)
+        return Rectangle(ZERO_TOP_LEFT, self.screen_size)
 
     @property
     def current_screen(self) -> Optional[Enum]:

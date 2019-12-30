@@ -21,7 +21,8 @@ class Font:
     italic: bool = False
 
     def fit_size(self, space: Size, text: str, ctx: Context = None) -> Font:
-        return dataclasses.replace(self, size=Font._narrow(self, space, text, 0, 10000, ctx))
+        s = Size(space.width - 1, space.height)
+        return dataclasses.replace(self, size=Font._narrow(self, s, text, 0, 10000, ctx))
 
     @staticmethod
     def _narrow(font: Font, space: Size, text: str, low: float, high: float, ctx) -> float:
@@ -178,7 +179,8 @@ class TimeWidget(TextWidget):
     def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
                  v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
-        super().__init__(parent, datetime.now().strftime(time_format), font, h_alignment, v_alignment)
+        super().__init__(parent, datetime(2000, 12, 25, 22, 22, 22).strftime(time_format), font,
+                         h_alignment, v_alignment)
         self._time_format = time_format
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self.update)
 

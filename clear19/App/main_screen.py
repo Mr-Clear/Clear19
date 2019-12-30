@@ -1,7 +1,7 @@
 from clear19.App.screens import Screens
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.anchored_point import AnchoredPoint
+from clear19.widgets.geometry.point import AnchoredPoint
 from clear19.widgets.geometry.rectangle import Rectangle
 from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.widget import Screen, AppWidget
