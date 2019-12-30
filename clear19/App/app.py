@@ -10,7 +10,6 @@ from queue import Queue
 from typing import Union, Type, Dict
 
 import cairo
-import usb
 
 from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
@@ -37,14 +36,9 @@ class App(AppWidget):
     def __init__(self):
         try:
             schedule_queue: Queue[Union[TaskParameters, KeyListener.KeyEvent]] = Queue()
-            try:
-                logging.debug("Connect LCD")
-                self.__g19 = G19()
-                self.__screen_size = self.__g19.image_size
-            except usb.core.USBError as err:
-                logging.error("Cannot connect to keyboard: " + str(err))
-                self.__g19 = None
-                self.__screen_size = Size(320, 240)
+            logging.debug("Connect LCD")
+            self.__g19 = G19()
+            self.__screen_size = self.__g19.image_size
             self.__image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
                                               int(self.screen_size.height),
                                               int(self.screen_size.width))
