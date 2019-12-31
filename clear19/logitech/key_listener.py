@@ -4,6 +4,7 @@ from datetime import timedelta
 from enum import Enum
 from queue import Queue
 from threading import Thread
+from typing import Optional
 from typing import Set, Union
 
 from clear19.logitech.g19 import DisplayKey, G19, GKey, G19Key
@@ -24,10 +25,10 @@ class KeyListener:
     _pressed_display_keys: int = 0
     _pressed_g_keys: int = 0
     _pressed_keys: Set[Union[DisplayKey, GKey]]
-    _poll_interval: timedelta = timedelta(milliseconds=10)
+    _poll_interval: timedelta = timedelta(milliseconds=100)
     _queue: 'Queue[KeyEvent]'
     _scheduler: Scheduler
-    _job_queue: 'Queue[TaskParameters]'
+    _job_queue: 'Queue[Optional[TaskParameters]]'
     _job_id: int
     _running: bool = True
 
@@ -44,6 +45,7 @@ class KeyListener:
     def stop(self) -> None:
         self._scheduler.stop_job(self._job_id)
         self._running = False
+        self._job_queue.put(None)
 
     # noinspection PyCallByClass
     def _key_reader(self) -> None:
