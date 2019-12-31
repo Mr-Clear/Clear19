@@ -57,6 +57,30 @@ class Rectangle:
         elif anchor == Anchor.BOTTOM_RIGHT:
             return AnchoredPoint(self._top_left.x + self._size.width, self._top_left.y + self._size.height, anchor)
 
+    @property
+    def left(self) -> float:
+        return self._top_left.x
+
+    @property
+    def right(self) -> float:
+        return self._top_left.x + self.size.width
+
+    @property
+    def top(self) -> float:
+        return self._top_left.y
+
+    @property
+    def bottom(self) -> float:
+        return self._top_left.y + self.size.height
+
+    @property
+    def width(self) -> float:
+        return self._size.width
+
+    @property
+    def height(self) -> float:
+        return self._size.height
+
     def __str__(self) -> str:
         return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)
 

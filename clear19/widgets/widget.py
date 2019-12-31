@@ -117,6 +117,30 @@ class Widget(ABC):
     def on_key_up(self, key: G19Key) -> bool:
         return False
 
+    @property
+    def left(self) -> float:
+        return self._rectangle.left
+
+    @property
+    def right(self) -> float:
+        return self._rectangle.right
+
+    @property
+    def top(self) -> float:
+        return self._rectangle.top
+
+    @property
+    def bottom(self) -> float:
+        return self._rectangle.bottom
+
+    @property
+    def width(self) -> float:
+        return self._rectangle.width
+
+    @property
+    def height(self) -> float:
+        return self._rectangle.height
+
     def __str__(self) -> str:
         return "{}(rectangle={}, background={}, foreground={})".format(self.__class__.__name__, self.rectangle,
                                                                        self.background, self.foreground)
