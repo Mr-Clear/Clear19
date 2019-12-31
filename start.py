@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import locale
 import logging
 import os
 import sys
@@ -8,6 +9,7 @@ from typing import Optional
 from clear19.App.app import App
 
 logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
+locale.setlocale(locale.LC_ALL, ('de_DE', 'UTF-8'))
 
 if __name__ == "__main__":
     logging.info("START")
