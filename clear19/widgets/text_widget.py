@@ -60,6 +60,7 @@ class Font:
         font_ascent, font_descent, font_height, font_max_x_advance, font_max_y_advance = ctx.font_extents()
         max_width: float = 0
         max_height: float = 0
+        x_bearing: float = 0
         y: float = font_ascent
         for line in text.split('\n'):
             x_bearing, y_bearing, text_width, height, x_advance, y_advance = ctx.text_extents(line)
@@ -68,7 +69,7 @@ class Font:
             max_height = y
             y += font_ascent
         max_height += font_descent
-        return Size(max_width, max_height)
+        return Size(max_width + x_bearing, max_height)
 
 
 class TextWidget(Widget):
@@ -175,11 +176,12 @@ class TextWidget(Widget):
 
 class TimeWidget(TextWidget):
     _time_format: str
+    _extents_datetime: datetime = datetime(2000, 12, 25, 22, 22, 22)  # Monday may be the longest day string
 
     def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
                  v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
-        super().__init__(parent, datetime(2000, 12, 25, 22, 22, 22).strftime(time_format), font,
+        super().__init__(parent, datetime.now().strftime(time_format), font,
                          h_alignment, v_alignment)
         self._time_format = time_format
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self.update)
@@ -195,3 +197,12 @@ class TimeWidget(TextWidget):
 
     def update(self, _: TaskParameters = None):
         self.text = datetime.now().strftime(self.time_format)
+
+    @property
+    def preferred_size(self) -> Size:
+        return self.font.extents(self._extents_datetime.strftime(self.time_format))
+
+    def fit_font_size(self, text: str = None):
+        if text is None:
+            text = self._extents_datetime.strftime(self.time_format)
+        return super().fit_font_size(text)
