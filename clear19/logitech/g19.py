@@ -9,7 +9,7 @@ from typing import Set, List, Optional
 import usb
 from usb import Device
 
-from clear19.widgets.geometry.size import Size
+from clear19.widgets.geometry import Size
 
 
 class G19Key(Enum):

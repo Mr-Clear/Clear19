@@ -15,7 +15,7 @@ from clear19.App.time_screen import TimeScreen
 from clear19.logitech.g19 import G19, DisplayKey
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
-from clear19.widgets.geometry.size import Size
+from clear19.widgets.geometry import Size
 from clear19.widgets.widget import AppWidget, Screen
 
 

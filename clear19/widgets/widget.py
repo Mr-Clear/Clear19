@@ -8,21 +8,18 @@ from typing import List, Type, Optional
 
 from cairo import Context
 
+import clear19.widgets.geometry
 from clear19.logitech.g19 import G19Key
 from clear19.scheduler import Scheduler
 from clear19.widgets import color
 from clear19.widgets.color import Color
-from clear19.widgets.geometry import rectangle, size
-from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.point import AnchoredPoint, ZERO_TOP_LEFT
-from clear19.widgets.geometry.rectangle import Rectangle
-from clear19.widgets.geometry.size import Size
+from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZERO_TOP_LEFT, Rectangle, Size
 
 
 class Widget(ABC):
     __metaclass__ = abc.ABCMeta
     _parent: ContainerWidget
-    _rectangle: Rectangle = rectangle.ZERO
+    _rectangle: Rectangle = clear19.widgets.geometry.ZERO_RECT
     _dirty: bool = True
     _background: Color
     _foreground: Color
@@ -137,9 +134,16 @@ class Widget(ABC):
     def width(self) -> float:
         return self._rectangle.width
 
+    def set_width(self, width: float, anchor: HAnchor):
+        self.rectangle = Rectangle(self.position(VAnchor.TOP + anchor), Size(width, self.width))
+
     @property
     def height(self) -> float:
         return self._rectangle.height
+
+    def set_height(self, height: float, anchor: VAnchor):
+        self.rectangle = Rectangle(self.position(anchor + HAnchor.LEFT), Size(self.width, height))
+        self.dirty = True
 
     def __str__(self) -> str:
         return "{}(rectangle={}, background={}, foreground={})".format(self.__class__.__name__, self.rectangle,
@@ -223,7 +227,7 @@ class AppWidget(ContainerWidget):
 
     @property
     def screen_size(self) -> Size:
-        return size.ZERO
+        return clear19.widgets.geometry.ZERO_SIZE
 
     @property
     def rectangle(self) -> Rectangle:

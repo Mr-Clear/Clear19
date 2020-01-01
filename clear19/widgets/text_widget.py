@@ -9,7 +9,7 @@ import cairo
 from cairo import Context, ImageSurface
 
 from clear19.scheduler import TaskParameters
-from clear19.widgets.geometry.size import Size
+from clear19.widgets.geometry import Size
 from clear19.widgets.widget import Widget, ContainerWidget
 
 

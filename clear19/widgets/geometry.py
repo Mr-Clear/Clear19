@@ -1,8 +1,65 @@
-from clear19.widgets.geometry import size
-from clear19.widgets.geometry.anchor import Anchor
-from clear19.widgets.geometry.point import AnchoredPoint, ZERO_TOP_LEFT
-from clear19.widgets.geometry.point import Point
-from clear19.widgets.geometry.size import Size
+from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import Iterator
+
+
+class Anchor(Enum):
+    TOP_LEFT = 11
+    TOP_CENTER = 12
+    TOP_RIGHT = 13
+    CENTER_LEFT = 21
+    CENTER_CENTER = 22
+    CENTER_RIGHT = 23
+    BOTTOM_LEFT = 31
+    BOTTOM_CENTER = 32
+    BOTTOM_RIGHT = 33
+
+
+class VAnchor(Enum):
+    TOP = 1
+    CENTER = 2
+    BOTTOM = 3
+
+    def __add__(self, h: HAnchor):
+        return Anchor(self.value * 10 + h.value)
+
+
+class HAnchor(Enum):
+    LEFT = 1
+    Center = 2
+    RIGHT = 3
+
+    def __add__(self, v: VAnchor) -> Anchor:
+        return Anchor(v.value * 10 + self.value)
+
+
+@dataclass
+class Point:
+    x: float
+    y: float
+
+    def anchored(self, anchor: Anchor) -> AnchoredPoint:
+        return AnchoredPoint(self.x, self.y, anchor)
+
+    def __sub__(self, other: Point) -> Size:
+        return Size(abs(self.x - other.x), abs(self.y - other.y))
+
+    def __iter__(self) -> Iterator[float]:
+        return iter((self.x, self.y))
+
+
+class AnchoredPoint(Point):
+    _anchor: Anchor
+
+    def __init__(self, x: float, y: float, anchor: Anchor):
+        super().__init__(x, y)
+        self._anchor = anchor
+
+    @property
+    def anchor(self) -> Anchor:
+        return self._anchor
 
 
 class Rectangle:
@@ -85,4 +142,25 @@ class Rectangle:
         return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)
 
 
-ZERO: Rectangle = Rectangle(ZERO_TOP_LEFT, size.ZERO)
+@dataclass(frozen=True)
+class Size:
+    width: float
+    height: float
+
+    def fits_into(self, other: Size) -> bool:
+        return self.width <= other.width and self.height <= other.height
+
+    def position(self, anchor: Anchor) -> AnchoredPoint:
+        return Rectangle(ZERO_TOP_LEFT, self).position(anchor)
+
+    def __truediv__(self, divisor: float) -> Size:
+        return Size(self.width / divisor, self.height / divisor)
+
+    def __iter__(self) -> Iterator[float]:
+        return iter((self.width, self.height))
+
+
+ZERO: Point = Point(0, 0)
+ZERO_TOP_LEFT: AnchoredPoint = AnchoredPoint(0, 0, Anchor.TOP_LEFT)
+ZERO_SIZE: Size = Size(0, 0)
+ZERO_RECT: Rectangle = Rectangle(ZERO_TOP_LEFT, ZERO_SIZE)
