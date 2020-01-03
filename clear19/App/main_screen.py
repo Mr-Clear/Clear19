@@ -35,6 +35,8 @@ class MainScreen(Screen):
                                  Size(self.width - lv3.left, lh.preferred_size().height))
         self.children.append(lh)
 
+        lv3.set_height(lh.bottom, VAnchor.TOP)
+
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
             return True
