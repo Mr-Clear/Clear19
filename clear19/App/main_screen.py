@@ -4,7 +4,7 @@ from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size
 from clear19.widgets.line import Line
 from clear19.widgets.text_widget import TimeWidget, TextWidget
-from clear19.widgets.weather_widget import WeatherWidget
+from clear19.widgets.weather_widget import WeatherWidgets
 from clear19.widgets.widget import Screen, AppWidget
 
 
@@ -41,8 +41,8 @@ class MainScreen(Screen):
 
         wc = WetterCom('DE0008184003')
         wps = wc.load_weather()
-        ww = WeatherWidget(self, wps[0])
-        ww.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT), ww.preferred_size())
+        ww = WeatherWidgets(self, wps)
+        ww.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT), ww.preferred_size)
         self.children.append(ww)
 
     def on_key_down(self, key: G19Key):

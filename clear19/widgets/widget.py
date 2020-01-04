@@ -105,6 +105,7 @@ class Widget(ABC):
     def repaint(self):
         self.dirty = True
 
+    @property
     def preferred_size(self) -> Size:
         return self.size
 

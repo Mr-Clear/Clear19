@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
 import re
-
 import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -26,6 +27,35 @@ class WeatherPeriod:
     humidity: int = None
     cloudiness: int = None
 
+    @property
+    def duration(self) -> timedelta:
+        return self.end - self.start
+
+    def __add__(self, other: WeatherPeriod) -> WeatherPeriod:
+        if self.start > other.start:
+            a = other
+            b = self
+        else:
+            a = self
+            b = other
+        if a.end != b.start:
+            raise ValueError('Weather periods cannot be connected: {}, {}'.format(a, b))
+
+        c = WeatherPeriod(a.start, b.end, a.short_text, a.long_text, a.icon)
+        ads = a.duration.seconds
+        bds = b.duration.seconds
+        cds = c.duration.seconds
+        c.temp = (a.temp * ads + b.temp * bds) / cds
+        c.pop = 100 - (100 - a.pop) * (100 - b.pop) / 100
+        c.rainfall = a.rainfall + b.rainfall
+        c.wind_direction = a.wind_direction if a.wind_speed > b.wind_speed else b.wind_speed
+        c.wind_speed = (a.wind_speed * ads + b.wind_speed * bds) / cds
+        c.wind_squall_speed = max(a.wind_squall_speed, b.wind_squall_speed)
+        c.pressure = (a.pressure * ads + b.pressure * bds) / cds
+        c.humidity = (a.humidity * ads + b.humidity * bds) / cds
+        c.cloudiness = (a.cloudiness * ads + b.cloudiness * bds) / cds
+        return c
+
 
 class WetterCom:
     location_id: str
@@ -34,7 +64,7 @@ class WetterCom:
         self.location_id = location_id
 
     def load_weather(self) -> List[WeatherPeriod]:
-        #url = 'https://www.wetter.com/deutschland/{}.html'.format(self.location_id)
+        # url = 'https://www.wetter.com/deutschland/{}.html'.format(self.location_id)
         url = 'file:clear19/data/test.html'
         html = urllib.request.urlopen(url).read()
         s = BeautifulSoup(html, 'html.parser')
@@ -65,8 +95,8 @@ class WetterCom:
         _parse_row(wps, t_body.contents[13], _parse_temp)
         _parse_row(wps, t_body.contents[17], _parse_pop)
         _parse_row(wps, t_body.contents[21], _parse_rainfall)
-        _parse_row(wps, t_body.contents[25], _parse_wind_direction)
         _parse_row(wps, t_body.contents[27], _parse_wind_speed)
+        _parse_row(wps, t_body.contents[25], _parse_wind_direction)
         _parse_row(wps, t_body.contents[31], _parse_pressure)
         _parse_row(wps, t_body.contents[35], _parse_humidity)
         _parse_row(wps, t_body.contents[39], _parse_cloudiness)
@@ -106,6 +136,8 @@ def _parse_wind_direction(wps: List[WeatherPeriod], i: int, td: Tag):
     wps[i].wind_direction = td.contents[2].strip()
     if len(td.contents) > 3:
         wps[i].wind_squall_speed = int(td.contents[3].contents[1].text.strip())
+    else:
+        wps[i].wind_squall_speed = wps[i].wind_speed
 
 
 def _parse_wind_speed(wps: List[WeatherPeriod], i: int, td: Tag):
