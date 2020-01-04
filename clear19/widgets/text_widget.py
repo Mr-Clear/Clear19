@@ -15,6 +15,12 @@ from clear19.widgets.widget import Widget, ContainerWidget
 
 @dataclass()
 class Font:
+    @dataclass()
+    class Extents:
+        ascent: float
+        descent: float
+        height: float
+
     name: str = "Noto Sans Display"
     size: float = 16
     bold: bool = False
@@ -30,7 +36,7 @@ class Font:
 
         copy: Font = dataclasses.replace(font, size=mid)
 
-        fit = copy.extents(text, ctx).fits_into(space)
+        fit = copy.text_extents(text, ctx).fits_into(space)
 
         if high - low < 0.0001:
             if fit:
@@ -53,9 +59,10 @@ class Font:
                              cairo.FONT_WEIGHT_BOLD if self.bold else cairo.FONT_WEIGHT_NORMAL)
         ctx.set_font_size(self.size)
 
-    def extents(self, text: str, ctx: Context = None) -> Size:
+    def text_extents(self, text: str, ctx: Context = None) -> Size:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
+        ctx.save()
         self.set(ctx)
         font_ascent, font_descent, font_height, font_max_x_advance, font_max_y_advance = ctx.font_extents()
         max_width: float = 0
@@ -69,7 +76,18 @@ class Font:
             max_height = y
             y += font_ascent
         max_height += font_descent
+        ctx.restore()
         return Size(max_width + x_bearing, max_height)
+
+    def font_extents(self, ctx: Context = None) -> Font.Extents:
+        if ctx is None:
+            ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
+        ctx.save()
+        self.set(ctx)
+
+        extents = Font.Extents(*ctx.font_extents()[0:3])
+        ctx.restore()
+        return extents
 
 
 class TextWidget(Widget):
@@ -111,7 +129,7 @@ class TextWidget(Widget):
             raise Exception("Unknown v alignment: {}".format(self.v_alignment))
         for line in lines:
             y += font_ascent
-            line_size = self.font.extents(line, ctx)
+            line_size = self.font.text_extents(line, ctx)
             if self.h_alignment == TextWidget.HAlignment.LEFT:
                 x = 0
             elif self.h_alignment == TextWidget.HAlignment.CENTER:
@@ -167,7 +185,7 @@ class TextWidget(Widget):
 
     @property
     def preferred_size(self) -> Size:
-        return self.font.extents(self.text)
+        return self.font.text_extents(self.text)
 
     def __str__(self) -> str:
         return "{}(rectangle={}, background={}, foreground={}, text={}, font={}" \
@@ -200,7 +218,7 @@ class TimeWidget(TextWidget):
 
     @property
     def preferred_size(self) -> Size:
-        return self.font.extents(self._extents_datetime.strftime(self.time_format))
+        return self.font.text_extents(self._extents_datetime.strftime(self.time_format))
 
     def fit_font_size(self, text: str = None):
         if text is None:

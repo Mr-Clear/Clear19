@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup, Tag
 @dataclass
 class WeatherPeriod:
     start: datetime = None
+    end: datetime = None
     short_text: str = None
     long_text: str = None
     icon: str = None
@@ -34,7 +35,7 @@ class WetterCom:
 
     def load_weather(self) -> List[WeatherPeriod]:
         #url = 'https://www.wetter.com/deutschland/{}.html'.format(self.location_id)
-        url = 'file:test.html'
+        url = 'file:clear19/data/test.html'
         html = urllib.request.urlopen(url).read()
         s = BeautifulSoup(html, 'html.parser')
         t_body: Tag = s.select('#vhs-detail-diagram')[0]
@@ -58,6 +59,7 @@ class WetterCom:
         for wp in wps:
             wp.start = t
             t += timedelta(hours=1)
+            wp.end = t
 
         _parse_row(wps, t_body.contents[9], _parse_weather)
         _parse_row(wps, t_body.contents[13], _parse_temp)
