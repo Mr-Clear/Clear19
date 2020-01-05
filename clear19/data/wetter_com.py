@@ -69,7 +69,7 @@ class WetterCom:
             -> Optional[List[WeatherPeriod]]:
         url = 'https://www.wetter.com/deutschland/{}.html'.format(self._location_id)
         wps = self._download_manager.get(url, lambda content: callback(self.parse_html(content) if callback else None),
-                                         timedelta(minutes=10))
+                                         timedelta(minutes=9))
         return self.parse_html(wps)
 
     @staticmethod

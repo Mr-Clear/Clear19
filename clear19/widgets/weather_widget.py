@@ -115,5 +115,6 @@ class WeatherWidgets(ContainerWidget):
 
     @weather_periods.setter
     def weather_periods(self, weather_periods: Optional[List[WeatherPeriod]]):
-        self._weather_periods = weather_periods
-        self._update_children()
+        if self._weather_periods != weather_periods:
+            self._weather_periods = weather_periods
+            self._update_children()
