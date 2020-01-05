@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import logging
 import re
-import urllib.request
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import List, Callable
+from typing import List, Callable, Optional, Union
 
 from bs4 import BeautifulSoup, Tag
+
+from clear19.data.download_manager import DownloadManager
 
 
 @dataclass
@@ -58,15 +58,26 @@ class WeatherPeriod:
 
 
 class WetterCom:
-    location_id: str
+    _location_id: str
+    _download_manager: DownloadManager
 
-    def __init__(self, location_id: str):
-        self.location_id = location_id
+    def __init__(self, location_id: str, download_manager: DownloadManager):
+        self._location_id = location_id
+        self._download_manager = download_manager
 
-    def load_weather(self) -> List[WeatherPeriod]:
-        # url = 'https://www.wetter.com/deutschland/{}.html'.format(self.location_id)
-        url = 'file:clear19/data/test.html'
-        html = urllib.request.urlopen(url).read()
+    def load_weather(self, callback: Optional[Callable[[Optional[List[WeatherPeriod]]], None]])\
+            -> Optional[List[WeatherPeriod]]:
+        url = 'https://www.wetter.com/deutschland/{}.html'.format(self._location_id)
+        wps = self._download_manager.get(url, lambda content: callback(self.parse_html(content) if callback else None),
+                                         timedelta(minutes=10))
+        return self.parse_html(wps)
+
+    @staticmethod
+    def parse_html(html: Union[str, bytes]) -> Optional[List[WeatherPeriod]]:
+        if not html:
+            return None
+        if isinstance(html, bytes):
+            html = html.decode('utf-8')
         s = BeautifulSoup(html, 'html.parser')
         t_body: Tag = s.select('#vhs-detail-diagram')[0]
 
@@ -154,11 +165,3 @@ def _parse_humidity(wps: List[WeatherPeriod], i: int, td: Tag):
 
 def _parse_cloudiness(wps: List[WeatherPeriod], i: int, td: Tag):
     wps[i].cloudiness = int(td.text.strip()[0])
-
-
-if __name__ == "__main__":
-    """ Test it """
-    logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
-    w = WetterCom('DE0008184003')
-    for wp in w.load_weather():
-        print(wp)

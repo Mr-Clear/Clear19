@@ -1,3 +1,4 @@
+from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data.wetter_com import WetterCom
 from clear19.logitech.g19 import G19Key, DisplayKey
@@ -39,8 +40,8 @@ class MainScreen(Screen):
 
         lv3.set_height(lh.bottom, VAnchor.TOP)
 
-        wc = WetterCom('DE0008184003')
-        wps = wc.load_weather()
+        wc = WetterCom('DE0008184003', Global.download_manager)
+        wps = wc.load_weather(lambda wps2: ww.set_weather_periods(wps2))
         ww = WeatherWidgets(self, wps)
         ww.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT), ww.preferred_size)
         self.children.append(ww)

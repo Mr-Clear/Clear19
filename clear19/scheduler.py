@@ -39,14 +39,14 @@ class Scheduler:
         stopped: bool = False
 
     _name: str
-    _queue: List[_Job] = []
+    _queue: List[_Job]
     _running: bool
-    _queue_lock: Condition = Condition()
+    _queue_lock: Condition
     _thread: Thread
     _job_id: int = 0
-    _job_id_lock: Lock = Lock()
-    _jobs: Dict[int, _Job] = dict()
-    _jobs_lock: Lock = Lock()
+    _job_id_lock: Lock
+    _jobs: Dict[int, _Job]
+    _jobs_lock: Lock
 
     def __init__(self, name: str = None):
         super().__init__()
@@ -55,6 +55,11 @@ class Scheduler:
         else:
             self._name = "Scheduler"
         self._running = True
+        self._queue = []
+        self._queue_lock = Condition()
+        self._job_id_lock = Lock()
+        self._jobs = dict()
+        self._jobs_lock = Lock()
         self._thread = Thread(target=self._run)
         self._thread.setName(self._name)
         self._thread.start()
