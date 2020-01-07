@@ -51,8 +51,11 @@ class DownloadManager:
     def get(self, url: str, callback: Callable[[bytes], None], lifetime: timedelta = timedelta(days=30)) \
             -> Optional[bytes]:
         with self._mem_cache_lock:
-            if url in self._mem_cache and self._mem_cache[url].date + lifetime >= datetime.now():
-                return self._mem_cache[url].content
+            if url in self._mem_cache:
+                if self._mem_cache[url].date + lifetime >= datetime.now():
+                    return self._mem_cache[url].content
+                else:
+                    del self._mem_cache[url]
 
         cache_file = self.cache_path.joinpath(self.name_generator(url))
         if cache_file.exists():
@@ -64,7 +67,6 @@ class DownloadManager:
                 logging.debug("File {} is too old. Deleting it.".format(cache_file))
                 cache_file.unlink()
 
-        # noinspection PyCallByClass
         self._download_queue.put(self._DownloadJob(url, callback))
         return None
 
