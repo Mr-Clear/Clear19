@@ -48,7 +48,7 @@ class DownloadManager:
         Thread(target=self._download_worker, name="DownloadManager download worker", daemon=True).start()
         Thread(target=self._disk_load_worker, name="DownloadManager disk load worker", daemon=True).start()
 
-    def get(self, url: str, callback: Callable[[bytes], None], lifetime: timedelta = timedelta(days=30)) \
+    def get(self, url: str, callback: Callable[[bytes], None] = None, lifetime: timedelta = timedelta(days=30)) \
             -> Optional[bytes]:
         with self._mem_cache_lock:
             if url in self._mem_cache:
@@ -95,7 +95,8 @@ class DownloadManager:
             in_mem_cache = False
             with self._mem_cache_lock:
                 if job.url in self._mem_cache:
-                    job.callback(self._mem_cache[job.url].content)
+                    if job.callback:
+                        job.callback(self._mem_cache[job.url].content)
                     in_mem_cache = True
             if not in_mem_cache:
                 logging.debug("Downloading: {}".format(job.url))
@@ -105,7 +106,7 @@ class DownloadManager:
                 with self._mem_cache_lock:
                     self._mem_cache[job.url] = self._CacheEntry(content, now)
                 cache_file = self.cache_path.joinpath(self.name_generator(job.url))
-                with open(str(cache_file), "wb") as file:
+                with open(str(cache_file), 'wb') as file:
                     file.write(content)
                 if job.callback:
                     job.callback(content)
@@ -119,12 +120,13 @@ class DownloadManager:
             in_mem_cache = False
             with self._mem_cache_lock:
                 if job.url in self._mem_cache:
-                    job.callback(self._mem_cache[job.url].content)
+                    if job.callback:
+                        job.callback(self._mem_cache[job.url].content)
                     in_mem_cache = True
             if not in_mem_cache:
                 cache_file = self.cache_path.joinpath(self.name_generator(job.url))
                 now = datetime.now()
-                with open(str(cache_file), "rb") as file:
+                with open(str(cache_file), 'rb') as file:
                     content = file.read()
                 with self._mem_cache_lock:
                     self._mem_cache[job.url] = self._CacheEntry(content, now)

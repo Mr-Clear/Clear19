@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List, Type, Optional
 
-from cairo import Context
+from cairocffi import Context
 
 import clear19.widgets.geometry
 from clear19.logitech.g19 import G19Key

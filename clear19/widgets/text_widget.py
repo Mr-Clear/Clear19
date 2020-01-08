@@ -5,8 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 
-import cairo
-from cairo import Context, ImageSurface
+import cairocffi as cairo
+from cairocffi import Context, ImageSurface
 
 from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry import Size

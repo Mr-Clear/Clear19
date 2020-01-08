@@ -47,7 +47,7 @@ class MainScreen(Screen):
 
         self.wetter_com = WetterCom('DE0008184003', Global.download_manager)
         wps = self.load_weather()
-        self.weather_widgets = WeatherWidgets(self, wps)
+        self.weather_widgets = WeatherWidgets(self, wps, Global.download_manager)
         self.weather_widgets.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT),
                                                    self.weather_widgets.preferred_size)
         self.app.scheduler.schedule_synchronous(timedelta(minutes=10), self.load_weather)

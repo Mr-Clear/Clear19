@@ -175,8 +175,8 @@ class G19(object):
         if len(data) != (self.image_size.width * self.image_size.height * 2):
             raise ValueError("illegal frame size: " + str(len(data))
                              + " should be 320x240x2=" + str(self.image_size.width * self.image_size.height * 2))
-        frame = [0x10, 0x0F, 0x00, 0x58, 0x02, 0x00, 0x00, 0x00,
-                 0x00, 0x00, 0x00, 0x3F, 0x01, 0xEF, 0x00, 0x0F]
+        frame = bytearray([0x10, 0x0F, 0x00, 0x58, 0x02, 0x00, 0x00, 0x00,
+                           0x00, 0x00, 0x00, 0x3F, 0x01, 0xEF, 0x00, 0x0F])
         for i in range(16, 256):
             frame.append(i)
         for i in range(256):

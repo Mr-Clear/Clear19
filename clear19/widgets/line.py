@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from cairo import Context
+from cairocffi import Context
 
 from clear19.widgets.geometry import Anchor
 from clear19.widgets.geometry import Size

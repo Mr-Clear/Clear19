@@ -2,9 +2,11 @@ from dataclasses import replace
 from datetime import datetime
 from typing import List, Optional
 
-from cairo import Context
+from cairocffi import Context, ImageSurface
 
+from clear19.data.download_manager import DownloadManager
 from clear19.data.wetter_com import WeatherPeriod
+from clear19.widgets import load_svg
 from clear19.widgets.geometry import Size, Rectangle, AnchoredPoint, Anchor
 from clear19.widgets.text_widget import Font
 from clear19.widgets.widget import Widget, ContainerWidget
@@ -13,11 +15,15 @@ from clear19.widgets.widget import Widget, ContainerWidget
 class WeatherWidget(Widget):
     _weather_period: Optional[WeatherPeriod]
     _font: Font
+    _download_manager: DownloadManager
+    _icon: Optional[ImageSurface] = None
 
-    def __init__(self, parent: ContainerWidget, weather_period: Optional[WeatherPeriod], font: Font = Font(size=12)):
+    def __init__(self, parent: ContainerWidget, weather_period: Optional[WeatherPeriod],
+                 download_manager: DownloadManager, font: Font = Font(size=12)):
         super().__init__(parent)
-        self._weather_period = weather_period
-        self._font = font
+        self._download_manager = download_manager
+        self.weather_period = weather_period
+        self.font = font
 
     def paint_foreground(self, ctx: Context):
         if self.weather_period:
@@ -25,6 +31,14 @@ class WeatherWidget(Widget):
         else:
             wp = WeatherPeriod(start=datetime(2000, 1, 1), end=datetime(2000, 1, 1), temp=0, cloudiness=0,
                                rainfall=0, pop=0)
+
+        if self._icon:
+            ctx.save()
+            ctx.set_source_surface(self._icon, self.size.width - self._icon.get_width(),
+                                   (self.size.height - self._icon.get_height()) / 2)
+            ctx.paint()
+            ctx.restore()
+
         font = self.font
         big_font = replace(font, size=self.font.size * 1.5)
         x: float = 0
@@ -45,6 +59,13 @@ class WeatherWidget(Widget):
         ctx.move_to(0, x)
         ctx.show_text('{:.1f}mm {:.0f}%'.format(wp.rainfall, wp.pop))
 
+    def _load_icon(self, icon_data: bytes):
+        if icon_data:
+            self._icon = load_svg(icon_data, *(self.size / 1.5))
+        else:
+            self._icon = None
+        self.dirty = True
+
     @property
     def weather_period(self) -> WeatherPeriod:
         return self._weather_period
@@ -52,6 +73,8 @@ class WeatherWidget(Widget):
     @weather_period.setter
     def weather_period(self, weather_period: Optional[WeatherPeriod]):
         self._weather_period = weather_period
+        if weather_period:
+            self._load_icon(self._download_manager.get(weather_period.icon, self._load_icon))
         self.dirty = True
 
     @property
@@ -73,12 +96,12 @@ class WeatherWidgets(ContainerWidget):
     _font: Font
 
     def __init__(self, parent: ContainerWidget, weather_periods: Optional[List[WeatherPeriod]],
-                 font: Font = Font(size=12)):
+                 download_manager: DownloadManager, font: Font = Font(size=12)):
         super().__init__(parent)
         self._weather_periods = weather_periods
         self._font = font
         for i in range(5):
-            w = WeatherWidget(self, None)
+            w = WeatherWidget(self, None, download_manager)
             w.rectangle = Rectangle(AnchoredPoint(i * w.preferred_size.width, 0, Anchor.TOP_LEFT), w.preferred_size)
             self.children.append(w)
         self._update_children()

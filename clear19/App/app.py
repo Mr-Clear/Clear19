@@ -6,7 +6,8 @@ from datetime import timedelta
 from queue import Queue
 from typing import Union, Type, Dict
 
-import cairo
+import cairocffi as cairo
+from cairocffi.ffi_build import ffi
 
 from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
@@ -55,7 +56,7 @@ class App(AppWidget):
             while self._running:
                 p = schedule_queue.get()
                 if isinstance(p, TaskParameters):
-                    if p.command == "UPDATE":
+                    if p.command == 'UPDATE':
                         if self.dirty:
                             self.update_lcd()
                     else:
