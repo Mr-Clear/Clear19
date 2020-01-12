@@ -5,6 +5,7 @@ from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
+from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size
 from clear19.widgets.line import Line
 from clear19.widgets.text_widget import TimeWidget, TextWidget
@@ -24,14 +25,15 @@ class MainScreen(Screen):
                                   Size(lv3.preferred_size().width, self.height))
         self.children.append(lv3)
 
-        d = TimeWidget(self, "%a %d.%m.%Y", h_alignment=TextWidget.HAlignment.CENTER)
+        d = TimeWidget(self, '%a %d.%m.%Y', h_alignment=TextWidget.HAlignment.CENTER)
         d.rectangle = Rectangle(lv3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
                                 lv3.position(Anchor.TOP_RIGHT) - self.position(Anchor.BOTTOM_RIGHT))
         d.fit_font_size()
         d.set_height(d.preferred_size.height, VAnchor.TOP)
         self.children.append(d)
 
-        t = TimeWidget(self, "%H:%M:%S")
+        t = TimeWidget(self, '%H:%M:%S')
+        t.foreground = Color.WHITE / 2
         t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
                                 d.position(Anchor.BOTTOM_LEFT) - self.position(Anchor.BOTTOM_RIGHT))
         t.fit_font_size()
@@ -60,5 +62,5 @@ class MainScreen(Screen):
             self.app.current_screen = Screens.TIME
             return True
 
-    def load_weather(self, _ = None) -> Optional[List[WeatherPeriod]]:
+    def load_weather(self, _=None) -> Optional[List[WeatherPeriod]]:
         return self.wetter_com.load_weather(lambda wps2: self.weather_widgets.set_weather_periods(wps2))

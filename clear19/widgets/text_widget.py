@@ -21,7 +21,7 @@ class Font:
         descent: float
         height: float
 
-    name: str = "Noto Sans Display"
+    name: str = 'Noto Sans Display'
     size: float = 16
     bold: bool = False
     italic: bool = False
@@ -71,8 +71,8 @@ class Font:
         y: float = font_ascent
         for line in text.split('\n'):
             x_bearing, y_bearing, text_width, height, x_advance, y_advance = ctx.text_extents(line)
-            if text_width > max_width:
-                max_width = text_width
+            if x_advance > max_width:
+                max_width = x_advance
             max_height = y
             y += font_ascent
         max_height += font_descent

@@ -8,7 +8,7 @@ from typing import Optional
 
 from clear19.App.app import App
 
-logging.basicConfig(format="%(asctime)s [%(levelname)-8s] %(message)s", level=logging.DEBUG, force=True)
+logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s', level=logging.DEBUG, force=True)
 locale.setlocale(locale.LC_ALL, ('de_DE', 'UTF-8'))
 
 if __name__ == "__main__":

@@ -11,8 +11,7 @@ from cairocffi import Context
 import clear19.widgets.geometry
 from clear19.logitech.g19 import G19Key
 from clear19.scheduler import Scheduler
-from clear19.widgets import color
-from clear19.widgets.color import Color
+from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZERO_TOP_LEFT, Rectangle, Size
 
 
@@ -218,8 +217,8 @@ class AppWidget(ContainerWidget):
     def __init__(self):
         self._scheduler = Scheduler()
         self._last_screens = []
-        self._background = color.BLACK
-        self._foreground = color.WHITE
+        self._background = Color.BLACK
+        self._foreground = Color.WHITE
         super().__init__(self)
 
     def paint(self, ctx: Context):

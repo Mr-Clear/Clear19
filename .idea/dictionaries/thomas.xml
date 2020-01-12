@@ -4,22 +4,27 @@
       <w>asctime</w>
       <w>consolas</w>
       <w>dbus</w>
+      <w>freedesktop</w>
       <w>highcolor</w>
       <w>iface</w>
       <w>levelname</w>
       <w>libdraw</w>
       <w>logitech</w>
+      <w>mpris</w>
       <w>noto</w>
       <w>proc</w>
       <w>pyusb</w>
       <w>rgba</w>
+      <w>seeked</w>
       <w>servus</w>
+      <w>spotify</w>
       <w>uaccess</w>
       <w>udev</w>
       <w>uint</w>
       <w>uptime</w>
       <w>userspace</w>
       <w>winkey</w>
+      <w>xesam</w>
     </words>
   </dictionary>
 </component>

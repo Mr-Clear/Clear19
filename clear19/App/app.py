@@ -7,7 +7,6 @@ from queue import Queue
 from typing import Union, Type, Dict
 
 import cairocffi as cairo
-from cairocffi.ffi_build import ffi
 
 from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
@@ -52,7 +51,7 @@ class App(AppWidget):
             signal.signal(signal.SIGINT, self._on_signal)
             signal.signal(signal.SIGTERM, self._on_signal)
             self._running = True
-            self.scheduler.schedule_to_queue(timedelta(milliseconds=10), schedule_queue, "UPDATE")
+            self.scheduler.schedule_to_queue(timedelta(milliseconds=10), schedule_queue, 'UPDATE')
             while self._running:
                 p = schedule_queue.get()
                 if isinstance(p, TaskParameters):
