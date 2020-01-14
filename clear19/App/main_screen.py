@@ -3,11 +3,13 @@ from typing import Optional, List
 
 from clear19.App import Global
 from clear19.App.screens import Screens
+from clear19.data.media_player import MediaPlayer
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size
 from clear19.widgets.line import Line
+from clear19.widgets.media_player import MediaPlayerTrackTitle
 from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.weather_widget import WeatherWidgets
 from clear19.widgets.widget import Screen, AppWidget
@@ -40,12 +42,12 @@ class MainScreen(Screen):
         t.set_height(t.preferred_size.height, VAnchor.TOP)
         self.children.append(t)
 
-        lh = Line(self, Line.Orientation.HORIZONTAL)
-        lh.rectangle = Rectangle(t.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
-                                 Size(self.width - lv3.left, lh.preferred_size().height))
-        self.children.append(lh)
+        lh1 = Line(self, Line.Orientation.HORIZONTAL)
+        lh1.rectangle = Rectangle(t.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
+                                  Size(self.width - lv3.left, lh1.preferred_size().height))
+        self.children.append(lh1)
 
-        lv3.set_height(lh.bottom, VAnchor.TOP)
+        lv3.set_height(lh1.bottom, VAnchor.TOP)
 
         self.wetter_com = WetterCom('DE0008184003', Global.download_manager)
         wps = self.load_weather()
@@ -54,6 +56,17 @@ class MainScreen(Screen):
                                                    self.weather_widgets.preferred_size)
         self.app.scheduler.schedule_synchronous(timedelta(minutes=10), self.load_weather)
         self.children.append(self.weather_widgets)
+
+        lh2 = Line(self, Line.Orientation.HORIZONTAL)
+        lh2.rectangle = Rectangle(self.weather_widgets.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+                                  Size(self.width, lh2.preferred_size().height))
+        self.children.append(lh2)
+
+        mp = MediaPlayer()
+        tt = MediaPlayerTrackTitle(self, mp)
+        tt.rectangle = Rectangle(lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+                                 Size(self.width, tt.font.font_extents().height))
+        self.children.append(tt)
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
