@@ -15,7 +15,7 @@ from gi.repository import GLib
 
 @dataclass
 class Track:
-    length: int  # In nanoseconds
+    duration: float  # In seconds
     title: str
     track_number: int
     album: str
@@ -27,11 +27,12 @@ class Track:
 
 @dataclass()
 class KnownPosition:
-    position: int  # In nanoseconds
+    position: float  # In seconds
     time: datetime
 
     def current_position(self):
-        return self.position + (datetime.now() - self.time).microseconds * 1000
+        past = datetime.now() - self.time
+        return self.position + past.seconds + past.microseconds / 1000000
 
 
 @dataclass()
@@ -50,7 +51,7 @@ class MediaPlayer:
 
     _current_track: Optional[Track] = None
     _playing: bool = None
-    _position: Optional[KnownPosition]
+    _position: Optional[KnownPosition] = None
 
     def __init__(self):
         self._listeners = []
@@ -72,12 +73,12 @@ class MediaPlayer:
     def _read_current_status(self) -> Track:
         props_iface = dbus.Interface(self._conn_spotify, dbus_interface='org.freedesktop.DBus.Properties')
         self.current_track = self._read_metadata(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata'))
-        self.playing = str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing'
+        self._set_playing(str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing')
         return self.current_track
 
     @staticmethod
     def _read_metadata(metadata: Dict) -> Track:
-        return Track(int(metadata['mpris:length']) if 'mpris:length' in metadata else None,
+        return Track(float(metadata['mpris:length']) / 1000000 if 'mpris:length' in metadata else None,
                      str(metadata['xesam:title']) if 'xesam:title' in metadata else None,
                      int(metadata['xesam:trackNumber']) if 'xesam:trackNumber' in metadata else None,
                      str(metadata['xesam:album']) if 'xesam:album' in metadata else None,
@@ -91,15 +92,15 @@ class MediaPlayer:
         if 'Metadata' in changed_props:
             metadata = changed_props['Metadata']
             self.current_track = self._read_metadata(metadata)
-            position = int(changed_props['Position']) if 'Position' in changed_props else 0
-            self._position = KnownPosition(position, datetime.now())
+            position = float(changed_props['Position']) / 1000000 if 'Position' in changed_props else 0
+            if position > 0:
+                self._position = KnownPosition(position, datetime.now())
             changed_props.pop('Metadata', None)
         if 'PlaybackStatus' in changed_props:
-            self._position = KnownPosition(self.current_position, datetime.now())
-            self.playing = str(changed_props['PlaybackStatus']) == 'Playing'
+            self._set_playing(str(changed_props['PlaybackStatus']) == 'Playing')
             changed_props.pop('PlaybackStatus', None)
         if 'Position' in changed_props:
-            self._position = KnownPosition(int(changed_props['Position']), datetime.now())
+            self._position = KnownPosition(float(changed_props['Position']) / 1000000, datetime.now())
             changed_props.pop('Position', None)
 
         changed_props.pop('CanPlay', None)
@@ -130,15 +131,16 @@ class MediaPlayer:
         if self._current_track != current_track:
             self._current_track = current_track
             logging.info("Current track: {}".format(current_track))
+            self._position = KnownPosition(0, datetime.now())
             self._notify_listeners()
 
     @property
     def playing(self) -> bool:
         return self._playing
 
-    @playing.setter
-    def playing(self, playing: bool):
+    def _set_playing(self, playing: bool):
         if self._playing != playing:
+            self._position = KnownPosition(self.current_position, datetime.now())
             self._playing = playing
             logging.info("Playing" if playing else "Stopped")
             self._notify_listeners()
@@ -148,7 +150,7 @@ class MediaPlayer:
         return PlayState(self.current_track, self.playing)
 
     @property
-    def current_position(self) -> int:
+    def current_position(self) -> float:
         if not self._position:
             return 0
         if self.playing:

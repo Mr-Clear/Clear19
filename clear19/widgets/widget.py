@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import abc
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod, ABCMeta
 from enum import Enum
 from typing import List, Type, Optional
 
@@ -16,7 +15,7 @@ from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZE
 
 
 class Widget(ABC):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     _parent: ContainerWidget
     _rectangle: Rectangle = clear19.widgets.geometry.ZERO_RECT
     _dirty: bool = True
@@ -151,7 +150,7 @@ class Widget(ABC):
 
 
 class ContainerWidget(Widget):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     _children: List[Widget]
 
     def __init__(self, parent: ContainerWidget):
@@ -182,7 +181,7 @@ class ContainerWidget(Widget):
 
 
 class Screen(ContainerWidget):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
     _name: str
 
     def __init__(self, parent: AppWidget, name: str):
@@ -208,7 +207,7 @@ class Screen(ContainerWidget):
 
 
 class AppWidget(ContainerWidget):
-    __metaclass__ = abc.ABCMeta
+    __metaclass__ = ABCMeta
 
     _current_screen: Optional[Enum] = None
     _scheduler: Scheduler

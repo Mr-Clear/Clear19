@@ -9,7 +9,8 @@ from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size
 from clear19.widgets.line import Line
-from clear19.widgets.media_player import MediaPlayerTrackTitle
+from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
+    MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget
 from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.weather_widget import WeatherWidgets
 from clear19.widgets.widget import Screen, AppWidget
@@ -35,7 +36,6 @@ class MainScreen(Screen):
         self.children.append(d)
 
         t = TimeWidget(self, '%H:%M:%S')
-        t.foreground = Color.WHITE / 2
         t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
                                 d.position(Anchor.BOTTOM_LEFT) - self.position(Anchor.BOTTOM_RIGHT))
         t.fit_font_size()
@@ -63,10 +63,27 @@ class MainScreen(Screen):
         self.children.append(lh2)
 
         mp = MediaPlayer()
-        tt = MediaPlayerTrackTitle(self, mp)
+        tt = MediaPlayerTrackTitleWidget(self, mp)
         tt.rectangle = Rectangle(lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                  Size(self.width, tt.font.font_extents().height))
         self.children.append(tt)
+
+        tp = MediaPlayerTrackPositionWidget(self, mp)
+        tp.rectangle = Rectangle(tt.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+                                 Size(self.width / 3, tp.font.font_extents().height))
+        self.children.append(tp)
+
+        td = MediaPlayerTrackDurationWidget(self, mp)
+        td.rectangle = Rectangle(tt.position(Anchor.TOP_CENTER).anchored(Anchor.BOTTOM_CENTER),
+                                 Size(self.width / 3, td.font.font_extents().height))
+        td.h_alignment = TextWidget.HAlignment.CENTER
+        self.children.append(td)
+
+        tr = MediaPlayerTrackRemainingWidget(self, mp)
+        tr.rectangle = Rectangle(tt.position(Anchor.TOP_RIGHT).anchored(Anchor.BOTTOM_RIGHT),
+                                 Size(self.width / 3, tr.font.font_extents().height))
+        tr.h_alignment = TextWidget.HAlignment.RIGHT
+        self.children.append(tr)
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
