@@ -6,7 +6,6 @@ from clear19.App.screens import Screens
 from clear19.data.media_player import MediaPlayer
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
-from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
@@ -62,7 +61,7 @@ class MainScreen(Screen):
                                   Size(self.width, lh2.preferred_size().height))
         self.children.append(lh2)
 
-        mp = MediaPlayer()
+        mp = MediaPlayer(self.app)
         tt = MediaPlayerTrackTitleWidget(self, mp)
         tt.rectangle = Rectangle(lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                  Size(self.width, tt.font.font_extents().height))

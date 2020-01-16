@@ -1,4 +1,5 @@
 from abc import ABCMeta, ABC
+from dataclasses import replace
 from datetime import timedelta
 
 from clear19.data.media_player import MediaPlayer, Track, PlayState
@@ -29,7 +30,7 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         super().__init__(parent, media_player)
         self._font = font
-        self._unselected = TextWidget(self, self.shorten_title(media_player.current_track, font, self.size), font)
+        self._unselected = TextWidget(self, "", font)
         self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
         self.children.append(self._unselected)
         self._update_play_state(self.media_player.current_play_state)
@@ -41,7 +42,12 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         return title
 
     def _update_play_state(self, play_state: PlayState):
-        self._unselected.text = self.shorten_title(play_state.track, self._font, self.size)
+        if play_state.track:
+            self._unselected.font = replace(self._unselected.font, italic=False)
+            self._unselected.text = self.shorten_title(play_state.track, self._font, self.size)
+        else:
+            self._unselected.font = replace(self._unselected.font, italic=True)
+            self._unselected.text = "Not connected"
 
     @property
     def font(self) -> Font:
@@ -66,7 +72,10 @@ class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_play_state, priority=90)
 
     def _update_play_state(self, _: TaskParameters):
-        self.text = format_position(self.media_player.current_position)
+        if self.media_player.current_track:
+            self.text = format_position(self.media_player.current_position)
+        else:
+            self.text = '--:--'
 
 
 class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
@@ -76,7 +85,10 @@ class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_play_state, priority=90)
 
     def _update_play_state(self, _: TaskParameters):
-        self.text = "-" + format_position(self.media_player.current_track.duration - self.media_player.current_position)
+        if self.media_player.current_track:
+            self.text = '-' + format_position(self.media_player.current_track.duration - self.media_player.current_position)
+        else:
+            self.text = '---:--'
 
 
 class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
@@ -87,4 +99,7 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
         self._update_play_state(self.media_player.current_play_state)
 
     def _update_play_state(self, play_state: PlayState):
-        self.text = format_position(play_state.track.duration)
+        if play_state.track:
+            self.text = format_position(play_state.track.duration)
+        else:
+            self.text = '--:--'

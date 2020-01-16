@@ -157,8 +157,9 @@ class TextWidget(Widget):
 
     @font.setter
     def font(self, font: Font):
-        self._font = font
-        self.dirty = True
+        if self._font != font:
+            self._font = font
+            self.dirty = True
 
     def fit_font_size(self, text: str = None):
         if text is None:

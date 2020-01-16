@@ -1,8 +1,8 @@
 import datetime
 import logging
+import re
 from dataclasses import dataclass
-from datetime import datetime
-from pprint import pp
+from datetime import datetime, timedelta
 from threading import Thread, Lock
 from typing import Dict, Optional, Callable, List
 
@@ -10,7 +10,10 @@ import dbus
 from _dbus_glib_bindings import DBusGMainLoop
 from dbus import Bus
 from dbus.mainloop import NativeMainLoop
+from dbus.proxies import ProxyObject
 from gi.repository import GLib
+
+from clear19.widgets.widget import AppWidget
 
 
 @dataclass
@@ -47,34 +50,88 @@ class MediaPlayer:
 
     _session_bus_loop: NativeMainLoop
     _session_bus: Bus
-    _conn_spotify: dbus.proxies.ProxyObject
+
+    _current_conn: Optional[ProxyObject] = None
+    _connected_conns: List[ProxyObject]
 
     _current_track: Optional[Track] = None
     _playing: bool = None
     _position: Optional[KnownPosition] = None
 
-    def __init__(self):
+    def __init__(self, app: AppWidget):
         self._listeners = []
         self._listeners_mutex = Lock()
 
         self._session_bus_loop = DBusGMainLoop(set_as_default=True)
         self._session_bus = dbus.SessionBus()
 
-        self._conn_spotify = self._session_bus.get_object("org.mpris.MediaPlayer2.spotify",
-                                                          "/org/mpris/MediaPlayer2")
-        self._conn_spotify.connect_to_signal("PropertiesChanged", self.handle_properties_changed)
+        self._connected_conns = []
         self._read_current_status()
 
         loop = GLib.MainLoop()
         # noinspection PyUnresolvedReferences
         Thread(target=loop.run, daemon=True).start()
-        logging.debug("Loop started.")
 
-    def _read_current_status(self) -> Track:
-        props_iface = dbus.Interface(self._conn_spotify, dbus_interface='org.freedesktop.DBus.Properties')
-        self.current_track = self._read_metadata(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata'))
-        self._set_playing(str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing')
-        return self.current_track
+        app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update_connections)
+
+    def _update_connections(self, _):
+        self._get_connection()
+
+    def _get_connection(self) -> Optional[ProxyObject]:
+        conns = []
+        for conn_name in self._session_bus.list_names():
+            if re.match('org.mpris.MediaPlayer2.', conn_name):
+                conns.append(self._session_bus.get_object(conn_name, "/org/mpris/MediaPlayer2"))
+
+        if not conns:
+            connection = None
+
+        elif len(conns) == 1:
+            connection = conns[0]
+
+        else:
+            playing_conns = []
+            for conn in conns:
+                playing = str(conn.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus',
+                                       dbus_interface='org.freedesktop.DBus.Properties')) == 'Playing'
+                if playing:
+                    playing_conns.append(conn)
+
+            if playing_conns:
+                conns = playing_conns
+
+            if self._current_conn and self._current_conn.bus_name in map(lambda b: b.bus_name, conns):
+                connection = self._current_conn
+            else:
+                connection = conns[0]
+
+        if not self.comp_conns(self._current_conn, connection):
+            self._current_conn = connection
+            if connection and connection.bus_name not in map(lambda b: b.bus_name, self._connected_conns):
+                connection.connect_to_signal("PropertiesChanged", self._handle_properties_changed)
+                self._connected_conns.append(connection)
+            self._read_current_status(connection)
+
+        return connection
+
+    @staticmethod
+    def comp_conns(a: ProxyObject, b: ProxyObject):
+        if not a and not b:
+            return True
+        if a and not b or b and not a:
+            return False
+        return a.bus_name == b.bus_name
+
+    def _read_current_status(self, conn: ProxyObject = None) -> Optional[Track]:
+        if not conn:
+            conn = self._get_connection()
+        if conn:
+            props_iface = dbus.Interface(conn, dbus_interface='org.freedesktop.DBus.Properties')
+            self.current_track = self._read_metadata(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata'))
+            self._set_playing(str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing')
+            return self.current_track
+        self.current_track = None
+        return None
 
     @staticmethod
     def _read_metadata(metadata: Dict) -> Track:
@@ -87,27 +144,8 @@ class MediaPlayer:
                      str(metadata['xesam:artist'][0]) if 'xesam:artist' in metadata else None,
                      float(metadata['xesam:autoRating']) if 'xesam:autoRating' in metadata else None)
 
-    # noinspection PyMethodMayBeStatic
-    def handle_properties_changed(self, _, changed_props: Dict, _2):
-        if 'Metadata' in changed_props:
-            metadata = changed_props['Metadata']
-            self.current_track = self._read_metadata(metadata)
-            position = float(changed_props['Position']) / 1000000 if 'Position' in changed_props else 0
-            if position > 0:
-                self._position = KnownPosition(position, datetime.now())
-            changed_props.pop('Metadata', None)
-        if 'PlaybackStatus' in changed_props:
-            self._set_playing(str(changed_props['PlaybackStatus']) == 'Playing')
-            changed_props.pop('PlaybackStatus', None)
-        if 'Position' in changed_props:
-            self._position = KnownPosition(float(changed_props['Position']) / 1000000, datetime.now())
-            changed_props.pop('Position', None)
-
-        changed_props.pop('CanPlay', None)
-        changed_props.pop('CanPause', None)
-
-        if changed_props:
-            pp(changed_props)
+    def _handle_properties_changed(self, _, _2, _3):
+        self._read_current_status()
 
     def add_listener(self, listener: Callable[[PlayState], None]):
         with self._listeners_mutex:
