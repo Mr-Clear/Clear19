@@ -157,9 +157,21 @@ class ContainerWidget(Widget):
         self._children = []
         super().__init__(parent)
 
+    def do_layout(self):
+        pass
+
     @property
     def children(self) -> List[Widget]:
         return self._children
+
+    @property
+    def rectangle(self) -> Rectangle:
+        return self._rectangle
+
+    @rectangle.setter
+    def rectangle(self, rectangle: Rectangle):
+        self._rectangle = rectangle
+        self.do_layout()
 
     def paint_foreground(self, ctx: Context):
         self.paint_children(ctx)
@@ -169,7 +181,7 @@ class ContainerWidget(Widget):
         for child in self.children:
             ctx.save()
             ctx.translate(*child.position(Anchor.TOP_LEFT))
-            ctx.rectangle(0, 0, *self.size)
+            ctx.rectangle(0, 0, *child.size)
             ctx.clip()
             child.paint(ctx)
             ctx.restore()

@@ -2,9 +2,12 @@ from abc import ABCMeta, ABC
 from dataclasses import replace
 from datetime import timedelta
 
+from cairo import Context
+
 from clear19.data.media_player import MediaPlayer, Track, PlayState
 from clear19.scheduler import TaskParameters
-from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT
+from clear19.widgets import Color
+from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
 
@@ -26,15 +29,23 @@ class MediaPlayerWidget(Widget, ABC):
 class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
     _font: Font
     _unselected: TextWidget
+    _selected: TextWidget
+    _progress: float = 0
 
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         super().__init__(parent, media_player)
         self._font = font
         self._unselected = TextWidget(self, "", font)
-        self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
         self.children.append(self._unselected)
+        self._selected = TextWidget(self, "", font)
+        self._selected.background = Color.BLUE / 1.5
         self._update_play_state(self.media_player.current_play_state)
         self.media_player.add_listener(self._update_play_state)
+        self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_position, priority=90)
+
+    def do_layout(self):
+        self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
+        self._selected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
 
     @staticmethod
     def shorten_title(track: Track, font: Font, space: Size) -> str:
@@ -43,11 +54,24 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
     def _update_play_state(self, play_state: PlayState):
         if play_state.track:
+            self._progress = self.media_player.current_position / play_state.track.duration
             self._unselected.font = replace(self._unselected.font, italic=False)
             self._unselected.text = self.shorten_title(play_state.track, self._font, self.size)
+            self._selected.font = replace(self._unselected.font, italic=False)
+            self._selected.text = self.shorten_title(play_state.track, self._font, self.size)
         else:
+            self._progress = 0
             self._unselected.font = replace(self._unselected.font, italic=True)
             self._unselected.text = "Not connected"
+            self._selected.font = replace(self._unselected.font, italic=True)
+            self._selected.text = "Not connected"
+        self.dirty = True
+
+    def _update_position(self, _: TaskParameters):
+        if self.media_player.current_track:
+            self._progress = self.media_player.current_position / self.media_player.current_track.duration
+        else:
+            self._progress = 0
 
     @property
     def font(self) -> Font:
@@ -58,6 +82,27 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         if self._font != font:
             self._font = font
             self.dirty = True
+
+    def paint_foreground(self, ctx: Context):
+        x1 = self.width * self._progress
+        x2 = self.width - x1
+
+        ctx.save()
+        ctx.translate(*self._unselected.position(Anchor.TOP_LEFT))
+        ctx.rectangle(x1, 0, x2, self.height)
+        ctx.clip()
+        self._unselected.paint(ctx)
+        ctx.restore()
+
+        if self._progress:
+            ctx.save()
+            ctx.translate(*self._selected.position(Anchor.TOP_LEFT))
+            ctx.rectangle(0, 0, x1, self.height)
+            ctx.clip()
+            self._selected.paint(ctx)
+            ctx.restore()
+
+        self.dirty = False
 
 
 def format_position(position: float):
@@ -86,7 +131,8 @@ class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
 
     def _update_play_state(self, _: TaskParameters):
         if self.media_player.current_track:
-            self.text = '-' + format_position(self.media_player.current_track.duration - self.media_player.current_position)
+            self.text = '-' + format_position(self.media_player.current_track.duration
+                                              - self.media_player.current_position)
         else:
             self.text = '---:--'
 

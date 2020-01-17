@@ -46,8 +46,10 @@ class Color(Tuple[float, float, float], Enum):
     GRAY90: Color = (0.9, 0.9, 0.9)
     GRAY100: Color = WHITE
 
+    # noinspection PyTypeChecker
     def __truediv__(self, divisor: float) -> Color:
-        return Color((_clip(self[0] / divisor), _clip(self[1] / divisor), _clip(self[2] / divisor)))
+        return _clip(self[0] / divisor), _clip(self[1] / divisor), _clip(self[2] / divisor)
 
+    # noinspection PyTypeChecker
     def __mul__(self, factor) -> Color:
-        return Color((_clip(self[0] * factor), _clip(self[1] * factor), _clip(self[2] * factor)))
+        return _clip(self[0] * factor), _clip(self[1] * factor), _clip(self[2] * factor)
