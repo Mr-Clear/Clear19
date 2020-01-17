@@ -84,7 +84,7 @@ class MainScreen(Screen):
         tr.h_alignment = TextWidget.HAlignment.RIGHT
         self.children.append(tr)
 
-        aa = MediaPlayerAlbumArt(self, mp)
+        aa = MediaPlayerAlbumArt(self, mp, Anchor.BOTTOM_RIGHT)
         aa.rectangle = Rectangle(lh1.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.TOP_RIGHT),
                                  lh1.position(Anchor.BOTTOM_RIGHT) - tp.position(Anchor.TOP_LEFT))
         self.children.append(aa)

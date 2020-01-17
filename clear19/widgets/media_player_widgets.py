@@ -159,9 +159,9 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
 class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):
     _image_url: str = ''
 
-    def __init__(self, parent, media_player):
+    def __init__(self, parent, media_player, alignment: Anchor = Anchor.CENTER_CENTER):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        ImageWidget.__init__(self, parent)
+        ImageWidget.__init__(self, parent, alignment)
         self.media_player.add_listener(self._update_play_state)
         self._update_play_state(self.media_player.current_play_state)
 
