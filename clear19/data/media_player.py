@@ -122,19 +122,40 @@ class MediaPlayer:
             return False
         return a.bus_name == b.bus_name
 
-    def _read_current_status(self, conn: ProxyObject = None) -> Optional[Track]:
-        if not conn:
-            conn = self._get_connection()
-        if conn:
-            props_iface = dbus.Interface(conn, dbus_interface='org.freedesktop.DBus.Properties')
-            self.current_track = self._read_metadata(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata'))
-            self._set_playing(str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing')
-            return self.current_track
-        self.current_track = None
-        return None
+    def _read_current_status(self, conn: ProxyObject = None, data: Optional[dbus.Dictionary] = None) -> Optional[Track]:
+        metadata = None
+        play_state = None
+        position = None
+        if data and 'Metadata' in data:
+            metadata = data['Metadata']
+        if data and 'PlaybackStatus' in data:
+            play_state = str(data['PlaybackStatus']) == 'Playing'
+        if data and 'Position' in data:
+            position = float(data['Position']) / 1000000
+
+        if not metadata or not play_state:
+            if not conn:
+                conn = self._get_connection()
+            if conn:
+                props_iface = dbus.Interface(conn, dbus_interface='org.freedesktop.DBus.Properties')
+                if not metadata:
+                    metadata = props_iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
+                if not play_state:
+                    play_state = str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing'
+                if not position:
+                    position = float(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Position')) / 1000000
+
+        self.current_track = self._read_metadata(metadata)
+        self._set_playing(play_state)
+        if position:
+            self._position = KnownPosition(position, datetime.now())
+        return self.current_track
 
     @staticmethod
-    def _read_metadata(metadata: Dict) -> Track:
+    def _read_metadata(metadata: Optional[Dict]) -> Optional[Track]:
+        if not metadata:
+            return None
+
         return Track(float(metadata['mpris:length']) / 1000000 if 'mpris:length' in metadata else None,
                      str(metadata['xesam:title']) if 'xesam:title' in metadata else None,
                      int(metadata['xesam:trackNumber']) if 'xesam:trackNumber' in metadata else None,
@@ -144,8 +165,8 @@ class MediaPlayer:
                      str(metadata['xesam:artist'][0]) if 'xesam:artist' in metadata else None,
                      float(metadata['xesam:autoRating']) if 'xesam:autoRating' in metadata else None)
 
-    def _handle_properties_changed(self, _, _2, _3):
-        self._read_current_status()
+    def _handle_properties_changed(self, _, data, _3):
+        self._read_current_status(data=data)
 
     def add_listener(self, listener: Callable[[PlayState], None]):
         with self._listeners_mutex:
