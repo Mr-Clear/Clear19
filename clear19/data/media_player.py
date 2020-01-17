@@ -53,6 +53,8 @@ class MediaPlayer:
 
     _current_conn: Optional[ProxyObject] = None
     _connected_conns: List[ProxyObject]
+    _conn_names: Dict[str, str]
+    _current_player_name: Optional[str] = None
 
     _current_track: Optional[Track] = None
     _playing: bool = None
@@ -61,6 +63,8 @@ class MediaPlayer:
     def __init__(self, app: AppWidget):
         self._listeners = []
         self._listeners_mutex = Lock()
+
+        self._conn_names = {}
 
         self._session_bus_loop = DBusGMainLoop(set_as_default=True)
         self._session_bus = dbus.SessionBus()
@@ -81,7 +85,9 @@ class MediaPlayer:
         conns = []
         for conn_name in self._session_bus.list_names():
             if re.match('org.mpris.MediaPlayer2.', conn_name):
-                conns.append(self._session_bus.get_object(conn_name, "/org/mpris/MediaPlayer2"))
+                conn = self._session_bus.get_object(conn_name, "/org/mpris/MediaPlayer2")
+                conns.append(conn)
+                self._conn_names[conn.bus_name] = conn_name[23:]
 
         if not conns:
             connection = None
@@ -216,3 +222,9 @@ class MediaPlayer:
             return self._position.current_position()
         else:
             return self._position.position
+
+    @property
+    def current_player_name(self) -> Optional[str]:
+        if self._current_conn:
+            return self._conn_names[self._current_conn.bus_name]
+        return None

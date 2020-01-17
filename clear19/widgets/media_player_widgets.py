@@ -47,24 +47,27 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
         self._selected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
 
-    @staticmethod
-    def shorten_title(track: Track, font: Font, space: Size) -> str:
-        title = "{} - {} - {}".format(track.artist, track.album, track.title)
+    def shorten_title(self, track: Track, font: Font, space: Size) -> str:
+        player = self.media_player.current_player_name
+        if player == 'spotify':
+            title = "{} - {} - {}".format(track.artist, track.album, track.title)
+        else:
+            title = "{}".format(track.title)
         return title
 
     def _update_play_state(self, play_state: PlayState):
         if play_state.track:
             self._progress = self.media_player.current_position / play_state.track.duration
-            self._unselected.font = replace(self._unselected.font, italic=False)
-            self._unselected.text = self.shorten_title(play_state.track, self._font, self.size)
-            self._selected.font = replace(self._unselected.font, italic=False)
-            self._selected.text = self.shorten_title(play_state.track, self._font, self.size)
+            title = self.shorten_title(play_state.track, self._font, self.size)
+            font = replace(self._unselected.font, italic=False)
         else:
             self._progress = 0
-            self._unselected.font = replace(self._unselected.font, italic=True)
-            self._unselected.text = "Not connected"
-            self._selected.font = replace(self._unselected.font, italic=True)
-            self._selected.text = "Not connected"
+            font = replace(self._unselected.font, italic=True)
+            title = "Not connected"
+        self._unselected.font = font
+        self._unselected.text = title
+        self._selected.font = font
+        self._selected.text = title
         self.dirty = True
 
     def _update_position(self, _: TaskParameters):
