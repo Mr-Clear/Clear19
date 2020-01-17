@@ -4,10 +4,12 @@ from datetime import timedelta
 
 from cairo import Context
 
+from clear19.App import Global
 from clear19.data.media_player import MediaPlayer, Track, PlayState
 from clear19.scheduler import TaskParameters
 from clear19.widgets import Color
 from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor
+from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
 
@@ -152,3 +154,23 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
             self.text = format_position(play_state.track.duration)
         else:
             self.text = '--:--'
+
+
+class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):
+    _image_url: str = ''
+
+    def __init__(self, parent, media_player):
+        MediaPlayerWidget.__init__(self, parent, media_player)
+        ImageWidget.__init__(self, parent)
+        self.media_player.add_listener(self._update_play_state)
+        self._update_play_state(self.media_player.current_play_state)
+
+    def _update_play_state(self, play_state: PlayState):
+        if play_state.track:
+            url = play_state.track.album_art_url
+        else:
+            url = ''
+
+        if url != self._image_url:
+            self._image_url = url
+            Global.download_manager.get(url, self.load_image)

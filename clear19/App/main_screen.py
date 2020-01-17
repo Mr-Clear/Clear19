@@ -9,7 +9,7 @@ from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, ZERO_TOP_LEFT
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
-    MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget
+    MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
 from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.weather_widget import WeatherWidgets
 from clear19.widgets.widget import Screen, AppWidget
@@ -83,6 +83,11 @@ class MainScreen(Screen):
                                  Size(self.width / 3, tr.font.font_extents().height))
         tr.h_alignment = TextWidget.HAlignment.RIGHT
         self.children.append(tr)
+
+        aa = MediaPlayerAlbumArt(self, mp)
+        aa.rectangle = Rectangle(lh1.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.TOP_RIGHT),
+                                 lh1.position(Anchor.BOTTOM_RIGHT) - tp.position(Anchor.TOP_LEFT))
+        self.children.append(aa)
 
         ja = TextWidget(self, "爪尺．　匚ㄥ乇卂尺 ->VAVAfiti<-")
         ja.rectangle = Rectangle(ZERO_TOP_LEFT, Size(lv3.left, ja.font.font_extents().height))
