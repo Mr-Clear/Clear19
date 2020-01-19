@@ -1,3 +1,4 @@
+import dataclasses
 from datetime import timedelta
 from typing import Optional, List
 
@@ -6,6 +7,7 @@ from clear19.App.screens import Screens
 from clear19.data.media_player import MediaPlayer
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
+from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, ZERO_TOP_LEFT
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
@@ -30,6 +32,7 @@ class MainScreen(Screen):
         d = TimeWidget(self, '%a %d.%m.%Y', h_alignment=TextWidget.HAlignment.CENTER)
         d.rectangle = Rectangle(lv3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
                                 lv3.position(Anchor.TOP_RIGHT) - self.position(Anchor.BOTTOM_RIGHT))
+        d.font = dataclasses.replace(d.font, bold=True)
         d.fit_font_size()
         d.set_height(d.preferred_size.height, VAnchor.TOP)
         self.children.append(d)
@@ -89,8 +92,11 @@ class MainScreen(Screen):
                                  lh1.position(Anchor.BOTTOM_RIGHT) - tp.position(Anchor.TOP_LEFT))
         self.children.append(aa)
 
-        ja = TextWidget(self, "爪尺．　匚ㄥ乇卂尺 ->VAVAfiti<-")
-        ja.rectangle = Rectangle(ZERO_TOP_LEFT, Size(lv3.left, ja.font.font_extents().height))
+        ja = TextWidget(self, "爪尺．　匚ㄥ乇卂尺\n->VAVAfiti<-")
+        ja.h_alignment = TextWidget.HAlignment.CENTER
+        ja.background = Color.GRAY25
+        ja.rectangle = Rectangle(AnchoredPoint(10, 10, Anchor.TOP_LEFT), ja.preferred_size)
+
         self.children.append(ja)
 
     def on_key_down(self, key: G19Key):

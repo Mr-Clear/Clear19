@@ -4,9 +4,12 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
+from xml.sax.saxutils import escape, quoteattr
 
 import cairocffi as cairo
+import pangocairocffi as pangocairo
 from cairocffi import Context, ImageSurface
+from pangocffi import Layout, Alignment
 
 from clear19.scheduler import TaskParameters
 from clear19.widgets.geometry import Size
@@ -20,6 +23,7 @@ class Font:
         ascent: float
         descent: float
         height: float
+        top: float
 
     name: str = 'Noto Sans Display'
     size: float = 16
@@ -27,7 +31,7 @@ class Font:
     italic: bool = False
 
     def fit_size(self, space: Size, text: str, ctx: Context = None) -> Font:
-        s = Size(space.width - 1, space.height)
+        s = Size(space.width, space.height)
         return dataclasses.replace(self, size=Font._narrow(self, s, text, 0, 10000, ctx))
 
     @staticmethod
@@ -59,35 +63,32 @@ class Font:
                              cairo.FONT_WEIGHT_BOLD if self.bold else cairo.FONT_WEIGHT_NORMAL)
         ctx.set_font_size(self.size)
 
-    def text_extents(self, text: str, ctx: Context = None) -> Size:
+    def text_extents(self, text: str, inked: bool = True, ctx: Context = None) -> Size:
+        layout = self.get_layout(text, ctx)
+        extents = layout.get_extents()[0 if inked else 1]
+        return Size(extents.width / 1000, extents.height / 1000)
+
+    def font_extents(self, inked: bool = True, ctx: Context = None) -> Font.Extents:
+        layout = self.get_layout('Mg', ctx)
+        extents = layout.get_extents()
+        baseline = layout.get_baseline()
+        if inked:
+            return self.Extents(baseline / 1000 - extents[0].y, (extents[0].height - baseline) / 1000,
+                                extents[0].height / 1000, extents[0].y / 1000)
+        else:
+            return self.Extents(baseline / 1000, (extents[1].height - baseline) / 1000, extents[1].height / 1000, 0)
+
+    def get_layout(self, text: str, ctx: Context = None) -> Layout:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
-        ctx.save()
-        self.set(ctx)
-        font_ascent, font_descent, font_height, font_max_x_advance, font_max_y_advance = ctx.font_extents()
-        max_width: float = 0
-        max_height: float = 0
-        x_bearing: float = 0
-        y: float = font_ascent
-        for line in text.split('\n'):
-            x_bearing, y_bearing, text_width, height, x_advance, y_advance = ctx.text_extents(line)
-            if x_advance > max_width:
-                max_width = x_advance
-            max_height = y
-            y += font_ascent
-        max_height += font_descent
-        ctx.restore()
-        return Size(max_width + x_bearing, max_height)
-
-    def font_extents(self, ctx: Context = None) -> Font.Extents:
-        if ctx is None:
-            ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
-        ctx.save()
-        self.set(ctx)
-
-        extents = Font.Extents(*ctx.font_extents()[0:3])
-        ctx.restore()
-        return extents
+        layout = pangocairo.create_layout(ctx)
+        layout.set_markup('<span font_family={} size={} style={} weight={}>{}</span>'
+                          .format(quoteattr(self.name),
+                                  quoteattr(str(int(self.size * 1000))),
+                                  '"italic"' if self.italic else '"normal"',
+                                  '"bold"' if self.bold else '"normal"',
+                                  escape(text)))
+        return layout
 
 
 class TextWidget(Widget):
@@ -115,31 +116,17 @@ class TextWidget(Widget):
         self._v_alignment = v_alignment
 
     def paint_foreground(self, ctx: Context):
-        self.font.set(ctx)
-        font_ascent, font_descent, font_height, font_max_x_advance, font_max_y_advance = ctx.font_extents()
-        lines = self.text.split('\n')
-        text_height = len(lines) * font_ascent + font_descent
-        if self.v_alignment == TextWidget.VAlignment.TOP:
-            y = 0
-        elif self.v_alignment == TextWidget.VAlignment.CENTER:
-            y = self.size.height / 2 - text_height / 2
-        elif self.v_alignment == TextWidget.VAlignment.BOTTOM:
-            y = self.size.height - text_height
-        else:
-            raise Exception("Unknown v alignment: {}".format(self.v_alignment))
-        for line in lines:
-            y += font_ascent
-            line_size = self.font.text_extents(line, ctx)
-            if self.h_alignment == TextWidget.HAlignment.LEFT:
-                x = 0
-            elif self.h_alignment == TextWidget.HAlignment.CENTER:
-                x = self.size.width / 2 - line_size.width / 2
-            elif self.h_alignment == TextWidget.HAlignment.RIGHT:
-                x = self.size.width - line_size.width
-            else:
-                raise Exception("Unknown v alignment: {}".format(self.v_alignment))
-            ctx.move_to(x, y)
-            ctx.show_text(line)
+        layout = self.font.get_layout(self.text, ctx)
+        layout.set_width(int(self.width * 1000))
+        if self.h_alignment == TextWidget.HAlignment.LEFT:
+            layout.set_alignment(Alignment.LEFT)
+        elif self.h_alignment == TextWidget.HAlignment.CENTER:
+            layout.set_alignment(Alignment.CENTER)
+        elif self.h_alignment == TextWidget.HAlignment.RIGHT:
+            layout.set_alignment(Alignment.RIGHT)
+
+        ctx.move_to(0, -layout.get_extents()[0].y / 1000)
+        pangocairo.show_layout(ctx, layout)
 
     @property
     def text(self) -> str:
