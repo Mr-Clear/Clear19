@@ -1,70 +1,71 @@
-from dataclasses import replace
-from datetime import datetime
+import dataclasses
 from typing import List, Optional
-
-from cairocffi import Context, ImageSurface
 
 from clear19.data.download_manager import DownloadManager
 from clear19.data.wetter_com import WeatherPeriod
-from clear19.widgets import load_svg
-from clear19.widgets.geometry import Size, Rectangle, AnchoredPoint, Anchor
-from clear19.widgets.text_widget import Font
-from clear19.widgets.widget import Widget, ContainerWidget
+from clear19.widgets.geometry import Size, Rectangle, AnchoredPoint, Anchor, Point
+from clear19.widgets.image_widget import ImageWidget
+from clear19.widgets.line import Line
+from clear19.widgets.text_widget import Font, TextWidget
+from clear19.widgets.widget import ContainerWidget
 
 
-class WeatherWidget(Widget):
+class WeatherWidget(ContainerWidget):
     _weather_period: Optional[WeatherPeriod]
     _font: Font
     _download_manager: DownloadManager
-    _icon: Optional[ImageSurface] = None
+
+    _from_to_widget: TextWidget
+    _temp_widget: TextWidget
+    _cloudiness_widget: TextWidget
+    _rain_widget: TextWidget
+    _icon_widget: ImageWidget
 
     def __init__(self, parent: ContainerWidget, weather_period: Optional[WeatherPeriod],
-                 download_manager: DownloadManager, font: Font = Font(size=12)):
+                 download_manager: DownloadManager, font: Font = Font(size=9, bold=True)):
         super().__init__(parent)
         self._download_manager = download_manager
-        self.weather_period = weather_period
         self.font = font
 
-    def paint_foreground(self, ctx: Context):
-        if self.weather_period:
-            wp = self.weather_period
-        else:
-            wp = WeatherPeriod(start=datetime(2000, 1, 1), end=datetime(2000, 1, 1), temp=0, cloudiness=0,
-                               rainfall=0, pop=0)
+        self._icon_widget = ImageWidget(self)
+        self._icon_widget.rectangle = Rectangle(self.size.position(Anchor.CENTER_RIGHT), self.size / 1.5)
+        self.children.append(self._icon_widget)
 
-        if self._icon:
-            ctx.save()
-            ctx.set_source_surface(self._icon, self.size.width - self._icon.get_width(),
-                                   (self.size.height - self._icon.get_height()) / 2)
-            ctx.paint()
-            ctx.restore()
+        self._from_to_widget: TextWidget = TextWidget(self, '00:00-00:00', self.font)
+        self._from_to_widget.rectangle = Rectangle(AnchoredPoint(0, 1, Anchor.TOP_LEFT),
+                                                   self._from_to_widget.preferred_size)
+        self._from_to_widget.h_alignment = TextWidget.HAlignment.CENTER
+        self._from_to_widget.background = None
+        self.children.append(self._from_to_widget)
 
-        font = self.font
-        big_font = replace(font, size=self.font.size * 1.5)
-        x: float = 0
-        font.set(ctx)
-        x += font.font_extents().ascent
-        ctx.move_to(0, x)
-        ctx.show_text('{}-{}'.format(wp.start.strftime('%H:%M'),
-                                     wp.end.strftime('%H:%M')))
-        big_font.set(ctx)
-        x += big_font.font_extents().ascent
-        ctx.move_to(0, x)
-        ctx.show_text('{:.0f}°C'.format(wp.temp))
-        font.set(ctx)
-        x += font.font_extents().ascent
-        ctx.move_to(0, x)
-        ctx.show_text('{:.0f}/8'.format(wp.cloudiness))
-        x += font.font_extents().ascent
-        ctx.move_to(0, x)
-        ctx.show_text('{:.1f}mm {:.0f}%'.format(wp.rainfall, wp.pop))
+        self._temp_widget = TextWidget(self, '-11.3°C', dataclasses.replace(self.font, size=self.font.size * 1.5))
+        self._temp_widget.rectangle = Rectangle(self._from_to_widget.position(Anchor.BOTTOM_LEFT)
+                                                .anchored(Anchor.TOP_LEFT) + Point(0, 4),
+                                                self._temp_widget.preferred_size)
+        self._temp_widget.background = None
+        self.children.append(self._temp_widget)
 
-    def _load_icon(self, icon_data: bytes):
-        if icon_data:
-            self._icon = load_svg(icon_data, *(self.size / 1.5))
-        else:
-            self._icon = None
-        self.dirty = True
+        self._cloudiness_widget = TextWidget(self, '0/0', self.font)
+        self._cloudiness_widget.rectangle = Rectangle(self._temp_widget.position(Anchor.BOTTOM_LEFT)
+                                                      .anchored(Anchor.TOP_LEFT) + Point(0, 4),
+                                                      self._cloudiness_widget.preferred_size)
+        self._cloudiness_widget.background = None
+        self.children.append(self._cloudiness_widget)
+
+        self._rain_widget = TextWidget(self, '22.3mm 100%', self.font)
+        self._rain_widget.rectangle = Rectangle(self._cloudiness_widget.position(Anchor.BOTTOM_LEFT)
+                                                .anchored(Anchor.TOP_LEFT) + Point(0, 4),
+                                                self._rain_widget.preferred_size)
+        self._rain_widget.background = None
+        self.children.append(self._rain_widget)
+
+        self.weather_period = weather_period
+
+    def do_layout(self):
+        for child in self.children:
+            if isinstance(child, TextWidget):
+                child.set_size(Size(self.width, child.height), Anchor.TOP_LEFT)
+        self._icon_widget.rectangle = Rectangle(self.size.position(Anchor.CENTER_RIGHT) + Point(5, 0), self.size / 1.5)
 
     @property
     def weather_period(self) -> WeatherPeriod:
@@ -74,7 +75,18 @@ class WeatherWidget(Widget):
     def weather_period(self, weather_period: Optional[WeatherPeriod]):
         self._weather_period = weather_period
         if weather_period:
-            self._load_icon(self._download_manager.get(weather_period.icon, self._load_icon))
+            self._from_to_widget.text = '{}-{}'.format(weather_period.start.strftime('%H:%M'),
+                                                       weather_period.end.strftime('%H:%M'))
+            self._temp_widget.text = '{:.0f}°C'.format(weather_period.temp)
+            self._cloudiness_widget.text = '{:.0f}/8'.format(weather_period.cloudiness)
+            self._rain_widget.text = '{:.1f}mm {:.0f}%'.format(weather_period.rainfall, weather_period.pop)
+            self._icon_widget.load_image(self._download_manager.get(weather_period.icon, self._icon_widget.load_image))
+        else:
+            self._from_to_widget.text = '00:00-00:00'
+            self._temp_widget.text = '---°C'
+            self._cloudiness_widget.text = '0/0'
+            self._rain_widget.text = '--mm --%'
+            self._icon_widget.load_image(None)
         self.dirty = True
 
     @property
@@ -88,7 +100,7 @@ class WeatherWidget(Widget):
 
     @property
     def preferred_size(self) -> Size:
-        return Size(64, 64)
+        return Size(64 - 3 * 4 / 5, self._rain_widget.bottom)
 
 
 class WeatherWidgets(ContainerWidget):
@@ -102,8 +114,14 @@ class WeatherWidgets(ContainerWidget):
         self._font = font
         for i in range(5):
             w = WeatherWidget(self, None, download_manager)
-            w.rectangle = Rectangle(AnchoredPoint(i * w.preferred_size.width, 0, Anchor.TOP_LEFT), w.preferred_size)
+            w.rectangle = Rectangle(AnchoredPoint(i * (w.preferred_size.width + 3), 0, Anchor.TOP_LEFT),
+                                    w.preferred_size)
             self.children.append(w)
+
+            l: Line = Line(self, Line.Orientation.VERTICAL)
+            l.rectangle = Rectangle(w.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
+                                    Size(l.preferred_size().width, w.height))
+            self.children.append(l)
         self._update_children()
 
     def _update_children(self):
@@ -111,16 +129,17 @@ class WeatherWidgets(ContainerWidget):
             n = 0
             i = 0
             for w in self.children:
-                m = i + 1
-                combined = None
-                for j in range(n, n + m):
-                    if not combined:
-                        combined = self.weather_periods[j]
-                    else:
-                        combined += self.weather_periods[j]
-                n += m
-                w.weather_period = combined
-                i += 1
+                if isinstance(w, WeatherWidget):
+                    m = i + 1
+                    combined = None
+                    for j in range(n, n + m):
+                        if not combined:
+                            combined = self.weather_periods[j]
+                        else:
+                            combined += self.weather_periods[j]
+                    n += m
+                    w.weather_period = combined
+                    i += 1
         else:
             for w in self.children:
                 w.weather_period = None

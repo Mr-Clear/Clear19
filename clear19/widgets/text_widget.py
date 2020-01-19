@@ -116,7 +116,7 @@ class TextWidget(Widget):
         self._v_alignment = v_alignment
 
     def paint_foreground(self, ctx: Context):
-        layout = self.font.get_layout(self.text, ctx)
+        layout = self.font.get_layout(self.text.replace(' ', ' '), ctx)
         layout.set_width(int(self.width * 1000))
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.set_alignment(Alignment.LEFT)

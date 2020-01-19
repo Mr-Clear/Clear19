@@ -43,6 +43,9 @@ class Point:
     def anchored(self, anchor: Anchor) -> AnchoredPoint:
         return AnchoredPoint(self.x, self.y, anchor)
 
+    def __add__(self, other: Point) -> Point:
+        return Point(self.x + other.x, self.y + other.y)
+
     def __sub__(self, other: Point) -> Size:
         return Size(abs(self.x - other.x), abs(self.y - other.y))
 
@@ -60,6 +63,9 @@ class AnchoredPoint(Point):
     @property
     def anchor(self) -> Anchor:
         return self._anchor
+
+    def __add__(self, other: Point) -> AnchoredPoint:
+        return AnchoredPoint(self.x + other.x, self.y + other.y, self.anchor)
 
 
 class Rectangle:
@@ -152,6 +158,12 @@ class Size:
 
     def position(self, anchor: Anchor) -> AnchoredPoint:
         return Rectangle(ZERO_TOP_LEFT, self).position(anchor)
+
+    def __add__(self, other: Size) -> Size:
+        return Size(self.width + other.width, self.height + other.height)
+
+    def __sub__(self, other: Size) -> Size:
+        return Size(self.width - other.width, self.height - other.height)
 
     def __truediv__(self, divisor: float) -> Size:
         return Size(self.width / divisor, self.height / divisor)

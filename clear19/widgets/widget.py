@@ -19,7 +19,7 @@ class Widget(ABC):
     _parent: ContainerWidget
     _rectangle: Rectangle = clear19.widgets.geometry.ZERO_RECT
     _dirty: bool = True
-    _background: Color
+    _background: Optional[Color]
     _foreground: Color
 
     def __init__(self, parent: ContainerWidget):
@@ -64,11 +64,11 @@ class Widget(ABC):
         self.rectangle = Rectangle(self.rectangle.position(anchor), size)
 
     @property
-    def background(self) -> Color:
+    def background(self) -> Optional[Color]:
         return self._background
 
     @background.setter
-    def background(self, background: Color):
+    def background(self, background: Optional[Color]):
         self._background = background
         self.dirty = True
 
@@ -82,8 +82,9 @@ class Widget(ABC):
         self.dirty = True
 
     def paint(self, ctx: Context):
-        ctx.set_source_rgb(*self.background)
-        self.paint_background(ctx)
+        if self.background:
+            ctx.set_source_rgb(*self.background)
+            self.paint_background(ctx)
         ctx.set_source_rgb(*self.foreground)
         self.paint_foreground(ctx)
         self.dirty = False

@@ -74,7 +74,10 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
     def _update_position(self, _: TaskParameters):
         if self.media_player.current_track:
-            self._progress = self.media_player.current_position / self.media_player.current_track.duration
+            if self.media_player.current_track.duration:
+                self._progress = self.media_player.current_position / self.media_player.current_track.duration
+            else:
+                self._progress = 0
         else:
             self._progress = 0
 
