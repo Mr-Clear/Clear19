@@ -37,7 +37,7 @@ class MainScreen(Screen):
         self.children.append(d)
 
         t = TimeWidget(self, '%H:%M:%S')
-        t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
+        t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
                                 d.position(Anchor.BOTTOM_LEFT) - self.position(Anchor.BOTTOM_RIGHT))
         t.fit_font_size()
         t.set_height(t.preferred_size.height, VAnchor.TOP)

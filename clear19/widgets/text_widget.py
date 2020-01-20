@@ -12,6 +12,7 @@ from cairocffi import Context, ImageSurface
 from pangocffi import Layout, Alignment
 
 from clear19.scheduler import TaskParameters
+from clear19.widgets import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import Widget, ContainerWidget
 
@@ -78,13 +79,14 @@ class Font:
         else:
             return self.Extents(baseline / 1000, (extents[1].height - baseline) / 1000, extents[1].height / 1000, 0)
 
-    def get_layout(self, text: str, ctx: Context = None) -> Layout:
+    def get_layout(self, text: str, ctx: Context = None, color: Color = Color.WHITE) -> Layout:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
         layout = pangocairo.create_layout(ctx)
-        layout.set_markup('<span font_family={} size={} style={} weight={}>{}</span>'
+        layout.set_markup('<span font_family={} size={} foreground={} style={} weight={}>{}</span>'
                           .format(quoteattr(self.name),
                                   quoteattr(str(int(self.size * 1000))),
+                                  quoteattr(color.to_hex()),
                                   '"italic"' if self.italic else '"normal"',
                                   '"bold"' if self.bold else '"normal"',
                                   escape(text)))
@@ -116,14 +118,15 @@ class TextWidget(Widget):
         self._v_alignment = v_alignment
 
     def paint_foreground(self, ctx: Context):
-        layout = self.font.get_layout(self.text.replace(' ', ' '), ctx)
-        layout.set_width(int(self.width * 1000))
+        layout = self.font.get_layout(self.text.replace(' ', '\u00A0'), ctx, self.foreground)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.set_alignment(Alignment.LEFT)
-        elif self.h_alignment == TextWidget.HAlignment.CENTER:
-            layout.set_alignment(Alignment.CENTER)
-        elif self.h_alignment == TextWidget.HAlignment.RIGHT:
-            layout.set_alignment(Alignment.RIGHT)
+        else:
+            layout.set_width(int(self.width * 1000))
+            if self.h_alignment == TextWidget.HAlignment.CENTER:
+                layout.set_alignment(Alignment.CENTER)
+            elif self.h_alignment == TextWidget.HAlignment.RIGHT:
+                layout.set_alignment(Alignment.RIGHT)
 
         ctx.move_to(0, -layout.get_extents()[0].y / 1000)
         pangocairo.show_layout(ctx, layout)
