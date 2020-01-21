@@ -62,21 +62,27 @@ class MainScreen(Screen):
         self.out_temp.foreground = Color.GRAY80
         self.out_temp.escape = False
 
-        self.balcony_temp = TextWidget(self, 'B: -00.0°', temp_font)
-        self.balcony_temp.rectangle = Rectangle(AnchoredPoint(self.width, self.out_temp.top, Anchor.TOP_RIGHT),
-                                                self.balcony_temp.preferred_size)
-        self.balcony_temp.foreground = Color.GRAY80
-        self.balcony_temp.escape = False
-
         self.in_temp = TextWidget(self, 'In: -00.0° - -00.0°', temp_font)
-        self.in_temp.rectangle = Rectangle(AnchoredPoint((self.out_temp.right + self.balcony_temp.left) / 2,
-                                                         self.out_temp.top, Anchor.TOP_CENTER),
+        self.in_temp.rectangle = Rectangle(AnchoredPoint(self.width, self.out_temp.top, Anchor.TOP_RIGHT),
                                            self.in_temp.preferred_size)
         self.in_temp.foreground = Color.GRAY80
         self.in_temp.escape = False
+        self.in_temp.h_alignment = TextWidget.HAlignment.RIGHT
 
-        Global.download_manager.get('https://klierlinge.de/log/values.php', self.load_klierlinge_values,
-                                    timedelta(seconds=29))
+        self.balcony_temp = TextWidget(self, 'B: -00.0°', temp_font)
+        self.balcony_temp.rectangle = Rectangle(AnchoredPoint((self.out_temp.right + self.in_temp.left) / 2,
+                                                              self.out_temp.top, Anchor.TOP_CENTER),
+                                                self.balcony_temp.preferred_size)
+        self.balcony_temp.foreground = Color.GRAY80
+        self.balcony_temp.escape = False
+        self.balcony_temp.h_alignment = TextWidget.HAlignment.CENTER
+
+        def get_klierlinge_values(_): Global.download_manager.get('https://klierlinge.de/log/values.php',
+                                                                  self.load_klierlinge_values,
+                                                                  timedelta(seconds=29))
+
+        get_klierlinge_values(None)
+        self.app.scheduler.schedule_synchronous(timedelta(minutes=1), get_klierlinge_values)
 
         self.lh3 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh3.rectangle = Rectangle(self.out_temp.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
@@ -141,17 +147,17 @@ class MainScreen(Screen):
         self._add_klierlinge_value(data, '031B99C87CEE.TEMP', temp_in, temp_in_date)
         self._add_klierlinge_value(data, '032602645A7F.TEMP', temp_in, temp_in_date)
         self._add_klierlinge_value(data, 'PI_TEMP', temp_in, temp_in_date)
-        self.out_temp.text = 'Out: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>'\
+        self.out_temp.text = 'Out: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>' \
             .format(quoteattr(Color.interpolate(min(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
                     min(temp_out),
                     quoteattr(Color.interpolate(max(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
                     max(temp_out))
-        self.in_temp.text = 'In: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>'\
+        self.in_temp.text = 'In: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>' \
             .format(quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
                     min(temp_in),
                     quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
                     max(temp_in))
-        self.balcony_temp.text = 'B: <span foreground={}>{:2.1f}°</span>'\
+        self.balcony_temp.text = 'B: <span foreground={}>{:2.1f}°</span>' \
             .format(quoteattr(Color.interpolate(float(data['062419C2687B.TEMP']['Value']),
                                                 WeatherWidget.temp_color_gradient).to_hex()),
                     float(data['062419C2687B.TEMP']['Value']))
