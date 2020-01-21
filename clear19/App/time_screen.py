@@ -46,25 +46,21 @@ class TimeScreen(Screen):
         d.rectangle = Rectangle(AnchoredPoint(0, 0, Anchor.TOP_LEFT), self.size)
         d.fit_font_size()
         d.set_size(d.preferred_size, Anchor.TOP_LEFT)
-        self.children.append(d)
 
         t = TimeWidget(self, '%H:%M:%S')
         t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT), self.size)
         t.fit_font_size()
         t.set_size(t.preferred_size, Anchor.TOP_LEFT)
-        self.children.append(t)
 
         h = self.height - t.bottom
         s = SplitSecondSpinner(self)
         s.rectangle = Rectangle(t.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.TOP_RIGHT),
                                 Size(h, h))
-        self.children.append(s)
 
         self.uptime = App.uptime()
         self.uptime_widget = TextWidget(self, self.uptime.strftime('%H:%M:%S'))
         self.uptime_widget.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT),
                                                  Size(s.left, self.uptime_widget.preferred_size.height))
-        self.children.append(self.uptime_widget)
         self.app.scheduler.schedule_synchronous(timedelta(minutes=1), self._update_uptime)
         self._update_uptime()
 

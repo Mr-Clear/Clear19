@@ -9,4 +9,3 @@ class MenuScreen(Screen):
 
         m = MenuWidget(self, [MenuWidgetEntry("Exit", lambda _: self.app.exit())], Font())
         m.rectangle = self.rectangle
-        self.children.append(m)

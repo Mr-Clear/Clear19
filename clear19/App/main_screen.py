@@ -27,27 +27,23 @@ class MainScreen(Screen):
         self.lv2_3 = Line(self, Line.Orientation.VERTICAL)
         self.lv2_3.rectangle = Rectangle(AnchoredPoint(self.width / 3 * 2, 0, Anchor.TOP_LEFT),
                                          Size(self.lv2_3.preferred_size().width, self.height))
-        self.children.append(self.lv2_3)
 
         self.date = TimeWidget(self, '%a %d.%m.%Y', h_alignment=TextWidget.HAlignment.CENTER)
         self.date.rectangle = Rectangle(self.lv2_3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
-                                        self.lv2_3.position(Anchor.TOP_RIGHT) - self.position(Anchor.BOTTOM_RIGHT))
+                                        self.position(Anchor.BOTTOM_RIGHT))
         self.date.font = dataclasses.replace(self.date.font, bold=True)
         self.date.fit_font_size()
         self.date.set_height(self.date.preferred_size.height, VAnchor.TOP)
-        self.children.append(self.date)
 
         self.time = TimeWidget(self, '%H:%M:%S')
         self.time.rectangle = Rectangle(self.date.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 2),
-                                        self.date.position(Anchor.BOTTOM_LEFT) - self.position(Anchor.BOTTOM_RIGHT))
+                                        self.position(Anchor.BOTTOM_RIGHT))
         self.time.fit_font_size()
         self.time.set_height(self.time.preferred_size.height, VAnchor.TOP)
-        self.children.append(self.time)
 
         self.lh1 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh1.rectangle = Rectangle(self.time.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
                                        Size(self.width - self.lv2_3.left, self.lh1.preferred_size().height))
-        self.children.append(self.lh1)
 
         self.wetter_com = WetterCom('DE0008184003', Global.download_manager)
         self.weather_widgets = WeatherWidgets(self, None, Global.download_manager)
@@ -55,25 +51,21 @@ class MainScreen(Screen):
                                                    self.weather_widgets.preferred_size)
         self.load_weather()
         self.app.scheduler.schedule_synchronous(timedelta(minutes=10), self.load_weather)
-        self.children.append(self.weather_widgets)
 
         temp_font = Font(size=11, bold=True)
         self.out_temp = TextWidget(self, 'Out: -00.0° - -00.0°', temp_font)
         self.out_temp.rectangle = Rectangle(self.weather_widgets.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                             + Point(0, -1),
                                             self.out_temp.preferred_size + Size(0, 2))
-        self.children.append(self.out_temp)
 
         self.balcony_temp = TextWidget(self, 'B: -00.0°', temp_font)
         self.balcony_temp.rectangle = Rectangle(AnchoredPoint(self.width, self.out_temp.top, Anchor.TOP_RIGHT),
                                                 self.balcony_temp.preferred_size)
-        self.children.append(self.balcony_temp)
 
         self.in_temp = TextWidget(self, 'In: -00.0° - -00.0°', temp_font)
         self.in_temp.rectangle = Rectangle(AnchoredPoint((self.out_temp.right + self.balcony_temp.left) / 2,
                                                          self.out_temp.top, Anchor.TOP_CENTER),
                                            self.in_temp.preferred_size)
-        self.children.append(self.in_temp)
 
         Global.download_manager.get('https://klierlinge.de/log/values.php', self.load_klierlinge_values,
                                     timedelta(seconds=29))
@@ -82,46 +74,39 @@ class MainScreen(Screen):
         self.lh3.rectangle = Rectangle(self.out_temp.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                        + Point(0, -1),
                                        Size(self.width, self.lh3.preferred_size().height))
-        self.children.append(self.lh3)
 
         self.media_player = MediaPlayer(self.app)
         self.track_title = MediaPlayerTrackTitleWidget(self, self.media_player, Font(size=14))
         self.track_title.rectangle = Rectangle(self.lh3.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                                Size(self.width, self.track_title.font.font_extents().height))
-        self.children.append(self.track_title)
 
         track_position_font = Font(size=11)
         self.track_position = MediaPlayerTrackPositionWidget(self, self.media_player, track_position_font)
         self.track_position.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
             Size(self.width / 3, self.track_position.font.font_extents().height))
-        self.children.append(self.track_position)
 
         self.track_duration = MediaPlayerTrackDurationWidget(self, self.media_player, track_position_font)
         self.track_duration.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_CENTER).anchored(Anchor.BOTTOM_CENTER),
             Size(self.width / 3, self.track_duration.font.font_extents().height))
         self.track_duration.h_alignment = TextWidget.HAlignment.CENTER
-        self.children.append(self.track_duration)
 
         self.track_remaining = MediaPlayerTrackRemainingWidget(self, self.media_player, track_position_font)
         self.track_remaining.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_RIGHT).anchored(Anchor.BOTTOM_RIGHT),
             Size(self.width / 3, self.track_remaining.font.font_extents().height))
         self.track_remaining.h_alignment = TextWidget.HAlignment.RIGHT
-        self.children.append(self.track_remaining)
 
         self.album_art = MediaPlayerAlbumArt(self, self.media_player, Anchor.BOTTOM_RIGHT)
         self.album_art.rectangle = Rectangle(
             self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
-            self.lh1.position(Anchor.BOTTOM_LEFT) - self.track_remaining.position(Anchor.TOP_RIGHT) - Size(0, 3))
-        self.children.append(self.album_art)
+            self.track_remaining.position(Anchor.TOP_RIGHT) + Point(0, -3))
 
         self.lh2 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh2.rectangle = Rectangle(
             self.track_position.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
             Size(self.lv2_3.left, self.lh2.preferred_size().height))
-        self.children.append(self.lh2)
 
         self.lv2_3.set_height(self.lh2.bottom, VAnchor.TOP)
 

@@ -26,6 +26,8 @@ class Widget(ABC):
         self._background = parent.background
         self._foreground = parent.foreground
         self._parent = parent
+        if parent is not self:
+            parent.children.append(self)
 
     @property
     def parent(self) -> ContainerWidget:

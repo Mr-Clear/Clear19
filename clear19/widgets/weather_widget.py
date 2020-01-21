@@ -50,14 +50,12 @@ class WeatherWidget(ContainerWidget):
 
         self._icon_widget = ImageWidget(self)
         self._icon_widget.rectangle = Rectangle(self.size.position(Anchor.CENTER_RIGHT), self.size / 1.5)
-        self.children.append(self._icon_widget)
 
         self._from_to_widget: TextWidget = TextWidget(self, '00:00-00:00', self.font)
         self._from_to_widget.rectangle = Rectangle(AnchoredPoint(0, 1, Anchor.TOP_LEFT),
                                                    self._from_to_widget.preferred_size)
         self._from_to_widget.h_alignment = TextWidget.HAlignment.CENTER
         self._from_to_widget.background = None
-        self.children.append(self._from_to_widget)
 
         self._temp_widget = TextWidget(self, '-11.3°C', dataclasses.replace(self.font, size=self.font.size * 1.5))
         self._temp_widget.rectangle = Rectangle(self._from_to_widget.position(Anchor.BOTTOM_LEFT)
@@ -65,21 +63,18 @@ class WeatherWidget(ContainerWidget):
                                                 self._temp_widget.preferred_size)
         self._temp_widget.foreground = Color.RED
         self._temp_widget.background = None
-        self.children.append(self._temp_widget)
 
         self._cloudiness_widget = TextWidget(self, '0/0', self.font)
         self._cloudiness_widget.rectangle = Rectangle(self._temp_widget.position(Anchor.BOTTOM_LEFT)
                                                       .anchored(Anchor.TOP_LEFT) + Point(0, 4),
                                                       self._cloudiness_widget.preferred_size)
         self._cloudiness_widget.background = None
-        self.children.append(self._cloudiness_widget)
 
         self._rain_widget = TextWidget(self, '22.3mm 100%', self.font)
         self._rain_widget.rectangle = Rectangle(self._cloudiness_widget.position(Anchor.BOTTOM_LEFT)
                                                 .anchored(Anchor.TOP_LEFT) + Point(0, 4),
                                                 self._rain_widget.preferred_size)
         self._rain_widget.background = None
-        self.children.append(self._rain_widget)
 
         self.weather_period = weather_period
 
@@ -148,13 +143,11 @@ class WeatherWidgets(ContainerWidget):
             w = WeatherWidget(self, None, download_manager)
             w.rectangle = Rectangle(AnchoredPoint(i * (w.preferred_size.width + 3), 0, Anchor.TOP_LEFT),
                                     w.preferred_size)
-            self.children.append(w)
 
             l: Line = Line(self, Line.Orientation.VERTICAL)
             l.foreground = Color.GRAY67
             l.rectangle = Rectangle(w.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
                                     Size(l.preferred_size().width, w.height))
-            self.children.append(l)
         self._update_children()
 
     def _update_children(self):
@@ -175,11 +168,12 @@ class WeatherWidgets(ContainerWidget):
                     i += 1
         else:
             for w in self.children:
-                w.weather_period = None
+                if isinstance(w, WeatherWidget):
+                    w.weather_period = None
 
     @property
     def preferred_size(self) -> Size:
-        return Size(self.children[0].width * len(self.children), self.children[0].height)
+        return Size(self.children[-1].right, self.children[0].bottom)
 
     @property
     def weather_periods(self) -> Optional[List[WeatherPeriod]]:

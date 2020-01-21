@@ -41,7 +41,6 @@ class MenuWidget(ContainerWidget):
                 a.foreground = self.background
                 a.background = self.foreground
             entry.widget = a
-            self.children.append(a)
 
     @property
     def menu(self) -> List[MenuWidgetEntry]:

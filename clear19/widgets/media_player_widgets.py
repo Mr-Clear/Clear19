@@ -38,7 +38,6 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         super().__init__(parent, media_player)
         self._font = font
         self._unselected = TextWidget(self, "", font)
-        self.children.append(self._unselected)
         self._selected = TextWidget(self, "", font)
         self._selected.background = Color.BLUE / 1.5
         self._update_play_state(self.media_player.current_play_state)

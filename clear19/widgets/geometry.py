@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Iterator
+from typing import Iterator, Union
 
 
 class Anchor(Enum):
@@ -72,8 +72,11 @@ class Rectangle:
     _top_left: Point
     _size: Size
 
-    def __init__(self, point: AnchoredPoint, size: Size):
-        self._size = size
+    def __init__(self, point: AnchoredPoint, size: Union[Size, Point]):
+        if isinstance(size, Point):
+            self._size = point - size
+        else:
+            self._size = size
         if point.anchor == Anchor.TOP_LEFT:
             self._top_left = Point(point.x, point.y)
         elif point.anchor == Anchor.TOP_CENTER:
