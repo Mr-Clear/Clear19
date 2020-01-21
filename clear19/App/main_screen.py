@@ -2,18 +2,20 @@ import dataclasses
 import json
 from datetime import timedelta, datetime
 from typing import Optional, List, Any, Dict
+from xml.sax.saxutils import quoteattr
 
 from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data.media_player import MediaPlayer
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
+from clear19.widgets import Color
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, Point
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
     MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
-from clear19.widgets.weather_widget import WeatherWidgets
+from clear19.widgets.weather_widget import WeatherWidgets, WeatherWidget
 from clear19.widgets.widget import Screen, AppWidget
 
 
@@ -57,15 +59,21 @@ class MainScreen(Screen):
         self.out_temp.rectangle = Rectangle(self.weather_widgets.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                             + Point(0, -1),
                                             self.out_temp.preferred_size + Size(0, 2))
+        self.out_temp.foreground = Color.GRAY80
+        self.out_temp.escape = False
 
         self.balcony_temp = TextWidget(self, 'B: -00.0°', temp_font)
         self.balcony_temp.rectangle = Rectangle(AnchoredPoint(self.width, self.out_temp.top, Anchor.TOP_RIGHT),
                                                 self.balcony_temp.preferred_size)
+        self.balcony_temp.foreground = Color.GRAY80
+        self.balcony_temp.escape = False
 
         self.in_temp = TextWidget(self, 'In: -00.0° - -00.0°', temp_font)
         self.in_temp.rectangle = Rectangle(AnchoredPoint((self.out_temp.right + self.balcony_temp.left) / 2,
                                                          self.out_temp.top, Anchor.TOP_CENTER),
                                            self.in_temp.preferred_size)
+        self.in_temp.foreground = Color.GRAY80
+        self.in_temp.escape = False
 
         Global.download_manager.get('https://klierlinge.de/log/values.php', self.load_klierlinge_values,
                                     timedelta(seconds=29))
@@ -133,9 +141,20 @@ class MainScreen(Screen):
         self._add_klierlinge_value(data, '031B99C87CEE.TEMP', temp_in, temp_in_date)
         self._add_klierlinge_value(data, '032602645A7F.TEMP', temp_in, temp_in_date)
         self._add_klierlinge_value(data, 'PI_TEMP', temp_in, temp_in_date)
-        self.out_temp.text = 'Out: {:2.1f}° - {:2.1f}°'.format(min(temp_out), max(temp_out))
-        self.in_temp.text = 'In: {:2.1f}° - {:2.1f}°'.format(min(temp_in), max(temp_in))
-        self.balcony_temp.text = 'B: {:2.1f}°'.format(float(data['062419C2687B.TEMP']['Value']))
+        self.out_temp.text = 'Out: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>'\
+            .format(quoteattr(Color.interpolate(min(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
+                    min(temp_out),
+                    quoteattr(Color.interpolate(max(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
+                    max(temp_out))
+        self.in_temp.text = 'In: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>'\
+            .format(quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
+                    min(temp_in),
+                    quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
+                    max(temp_in))
+        self.balcony_temp.text = 'B: <span foreground={}>{:2.1f}°</span>'\
+            .format(quoteattr(Color.interpolate(float(data['062419C2687B.TEMP']['Value']),
+                                                WeatherWidget.temp_color_gradient).to_hex()),
+                    float(data['062419C2687B.TEMP']['Value']))
 
     @staticmethod
     def _add_klierlinge_value(data: Dict[str, Dict[str, Any]], name: str, values: List[Any], max_age: List[datetime]):

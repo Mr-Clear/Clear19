@@ -22,7 +22,7 @@ class WeatherWidget(ContainerWidget):
     _rain_widget: TextWidget
     _icon_widget: ImageWidget
 
-    _temp_color_gradient = {
+    temp_color_gradient = {
         40: Color(0, 0, 0),
         25: Color(1, 0, 0),
         18: Color(1, 1, 0),
@@ -31,12 +31,12 @@ class WeatherWidget(ContainerWidget):
         -1: Color(0, 1, 1),
         -20: Color(1, 1, 1)}
 
-    _cloudiness_color_gradient = {
+    cloudiness_color_gradient = {
         0: Color(0.5, 0.5, 1),
         3: Color(0.2, 0.2, 1),
         8: Color.GRAY50}
 
-    _rain_color_gradient = {
+    rain_color_gradient = {
         0: Color.GRAY75,
         3: Color(0.5, 0.5, 1),
         8: Color.BLUE,
@@ -92,20 +92,20 @@ class WeatherWidget(ContainerWidget):
     def weather_period(self, weather_period: Optional[WeatherPeriod]):
         self._weather_period = weather_period
         if weather_period:
-            self._from_to_widget.foreground = Color.GRAY80
+            self._from_to_widget.foreground = Color.GRAY90
             self._from_to_widget.text = '{}-{}'.format(weather_period.start.strftime('%H:%M'),
                                                        weather_period.end.strftime('%H:%M'))
-            self._temp_widget.foreground = Color.interpolate(weather_period.temp, self._temp_color_gradient)
+            self._temp_widget.foreground = Color.interpolate(weather_period.temp, self.temp_color_gradient)
             self._temp_widget.text = '{:.0f}°C'.format(weather_period.temp)
             self._cloudiness_widget.foreground = Color.interpolate(weather_period.cloudiness,
-                                                                   self._cloudiness_color_gradient)
+                                                                   self.cloudiness_color_gradient)
             self._cloudiness_widget.text = '{:.0f}/8'.format(weather_period.cloudiness)
             self._rain_widget.foreground = Color.interpolate(
-                weather_period.rainfall * (1 - (1 - weather_period.pop) ** 2), self._rain_color_gradient)
+                weather_period.rainfall * (1 - (1 - weather_period.pop) ** 2), self.rain_color_gradient)
             self._rain_widget.text = '{:.1f}mm {:.0f}%'.format(weather_period.rainfall, weather_period.pop)
             self._icon_widget.load_image(self._download_manager.get(weather_period.icon, self._icon_widget.load_image))
         else:
-            self._from_to_widget.foreground = Color.GRAY50
+            self._from_to_widget.foreground = Color.GRAY90
             self._from_to_widget.text = '00:00-00:00'
             self._temp_widget.foreground = Color.GRAY50
             self._temp_widget.text = '---°C'

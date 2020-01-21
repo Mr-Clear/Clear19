@@ -79,7 +79,7 @@ class Font:
         else:
             return self.Extents(baseline / 1000, (extents[1].height - baseline) / 1000, extents[1].height / 1000, 0)
 
-    def get_layout(self, text: str, ctx: Context = None, color: Color = Color.WHITE) -> Layout:
+    def get_layout(self, text: str, ctx: Context = None, color: Color = Color.WHITE, escape_text=True) -> Layout:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
         layout = pangocairo.create_layout(ctx)
@@ -89,7 +89,7 @@ class Font:
                                   quoteattr(color.to_hex()),
                                   '"italic"' if self.italic else '"normal"',
                                   '"bold"' if self.bold else '"normal"',
-                                  escape(text)))
+                                  escape(text) if escape_text else text))
         return layout
 
 
@@ -108,17 +108,20 @@ class TextWidget(Widget):
     _font: Font
     _h_alignment: HAlignment
     _v_alignment: VAlignment
+    _escape: bool
 
     def __init__(self, parent: ContainerWidget, text: str = "", font: Font = Font(),
-                 h_alignment: HAlignment = HAlignment.LEFT, v_alignment: VAlignment = VAlignment.TOP):
+                 h_alignment: HAlignment = HAlignment.LEFT, v_alignment: VAlignment = VAlignment.TOP,
+                 escape: bool = True):
         super().__init__(parent)
         self._text = text
         self._font = font
         self._h_alignment = h_alignment
         self._v_alignment = v_alignment
+        self._escape = escape
 
     def paint_foreground(self, ctx: Context):
-        layout = self.font.get_layout(self.text.replace(' ', '\u00A0'), ctx, self.foreground)
+        layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.set_alignment(Alignment.LEFT)
         else:
@@ -173,6 +176,14 @@ class TextWidget(Widget):
     def v_alignment(self, v_alignment: VAlignment):
         self._v_alignment = v_alignment
         self.dirty = True
+
+    @property
+    def escape(self) -> bool:
+        return self._escape
+
+    @escape.setter
+    def escape(self, escape: bool):
+        self._escape = escape
 
     @property
     def preferred_size(self) -> Size:
