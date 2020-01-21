@@ -23,21 +23,21 @@ class MainScreen(Screen):
     def __init__(self, parent: AppWidget):
         super().__init__(parent, "Main")
 
-        lv3 = Line(self, Line.Orientation.VERTICAL)
-        lv3.rectangle = Rectangle(AnchoredPoint(self.width / 4 * 3, 0, Anchor.TOP_LEFT),
-                                  Size(lv3.preferred_size().width, self.height))
-        self.children.append(lv3)
+        lv2_3 = Line(self, Line.Orientation.VERTICAL)
+        lv2_3.rectangle = Rectangle(AnchoredPoint(self.width / 3 * 2, 0, Anchor.TOP_LEFT),
+                                  Size(lv2_3.preferred_size().width, self.height))
+        self.children.append(lv2_3)
 
         d = TimeWidget(self, '%a %d.%m.%Y', h_alignment=TextWidget.HAlignment.CENTER)
-        d.rectangle = Rectangle(lv3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
-                                lv3.position(Anchor.TOP_RIGHT) - self.position(Anchor.BOTTOM_RIGHT))
+        d.rectangle = Rectangle(lv2_3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
+                                lv2_3.position(Anchor.TOP_RIGHT) - self.position(Anchor.BOTTOM_RIGHT))
         d.font = dataclasses.replace(d.font, bold=True)
         d.fit_font_size()
         d.set_height(d.preferred_size.height, VAnchor.TOP)
         self.children.append(d)
 
         t = TimeWidget(self, '%H:%M:%S')
-        t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+        t.rectangle = Rectangle(d.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 2),
                                 d.position(Anchor.BOTTOM_LEFT) - self.position(Anchor.BOTTOM_RIGHT))
         t.fit_font_size()
         t.set_height(t.preferred_size.height, VAnchor.TOP)
@@ -45,10 +45,8 @@ class MainScreen(Screen):
 
         lh1 = Line(self, Line.Orientation.HORIZONTAL)
         lh1.rectangle = Rectangle(t.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
-                                  Size(self.width - lv3.left, lh1.preferred_size().height))
+                                  Size(self.width - lv2_3.left, lh1.preferred_size().height))
         self.children.append(lh1)
-
-        lv3.set_height(lh1.bottom, VAnchor.TOP)
 
         self.wetter_com = WetterCom('DE0008184003', Global.download_manager)
         self.weather_widgets = WeatherWidgets(self, None, Global.download_manager)
@@ -58,14 +56,14 @@ class MainScreen(Screen):
         self.app.scheduler.schedule_synchronous(timedelta(minutes=10), self.load_weather)
         self.children.append(self.weather_widgets)
 
-        lh2 = Line(self, Line.Orientation.HORIZONTAL)
-        lh2.rectangle = Rectangle(self.weather_widgets.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
-                                  Size(self.width, lh2.preferred_size().height))
-        self.children.append(lh2)
+        lh3 = Line(self, Line.Orientation.HORIZONTAL)
+        lh3.rectangle = Rectangle(self.weather_widgets.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+                                  Size(self.width, lh3.preferred_size().height))
+        self.children.append(lh3)
 
         mp = MediaPlayer(self.app)
         tt = MediaPlayerTrackTitleWidget(self, mp, Font(size=14))
-        tt.rectangle = Rectangle(lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+        tt.rectangle = Rectangle(lh3.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                  Size(self.width, tt.font.font_extents().height))
         self.children.append(tt)
 
@@ -88,9 +86,16 @@ class MainScreen(Screen):
         self.children.append(tr)
 
         aa = MediaPlayerAlbumArt(self, mp, Anchor.BOTTOM_RIGHT)
-        aa.rectangle = Rectangle(lh1.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.TOP_RIGHT) + Point(0, 1),
-                                 lh1.position(Anchor.BOTTOM_RIGHT) - tp.position(Anchor.TOP_LEFT) - Size(0, 2))
+        aa.rectangle = Rectangle(lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+                                 lh1.position(Anchor.BOTTOM_LEFT) - tr.position(Anchor.TOP_RIGHT) - Size(0, 3))
         self.children.append(aa)
+
+        lh2 = Line(self, Line.Orientation.HORIZONTAL)
+        lh2.rectangle = Rectangle(tp.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
+                                  Size(lv2_3.left, lh2.preferred_size().height))
+        self.children.append(lh2)
+
+        lv2_3.set_height(lh2.bottom, VAnchor.TOP)
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
