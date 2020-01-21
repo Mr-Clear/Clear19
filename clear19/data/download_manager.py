@@ -9,6 +9,7 @@ from pathlib import Path
 from queue import Queue
 from threading import Thread, Lock
 from typing import Dict, Callable, Optional
+from urllib.error import URLError
 from urllib.parse import urlparse
 
 
@@ -101,13 +102,18 @@ class DownloadManager:
             if not in_mem_cache:
                 logging.debug("Downloading: {}".format(job.url))
                 now = datetime.now()
-                with urllib.request.urlopen(job.url) as file:
-                    content = file.read()
-                with self._mem_cache_lock:
-                    self._mem_cache[job.url] = self._CacheEntry(content, now)
-                cache_file = self.cache_path.joinpath(self.name_generator(job.url))
-                with open(str(cache_file), 'wb') as file:
-                    file.write(content)
+                try:
+                    with urllib.request.urlopen(job.url) as file:
+                        content = file.read()
+                except URLError as err:
+                    logging.error('Failed to download "{}": {}'.format(job.url, err.reason))
+                    content = None
+                if content:
+                    with self._mem_cache_lock:
+                        self._mem_cache[job.url] = self._CacheEntry(content, now)
+                    cache_file = self.cache_path.joinpath(self.name_generator(job.url))
+                    with open(str(cache_file), 'wb') as file:
+                        file.write(content)
                 if job.callback:
                     job.callback(content)
 
