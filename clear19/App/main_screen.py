@@ -112,7 +112,7 @@ class MainScreen(Screen):
             Size(self.width / 3, self.track_remaining.font.font_extents().height))
         self.track_remaining.h_alignment = TextWidget.HAlignment.RIGHT
 
-        self.album_art = MediaPlayerAlbumArt(self, self.media_player, Anchor.BOTTOM_RIGHT)
+        self.album_art = MediaPlayerAlbumArt(self, self.media_player, Anchor.CENTER_CENTER)
         self.album_art.rectangle = Rectangle(
             self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.track_remaining.position(Anchor.TOP_RIGHT) + Point(0, -3))
