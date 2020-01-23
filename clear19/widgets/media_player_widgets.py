@@ -58,7 +58,8 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
     def _update_play_state(self, play_state: PlayState):
         if play_state.track:
-            self._progress = self.media_player.current_position / play_state.track.duration
+            self._progress = self.media_player.current_position / play_state.track.duration if\
+                play_state.track.duration > 0 else 0
             title = self.shorten_title(play_state.track, self._font, self.size)
             font = replace(self._unselected.font, italic=False)
         else:
