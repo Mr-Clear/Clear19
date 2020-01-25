@@ -6,7 +6,6 @@ from xml.sax.saxutils import quoteattr
 
 from clear19.App import Global
 from clear19.App.screens import Screens
-from clear19.data.media_player import MediaPlayer
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets import Color
@@ -14,6 +13,7 @@ from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, 
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
     MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
+from clear19.widgets.system_stats_widgets import CpuLoadWidget
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
 from clear19.widgets.weather_widget import WeatherWidgets, WeatherWidget
 from clear19.widgets.widget import Screen, AppWidget
@@ -89,30 +89,29 @@ class MainScreen(Screen):
                                        + Point(0, -1),
                                        Size(self.width, self.lh3.preferred_size().height))
 
-        self.media_player = MediaPlayer(self.app)
-        self.track_title = MediaPlayerTrackTitleWidget(self, self.media_player, Font(size=14))
+        self.track_title = MediaPlayerTrackTitleWidget(self, Global.media_player, Font(size=14))
         self.track_title.rectangle = Rectangle(self.lh3.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                                Size(self.width, self.track_title.font.font_extents().height))
 
         track_position_font = Font(size=11)
-        self.track_position = MediaPlayerTrackPositionWidget(self, self.media_player, track_position_font)
+        self.track_position = MediaPlayerTrackPositionWidget(self, Global.media_player, track_position_font)
         self.track_position.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
             Size(self.width / 3, self.track_position.font.font_extents().height))
 
-        self.track_duration = MediaPlayerTrackDurationWidget(self, self.media_player, track_position_font)
+        self.track_duration = MediaPlayerTrackDurationWidget(self, Global.media_player, track_position_font)
         self.track_duration.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_CENTER).anchored(Anchor.BOTTOM_CENTER),
             Size(self.width / 3, self.track_duration.font.font_extents().height))
         self.track_duration.h_alignment = TextWidget.HAlignment.CENTER
 
-        self.track_remaining = MediaPlayerTrackRemainingWidget(self, self.media_player, track_position_font)
+        self.track_remaining = MediaPlayerTrackRemainingWidget(self, Global.media_player, track_position_font)
         self.track_remaining.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_RIGHT).anchored(Anchor.BOTTOM_RIGHT),
             Size(self.width / 3, self.track_remaining.font.font_extents().height))
         self.track_remaining.h_alignment = TextWidget.HAlignment.RIGHT
 
-        self.album_art = MediaPlayerAlbumArt(self, self.media_player, Anchor.CENTER_CENTER)
+        self.album_art = MediaPlayerAlbumArt(self, Global.media_player, Anchor.CENTER_CENTER)
         self.album_art.rectangle = Rectangle(
             self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.track_remaining.position(Anchor.TOP_RIGHT) + Point(0, -3))
@@ -123,6 +122,10 @@ class MainScreen(Screen):
             Size(self.lv2_3.left, self.lh2.preferred_size().height))
 
         self.lv2_3.set_height(self.lh2.bottom, VAnchor.TOP)
+
+        self.cpu_load = CpuLoadWidget(self)
+        self.cpu_load.rectangle = Rectangle(self.lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
+                                            Point(30, 0))
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):

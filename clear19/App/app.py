@@ -8,6 +8,7 @@ from typing import Union, Type, Dict
 
 import cairocffi as cairo
 
+from clear19.App import Global
 from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
 from clear19.App.screens import Screens
@@ -38,6 +39,7 @@ class App(AppWidget):
                                              int(self.screen_size.width))
 
             super().__init__()
+            Global.init(self.scheduler)
             self._screens = {Screens.MAIN: MainScreen(self),
                              Screens.TIME: TimeScreen(self),
                              Screens.MENU: MenuScreen(self)}

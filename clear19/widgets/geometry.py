@@ -77,24 +77,25 @@ class Rectangle:
             self._size = point - size
         else:
             self._size = size
+
         if point.anchor == Anchor.TOP_LEFT:
             self._top_left = Point(point.x, point.y)
         elif point.anchor == Anchor.TOP_CENTER:
-            self._top_left = Point(point.x - size.width / 2, point.y)
+            self._top_left = Point(point.x - self._size.width / 2, point.y)
         elif point.anchor == Anchor.TOP_RIGHT:
-            self._top_left = Point(point.x - size.width, point.y)
+            self._top_left = Point(point.x - self._size.width, point.y)
         elif point.anchor == Anchor.CENTER_LEFT:
-            self._top_left = Point(point.x, point.y - size.height / 2)
+            self._top_left = Point(point.x, point.y - self._size.height / 2)
         elif point.anchor == Anchor.CENTER_CENTER:
-            self._top_left = Point(point.x - size.width / 2, point.y - size.height / 2)
+            self._top_left = Point(point.x - self._size.width / 2, point.y - self._size.height / 2)
         elif point.anchor == Anchor.CENTER_RIGHT:
-            self._top_left = Point(point.x - size.width, point.y - size.height / 2)
+            self._top_left = Point(point.x - self._size.width, point.y - self._size.height / 2)
         elif point.anchor == Anchor.BOTTOM_LEFT:
-            self._top_left = Point(point.x, point.y - size.height)
+            self._top_left = Point(point.x, point.y - self._size.height)
         elif point.anchor == Anchor.BOTTOM_CENTER:
-            self._top_left = Point(point.x - size.width / 2, point.y - size.height)
+            self._top_left = Point(point.x - self._size.width / 2, point.y - self._size.height)
         elif point.anchor == Anchor.BOTTOM_RIGHT:
-            self._top_left = Point(point.x - size.width, point.y - size.height)
+            self._top_left = Point(point.x - self._size.width, point.y - self._size.height)
 
     @property
     def size(self) -> Size:

@@ -13,6 +13,7 @@ from dbus.mainloop import NativeMainLoop
 from dbus.proxies import ProxyObject
 from gi.repository import GLib
 
+from clear19.scheduler import Scheduler
 from clear19.widgets.widget import AppWidget
 
 
@@ -60,7 +61,7 @@ class MediaPlayer:
     _playing: bool = None
     _position: Optional[KnownPosition] = None
 
-    def __init__(self, app: AppWidget):
+    def __init__(self, scheduler: Scheduler):
         self._listeners = []
         self._listeners_mutex = Lock()
 
@@ -76,7 +77,7 @@ class MediaPlayer:
         # noinspection PyUnresolvedReferences
         Thread(target=loop.run, daemon=True).start()
 
-        app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update_connections)
+        scheduler.schedule_synchronous(timedelta(seconds=1), self._update_connections)
 
     def _update_connections(self, _):
         self._get_connection()

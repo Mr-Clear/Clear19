@@ -2,9 +2,11 @@ from __future__ import annotations
 
 from typing import Dict, Optional
 
-from cairocffi import ImageSurface
+from cairocffi import ImageSurface, Context
 from cairosvg.parser import Tree
 from cairosvg.surface import PNGSurface
+
+from clear19.widgets.geometry import Rectangle, Anchor
 
 
 def load_svg(svg: bytes, width: float = None, height: float = None) -> ImageSurface:
@@ -139,3 +141,15 @@ Color.GRAY75 = Color(0.75, 0.75, 0.75)
 Color.GRAY80 = Color(0.8, 0.8, 0.8)
 Color.GRAY90 = Color(0.9, 0.9, 0.9)
 Color.GRAY100 = Color.WHITE
+
+
+def draw_rounded_rectangle(ctx: Context, rectangle: Rectangle, radius: float):
+    """ draws rectangles with rounded (circular arc) corners """
+    from math import pi
+    a, c = rectangle.position(Anchor.TOP_LEFT)
+    b, d = rectangle.position(Anchor.BOTTOM_RIGHT)
+    ctx.arc(a + radius, c + radius, radius, 2 * (pi / 2), 3 * (pi / 2))
+    ctx.arc(b - radius, c + radius, radius, 3 * (pi / 2), 4 * (pi / 2))
+    ctx.arc(b - radius, d - radius, radius, 0 * (pi / 2), 1 * (pi / 2))  # ;o)
+    ctx.arc(a + radius, d - radius, radius, 1 * (pi / 2), 2 * (pi / 2))
+    ctx.close_path()
