@@ -3,12 +3,14 @@ from datetime import timedelta
 from cairocffi import Context
 
 from clear19.App import Global
+from clear19.data.system_data import SystemData
 from clear19.widgets import Color, draw_rounded_rectangle, Rectangle
 from clear19.widgets.geometry import ZERO_TOP_LEFT
+from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import Widget, ContainerWidget
 
 
-class CpuLoadWidget (Widget):
+class CpuLoadBarWidget (Widget):
     def __init__(self, parent: ContainerWidget):
         super().__init__(parent)
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update)
@@ -52,3 +54,19 @@ class CpuLoadWidget (Widget):
             ctx.set_source_rgb(*Color.GREEN)
             ctx.rectangle(0, self.height - system_h - io_h - user_h, self.width, -nice_h)
             ctx.fill()
+
+
+class CpuLoadTextWidget(TextWidget):
+    def __init__(self, parent: ContainerWidget, font: Font = Font(),
+                 h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT):
+        super().__init__(parent, "0.0%", font, h_alignment)
+
+        Global.system_data.add_cpu_listener(self._update)
+
+    def _update(self, data: SystemData.CpuTimes):
+        if data.idle > 90:
+            self.text = '{:1.1f}%'.format(100 - data.idle)
+        elif data.idle < 1:
+            self.text = "100%"
+        else:
+            self.text = '{:2.0f}%'.format(100 - data.idle)
