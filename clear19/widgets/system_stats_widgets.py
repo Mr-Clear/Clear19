@@ -1,15 +1,16 @@
+import operator
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import psutil
 from cairocffi import Context
 
 from clear19.App import Global
 from clear19.data.system_data import SystemData
-from clear19.widgets import Rectangle
+from clear19.widgets import Rectangle, Anchor
 from clear19.widgets.bar_widget import BarWidget
 from clear19.widgets.color import Color
-from clear19.widgets.geometry import ZERO_TOP_LEFT
+from clear19.widgets.geometry import ZERO_TOP_LEFT, Size
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
 
@@ -97,3 +98,24 @@ class DiskStats(TextWidget):
         root = psutil.disk_usage('/')
         home = psutil.disk_usage('/home')
         self.text = '/: {}%, /home: {}%'.format(root.percent, home.percent)
+
+
+class ProcessList(ContainerWidget):
+    def __init__(self, parent: ContainerWidget, entries: int, font: Font):
+        super().__init__(parent)
+        for _ in range(entries):
+            TextWidget(self, 'Kg', font)
+        Global.system_data.add_process_listener(self._update)
+        self._update(Global.system_data.process_cpu_percent)
+
+    def do_layout(self):
+        p = ZERO_TOP_LEFT
+        for child in self.children:
+            child.rectangle = Rectangle(p, Size(self.width, child.preferred_size.height + 2))
+            p = child.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
+
+    def _update(self, data: List[Tuple[str, float]]):
+        d = sorted(data, key=operator.itemgetter(1), reverse=True)
+        for i in range(len(self.children)):
+            # noinspection PyUnresolvedReferences
+            self.children[i].text = '{:3.0f}% {}'.format(d[i][1], d[i][0])

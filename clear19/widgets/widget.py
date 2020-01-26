@@ -167,13 +167,10 @@ class ContainerWidget(Widget):
     def children(self) -> List[Widget]:
         return self._children
 
-    @property
-    def rectangle(self) -> Rectangle:
-        return self._rectangle
-
-    @rectangle.setter
+    @Widget.rectangle.setter
     def rectangle(self, rectangle: Rectangle):
-        self._rectangle = rectangle
+        # noinspection PyArgumentList
+        Widget.rectangle.fset(self, rectangle)
         self.do_layout()
 
     def paint_foreground(self, ctx: Context):

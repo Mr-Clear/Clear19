@@ -14,7 +14,8 @@ from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, 
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
     MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
-from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar, DiskStats
+from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar, DiskStats, \
+    ProcessList
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
 from clear19.widgets.weather_widget import WeatherWidgets, WeatherWidget
 from clear19.widgets.widget import Screen, AppWidget
@@ -149,6 +150,11 @@ class MainScreen(Screen):
         self.lhs.rectangle = Rectangle(self.disk_stats.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                        + Point(0, -1), Size(self.disk_stats.width, self.lhs.preferred_size().height))
         self.lhs.foreground = Color.GRAY67
+
+        self.processes = ProcessList(self, 5, Font(size=12))
+        self.processes.rectangle = Rectangle(self.mem_stats_bar.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
+                                             + Point(2, 2),
+                                             self.lhs.position(Anchor.TOP_RIGHT))
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):

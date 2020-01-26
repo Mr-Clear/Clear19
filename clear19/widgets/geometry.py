@@ -176,7 +176,7 @@ class Size:
         return iter((self.width, self.height))
 
 
-ZERO: Point = Point(0, 0)
+ZERO_POINT: Point = Point(0, 0)
 ZERO_TOP_LEFT: AnchoredPoint = AnchoredPoint(0, 0, Anchor.TOP_LEFT)
 ZERO_SIZE: Size = Size(0, 0)
 ZERO_RECT: Rectangle = Rectangle(ZERO_TOP_LEFT, ZERO_SIZE)
