@@ -10,7 +10,7 @@ from cairocffi import Context
 import clear19.widgets.geometry
 from clear19.logitech.g19 import G19Key
 from clear19.scheduler import Scheduler
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZERO_TOP_LEFT, Rectangle, Size
 
 
@@ -85,9 +85,9 @@ class Widget(ABC):
 
     def paint(self, ctx: Context):
         if self.background:
-            ctx.set_source_rgb(*self.background)
+            ctx.set_source_rgba(*self.background)
             self.paint_background(ctx)
-        ctx.set_source_rgb(*self.foreground)
+        ctx.set_source_rgba(*self.foreground)
         self.paint_foreground(ctx)
         self.dirty = False
 

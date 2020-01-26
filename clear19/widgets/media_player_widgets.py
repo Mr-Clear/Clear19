@@ -7,7 +7,7 @@ from cairo import Context
 from clear19.App import Global
 from clear19.data.media_player import MediaPlayer, Track, PlayState
 from clear19.scheduler import TaskParameters
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor
 from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.text_widget import TextWidget, Font

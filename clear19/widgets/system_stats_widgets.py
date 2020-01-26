@@ -4,8 +4,9 @@ from cairocffi import Context
 
 from clear19.App import Global
 from clear19.data.system_data import SystemData
-from clear19.widgets import Color, Rectangle
+from clear19.widgets import Rectangle
 from clear19.widgets.bar_widget import BarWidget
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import ZERO_TOP_LEFT
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
@@ -26,9 +27,9 @@ class CpuLoadBarWidget (BarWidget):
         cpu_count = Global.system_data.cpu_count
         for i in range(cpu_count):
             if i % 2:
-                ctx.set_source_rgb(*Color.GRAY33)
+                ctx.set_source_rgba(*Color.GRAY33)
             else:
-                ctx.set_source_rgb(*Color.GRAY50)
+                ctx.set_source_rgba(*Color.GRAY50)
             ctx.move_to(0, self.height - self.height / cpu_count * i)
             ctx.line_to(self.width, self.height - self.height / cpu_count * i)
             ctx.stroke()
@@ -76,7 +77,7 @@ class MemStatsBar(ContainerWidget):
         self._bar.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
                             (mem.cached, Color.GREEN / 2), (free, None)]
         self._text.text = '{}%  {:3.1f} GiB / {:3.1f} GiB'.format(mem.percent, (mem.total - mem.available) / 2**30,
-                                                                    mem.total / 2**30)
+                                                                  mem.total / 2**30)
 
     @Widget.foreground.setter
     def foreground(self, foreground: Color):

@@ -8,7 +8,7 @@ from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.bar_widget import BarWidget
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, Point
 from clear19.widgets.line import Line
@@ -138,7 +138,7 @@ class MainScreen(Screen):
         self.mem_stats_bar.rectangle = \
             Rectangle(AnchoredPoint(self.cpu_load_bar.right, 0, Anchor.TOP_LEFT),
                       Size(self.lv2_3.left - self.cpu_load_bar.right - 1, self.cpu_load_bar.width))
-        self.mem_stats_bar.foreground = Color.GRAY90
+        self.mem_stats_bar.foreground = Color.WHITE.with_value(alpha=0.9)
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):

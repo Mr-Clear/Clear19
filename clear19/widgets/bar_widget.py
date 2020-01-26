@@ -3,7 +3,8 @@ from typing import List, Tuple, Optional
 
 from cairocffi import Context
 
-from clear19.widgets import Color, draw_rounded_rectangle, Rectangle
+from clear19.widgets import draw_rounded_rectangle, Rectangle
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import ZERO_TOP_LEFT
 from clear19.widgets.widget import Widget, ContainerWidget
 
@@ -47,7 +48,7 @@ class BarWidget(Widget):
                 l_pos = pos
                 pos += value[0] / self._total
                 if value[1]:
-                    ctx.set_source_rgb(*value[1])
+                    ctx.set_source_rgba(*value[1])
                     if self.orientation == BarWidget.Orientation.HORIZONTAL_LEFT_TO_RIGHT:
                         ctx.rectangle(l_pos * self.width, 0, (pos - l_pos) * self.width, self.height)
                     elif self.orientation == BarWidget.Orientation.HORIZONTAL_RIGHT_TO_LEFT:
@@ -62,7 +63,7 @@ class BarWidget(Widget):
         self.paint_scale_foreground(ctx)
 
         if self.border:
-            ctx.set_source_rgb(*self.border)
+            ctx.set_source_rgba(*self.border)
             ctx.set_line_width(self.border_width)
             draw_rounded_rectangle(ctx, Rectangle(ZERO_TOP_LEFT, self.size), self.border_corner)
             ctx.stroke()

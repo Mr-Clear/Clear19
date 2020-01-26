@@ -12,7 +12,7 @@ from cairocffi import Context, ImageSurface
 from pangocffi import Layout, Alignment
 
 from clear19.scheduler import TaskParameters
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import Widget, ContainerWidget
 

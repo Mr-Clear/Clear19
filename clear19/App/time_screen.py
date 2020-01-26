@@ -6,7 +6,7 @@ from cairo import Context
 from clear19 import App
 from clear19.App.screens import Screens
 from clear19.logitech.g19 import G19Key, DisplayKey
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Anchor, AnchoredPoint, ZERO_TOP_LEFT, Rectangle, Size
 from clear19.widgets.text_widget import TimeWidget, TextWidget
 from clear19.widgets.widget import Screen, AppWidget, Widget, ContainerWidget
@@ -18,7 +18,7 @@ class SplitSecondSpinner(Widget):
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=40), lambda _: self.repaint())
 
     def paint_foreground(self, ctx: Context):
-        ctx.set_source_rgb(*Color.GRAY40)
+        ctx.set_source_rgba(*Color.GRAY40)
         rect = Rectangle(ZERO_TOP_LEFT, self.size)
         center = rect.position(Anchor.CENTER_CENTER)
         r = min(*self.size) / 2
@@ -31,7 +31,7 @@ class SplitSecondSpinner(Widget):
         ctx.move_to(center.x, center.y)
         ctx.line_to(center.x + r * math.sin(φ), center.y - r * math.cos(φ))
         ctx.set_line_width(2)
-        ctx.set_source_rgb(*Color.WHITE)
+        ctx.set_source_rgba(*Color.WHITE)
         ctx.stroke()
 
 

@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from clear19.data.download_manager import DownloadManager
 from clear19.data.wetter_com import WeatherPeriod
-from clear19.widgets import Color
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size, Rectangle, AnchoredPoint, Anchor, Point
 from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.line import Line
