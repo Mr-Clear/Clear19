@@ -134,10 +134,11 @@ class MainScreen(Screen):
             self.cpu_load_text.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
             Size(self.cpu_load_text.width, self.cpu_load_text.top))
 
-        self.mem_stats_bar = MemStatsBar(self, BarWidget.Orientation.HORIZONTAL_LEFT_TO_RIGHT, Color.GRAY75)
+        self.mem_stats_bar = MemStatsBar(self, Font(size=12), Color.GRAY75)
         self.mem_stats_bar.rectangle = \
             Rectangle(AnchoredPoint(self.cpu_load_bar.right, 0, Anchor.TOP_LEFT),
                       Size(self.lv2_3.left - self.cpu_load_bar.right - 1, self.cpu_load_bar.width))
+        self.mem_stats_bar.foreground = Color.GRAY90
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):

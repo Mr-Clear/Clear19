@@ -35,13 +35,13 @@ class BarWidget(Widget):
         self._border_corner = border_corner
 
     def paint_foreground(self, ctx: Context):
+        if self.border_corner:
+            draw_rounded_rectangle(ctx, Rectangle(ZERO_TOP_LEFT, self.size), self.border_corner)
+            ctx.clip()
+
+        self.paint_scale_background(ctx)
+
         if self.values:
-            if self.border_corner:
-                draw_rounded_rectangle(ctx, Rectangle(ZERO_TOP_LEFT, self.size), self.border_corner)
-                ctx.clip()
-
-            self.paint_scale_background(ctx)
-
             pos = 0.0
             for value in self.values:
                 l_pos = pos
@@ -59,7 +59,7 @@ class BarWidget(Widget):
                         ctx.rectangle(0, self.height - l_pos * self.height, self.width, (l_pos - pos) * self.height)
                     ctx.fill()
 
-            self.paint_scale_foreground(ctx)
+        self.paint_scale_foreground(ctx)
 
         if self.border:
             ctx.set_source_rgb(*self.border)

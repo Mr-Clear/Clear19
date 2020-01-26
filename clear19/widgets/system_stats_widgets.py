@@ -4,10 +4,11 @@ from cairocffi import Context
 
 from clear19.App import Global
 from clear19.data.system_data import SystemData
-from clear19.widgets import Color
+from clear19.widgets import Color, Rectangle
 from clear19.widgets.bar_widget import BarWidget
+from clear19.widgets.geometry import ZERO_TOP_LEFT
 from clear19.widgets.text_widget import TextWidget, Font
-from clear19.widgets.widget import ContainerWidget
+from clear19.widgets.widget import ContainerWidget, Widget
 
 
 class CpuLoadBarWidget (BarWidget):
@@ -48,27 +49,37 @@ class CpuLoadTextWidget(TextWidget):
             self.text = '{:2.0f}'.format(100 - data.idle)
 
 
-class MemStatsBar(BarWidget):
+class MemStatsBar(ContainerWidget):
+    _bar: BarWidget
     _mem: SystemData.MemStats = None
 
-    def __init__(self, parent: ContainerWidget, orientation: BarWidget.Orientation, border: Optional[Color] = None,
+    def __init__(self, parent: ContainerWidget, font: Font, border: Optional[Color] = None,
                  border_width: float = 1, border_corner: float = 5):
-
-        super().__init__(parent, orientation, None, border, border_width, border_corner)
+        super().__init__(parent)
+        self._bar = BarWidget(self, BarWidget.Orientation.HORIZONTAL_LEFT_TO_RIGHT, None, border, border_width,
+                              border_corner)
+        self._text = TextWidget(self, '0000000000000000000000', font)
+        self._text.background = None
+        self._text.foreground = self.foreground
+        self._text.h_alignment = TextWidget.HAlignment.CENTER
+        self._text.v_alignment = TextWidget.VAlignment.CENTER
         Global.system_data.add_mem_listener(self._update)
+
+    def do_layout(self):
+        self._bar.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
+        self._text.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
 
     def _update(self, mem: SystemData.MemStats):
         self._mem = mem
         buff = mem.buffers + mem.cached
         free = mem.total - mem.slab - mem.used - buff
-        self.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
-                       (mem.cached, Color.GREEN / 2), (free, None)]
+        self._bar.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
+                            (mem.cached, Color.GREEN / 2), (free, None)]
+        self._text.text = '{}%  {:3.1f} GiB / {:3.1f} GiB'.format(mem.percent, (mem.total - mem.available) / 2**30,
+                                                                    mem.total / 2**30)
 
-    def paint_scale_background(self, ctx: Context):
-        if self._mem:
-            tot = self._mem.total
-            ctx.set_source_rgb(*Color.GRAY40)
-            for i in range(0, tot, 2**30):
-                ctx.move_to(i / tot * self.width, 0)
-                ctx.line_to(i / tot * self.width, self.height)
-                ctx.stroke()
+    @Widget.foreground.setter
+    def foreground(self, foreground: Color):
+        self._text.foreground = foreground
+        # noinspection PyArgumentList
+        Widget.foreground.fset(self, foreground)

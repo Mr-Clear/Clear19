@@ -131,7 +131,13 @@ class TextWidget(Widget):
             elif self.h_alignment == TextWidget.HAlignment.RIGHT:
                 layout.set_alignment(Alignment.RIGHT)
 
-        ctx.move_to(0, -layout.get_extents()[0].y / 1000)
+        y = -layout.get_extents()[0].y / 1000
+        if self.v_alignment == TextWidget.VAlignment.BOTTOM:
+            y += self.height - layout.get_extents()[0].height / 1000
+        elif self.v_alignment == TextWidget.VAlignment.CENTER:
+            y += (self.height - layout.get_extents()[0].height / 1000) / 2
+
+        ctx.move_to(0, y)
         pangocairo.show_layout(ctx, layout)
 
     @property
