@@ -14,7 +14,6 @@ from dbus.proxies import ProxyObject
 from gi.repository import GLib
 
 from clear19.scheduler import Scheduler
-from clear19.widgets.widget import AppWidget
 
 
 @dataclass
@@ -169,7 +168,8 @@ class MediaPlayer:
                      str(metadata['xesam:album']) if 'xesam:album' in metadata else None,
                      str(metadata['mpris:artUrl']) if 'mpris:artUrl' in metadata else None,
                      int(metadata['xesam:discNumber']) if 'xesam:discNumber' in metadata else None,
-                     (str(metadata['xesam:artist'][0]) if len(metadata['xesam:artist']) > 0 else None) if 'xesam:artist' in metadata else None,
+                     (str(metadata['xesam:artist'][0]) if len(metadata['xesam:artist']) > 0 else None)
+                     if 'xesam:artist' in metadata else None,
                      float(metadata['xesam:autoRating']) if 'xesam:autoRating' in metadata else None)
 
     def _handle_properties_changed(self, _, data, _3):

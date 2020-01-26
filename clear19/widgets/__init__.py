@@ -87,10 +87,15 @@ class Color:
         return Color(_clip(self.red / divisor), _clip(self.green / divisor), _clip(self.blue / divisor))
 
     def __mul__(self, factor) -> Color:
-        return Color(_clip(self.red * factor), _clip(self.green * factor), _clip(self.blue * factor))
+        return Color(_clip(1 - (1 - self.red) / factor), _clip(1 - (1 - self.green) / factor),
+                     _clip(1 - (1 - self.blue) / factor))
 
     def __iter__(self):
         return (self.red, self.green, self.blue).__iter__()
+
+    def __str__(self) -> str:
+        return "{}(red={}, green={}, blue={})".format(self.__class__.__name__, self.red_255, self.green_255,
+                                                      self.blue_255)
 
     @staticmethod
     def interpolate(value: float, gradient: Dict[float, Color]) -> Optional[Color]:

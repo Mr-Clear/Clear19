@@ -9,11 +9,12 @@ from clear19.App.screens import Screens
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets import Color
+from clear19.widgets.bar_widget import BarWidget
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, Point
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
     MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
-from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget
+from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
 from clear19.widgets.weather_widget import WeatherWidgets, WeatherWidget
 from clear19.widgets.widget import Screen, AppWidget
@@ -69,7 +70,7 @@ class MainScreen(Screen):
         self.in_temp.escape = False
         self.in_temp.h_alignment = TextWidget.HAlignment.RIGHT
 
-        self.balcony_temp = TextWidget(self, 'B: -00.0°', temp_font)
+        self.balcony_temp = TextWidget(self, 'Blk: -00.0°', temp_font)
         self.balcony_temp.rectangle = Rectangle(AnchoredPoint((self.out_temp.right + self.in_temp.left) / 2,
                                                               self.out_temp.top, Anchor.TOP_CENTER),
                                                 self.balcony_temp.preferred_size)
@@ -126,12 +127,17 @@ class MainScreen(Screen):
         self.cpu_load_text = CpuLoadTextWidget(self, Font(size=12), h_alignment=TextWidget.HAlignment.CENTER)
         self.cpu_load_text.rectangle = Rectangle(self.lh2.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                                  + Point(0, -1), self.cpu_load_text.preferred_size)
-        self.cpu_load_text.foreground = Color.GRAY75
+        self.cpu_load_text.foreground = Color.GRAY90
 
-        self.cpu_load_bar = CpuLoadBarWidget(self)
+        self.cpu_load_bar = CpuLoadBarWidget(self, BarWidget.Orientation.VERTICAL_UP, Color.GRAY75)
         self.cpu_load_bar.rectangle = Rectangle(
             self.cpu_load_text.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
             Size(self.cpu_load_text.width, self.cpu_load_text.top))
+
+        self.mem_stats_bar = MemStatsBar(self, BarWidget.Orientation.HORIZONTAL_LEFT_TO_RIGHT, Color.GRAY75)
+        self.mem_stats_bar.rectangle = \
+            Rectangle(AnchoredPoint(self.cpu_load_bar.right, 0, Anchor.TOP_LEFT),
+                      Size(self.lv2_3.left - self.cpu_load_bar.right - 1, self.cpu_load_bar.width))
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
@@ -166,7 +172,7 @@ class MainScreen(Screen):
                     min(temp_in),
                     quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
                     max(temp_in))
-        self.balcony_temp.text = 'B: <span foreground={}>{:2.1f}°</span>' \
+        self.balcony_temp.text = 'Blk: <span foreground={}>{:2.1f}°</span>' \
             .format(quoteattr(Color.interpolate(float(data['062419C2687B.TEMP']['Value']),
                                                 WeatherWidget.temp_color_gradient).to_hex()),
                     float(data['062419C2687B.TEMP']['Value']))

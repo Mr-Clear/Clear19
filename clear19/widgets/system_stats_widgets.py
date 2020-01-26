@@ -1,29 +1,27 @@
-from datetime import timedelta
+from typing import Optional
 
 from cairocffi import Context
 
 from clear19.App import Global
 from clear19.data.system_data import SystemData
-from clear19.widgets import Color, draw_rounded_rectangle, Rectangle
-from clear19.widgets.geometry import ZERO_TOP_LEFT
+from clear19.widgets import Color
+from clear19.widgets.bar_widget import BarWidget
 from clear19.widgets.text_widget import TextWidget, Font
-from clear19.widgets.widget import Widget, ContainerWidget
+from clear19.widgets.widget import ContainerWidget
 
 
-class CpuLoadBarWidget (Widget):
-    def __init__(self, parent: ContainerWidget):
-        super().__init__(parent)
-        self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update)
+class CpuLoadBarWidget (BarWidget):
+    def __init__(self, parent: ContainerWidget, orientation: BarWidget.Orientation, border: Optional[Color] = None,
+                 border_width: float = 1, border_corner: float = 5):
+        super().__init__(parent, orientation, None, border, border_width, border_corner)
+        Global.system_data.add_cpu_listener(self._update)
 
-    def _update(self, _):
-        self.dirty = True
+    def _update(self, load: SystemData.CpuTimes):
+        system = load.system + load.irq + load.softirq + load.steal + load.guest + load.guest_nice
+        self.values = [(system, Color.RED), (load.iowait, Color.YELLOW), (load.user, Color.BLUE),
+                       (load.nice, Color.GREEN), (load.idle, None)]
 
-    def paint_foreground(self, ctx: Context):
-        ctx.set_line_width(1)
-        ctx.set_source_rgb(*Color.GRAY75)
-        draw_rounded_rectangle(ctx, Rectangle(ZERO_TOP_LEFT, self.size), 10)
-        ctx.clip_preserve()
-        ctx.stroke()
+    def paint_scale_background(self, ctx: Context):
         cpu_count = Global.system_data.cpu_count
         for i in range(cpu_count):
             if i % 2:
@@ -34,39 +32,43 @@ class CpuLoadBarWidget (Widget):
             ctx.line_to(self.width, self.height - self.height / cpu_count * i)
             ctx.stroke()
 
-        cpu_times_percent = Global.system_data.cpu_times_percent
-        if cpu_times_percent:
-            system = cpu_times_percent.system + cpu_times_percent.irq + cpu_times_percent.softirq + \
-                     cpu_times_percent.steal + cpu_times_percent.guest + cpu_times_percent.guest_nice
-            system_h = self.height / 100 * system if system > 0 else 0
-            io_h = self.height / 100 * cpu_times_percent.iowait if cpu_times_percent.iowait > 0 else 0
-            user_h = self.height / 100 * cpu_times_percent.user if cpu_times_percent.user > 0 else 0
-            nice_h = self.height / 100 * cpu_times_percent.nice if cpu_times_percent.nice > 0 else 0
-            ctx.set_source_rgb(*Color.RED)
-            ctx.rectangle(0, self.height, self.width, -system_h)
-            ctx.fill()
-            ctx.set_source_rgb(*Color.YELLOW)
-            ctx.rectangle(0, self.height - system_h, self.width, -io_h)
-            ctx.fill()
-            ctx.set_source_rgb(*Color.BLUE)
-            ctx.rectangle(0, self.height - system_h - io_h, self.width, -user_h)
-            ctx.fill()
-            ctx.set_source_rgb(*Color.GREEN)
-            ctx.rectangle(0, self.height - system_h - io_h - user_h, self.width, -nice_h)
-            ctx.fill()
-
 
 class CpuLoadTextWidget(TextWidget):
     def __init__(self, parent: ContainerWidget, font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT):
-        super().__init__(parent, "0.0%", font, h_alignment)
-
+        super().__init__(parent, "0.0", font, h_alignment)
         Global.system_data.add_cpu_listener(self._update)
 
     def _update(self, data: SystemData.CpuTimes):
         if data.idle > 90:
-            self.text = '{:1.1f}%'.format(100 - data.idle)
+            self.text = '{:1.1f}'.format(100 - data.idle)
         elif data.idle < 1:
-            self.text = "100%"
+            self.text = "100"
         else:
-            self.text = '{:2.0f}%'.format(100 - data.idle)
+            self.text = '{:2.0f}'.format(100 - data.idle)
+
+
+class MemStatsBar(BarWidget):
+    _mem: SystemData.MemStats = None
+
+    def __init__(self, parent: ContainerWidget, orientation: BarWidget.Orientation, border: Optional[Color] = None,
+                 border_width: float = 1, border_corner: float = 5):
+
+        super().__init__(parent, orientation, None, border, border_width, border_corner)
+        Global.system_data.add_mem_listener(self._update)
+
+    def _update(self, mem: SystemData.MemStats):
+        self._mem = mem
+        buff = mem.buffers + mem.cached
+        free = mem.total - mem.slab - mem.used - buff
+        self.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
+                       (mem.cached, Color.GREEN / 2), (free, None)]
+
+    def paint_scale_background(self, ctx: Context):
+        if self._mem:
+            tot = self._mem.total
+            ctx.set_source_rgb(*Color.GRAY40)
+            for i in range(0, tot, 2**30):
+                ctx.move_to(i / tot * self.width, 0)
+                ctx.line_to(i / tot * self.width, self.height)
+                ctx.stroke()
