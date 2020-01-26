@@ -14,7 +14,7 @@ from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, 
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
     MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
-from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar
+from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar, DiskStats
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
 from clear19.widgets.weather_widget import WeatherWidgets, WeatherWidget
 from clear19.widgets.widget import Screen, AppWidget
@@ -136,9 +136,19 @@ class MainScreen(Screen):
 
         self.mem_stats_bar = MemStatsBar(self, Font(size=12), Color.GRAY75)
         self.mem_stats_bar.rectangle = \
-            Rectangle(AnchoredPoint(self.cpu_load_bar.right, 0, Anchor.TOP_LEFT),
-                      Size(self.lv2_3.left - self.cpu_load_bar.right - 1, self.cpu_load_bar.width))
+            Rectangle(AnchoredPoint(self.cpu_load_bar.right, 0, Anchor.TOP_LEFT) + Point(1, 0),
+                      Size(self.lv2_3.left - self.cpu_load_bar.right - 2, self.cpu_load_bar.width))
         self.mem_stats_bar.foreground = Color.WHITE.with_value(alpha=0.9)
+
+        self.disk_stats = DiskStats(self, Font(size=12))
+        self.disk_stats.rectangle = Rectangle(self.lv2_3.position(Anchor.BOTTOM_LEFT).anchored(Anchor.BOTTOM_RIGHT),
+                                              self.cpu_load_text.position(Anchor.TOP_RIGHT))
+        self.disk_stats.h_alignment = TextWidget.HAlignment.CENTER
+
+        self.lhs = Line(self, Line.Orientation.HORIZONTAL)
+        self.lhs.rectangle = Rectangle(self.disk_stats.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
+                                       + Point(0, -1), Size(self.disk_stats.width, self.lhs.preferred_size().height))
+        self.lhs.foreground = Color.GRAY67
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):

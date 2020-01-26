@@ -1,6 +1,6 @@
 from datetime import timedelta
 from threading import Lock
-from typing import List, Callable
+from typing import List, Callable, Type
 
 import psutil
 
@@ -8,8 +8,8 @@ from clear19.scheduler import Scheduler
 
 
 class SystemData:
-    CpuTimes = psutil._pslinux.scputimes
-    MemStats = psutil._pslinux.svmem
+    CpuTimes: Type = psutil._pslinux.scputimes
+    MemStats: Type = psutil._pslinux.svmem
 
     _cpu_times_percent: CpuTimes = None
 

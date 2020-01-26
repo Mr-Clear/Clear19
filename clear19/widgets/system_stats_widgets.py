@@ -1,5 +1,7 @@
+from datetime import timedelta
 from typing import Optional
 
+import psutil
 from cairocffi import Context
 
 from clear19.App import Global
@@ -84,3 +86,14 @@ class MemStatsBar(ContainerWidget):
         self._text.foreground = foreground
         # noinspection PyArgumentList
         Widget.foreground.fset(self, foreground)
+
+
+class DiskStats(TextWidget):
+    def __init__(self, parent: ContainerWidget, font: Font = Font()):
+        super().__init__(parent, '', font)
+        self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update)
+
+    def _update(self, _):
+        root = psutil.disk_usage('/')
+        home = psutil.disk_usage('/home')
+        self.text = '/: {}%, /home: {}%'.format(root.percent, home.percent)
