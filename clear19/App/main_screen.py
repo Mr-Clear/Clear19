@@ -153,7 +153,7 @@ class MainScreen(Screen):
 
         self.processes = ProcessList(self, 5, Font(size=12))
         self.processes.rectangle = Rectangle(self.mem_stats_bar.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
-                                             + Point(2, 2),
+                                             + Point(2, 5),
                                              self.lhs.position(Anchor.TOP_RIGHT))
 
     def on_key_down(self, key: G19Key):

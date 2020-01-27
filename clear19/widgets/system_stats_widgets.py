@@ -101,17 +101,21 @@ class DiskStats(TextWidget):
 
 
 class ProcessList(ContainerWidget):
+    _font: Font
+
     def __init__(self, parent: ContainerWidget, entries: int, font: Font):
         super().__init__(parent)
+        self._font = font
         for _ in range(entries):
             TextWidget(self, 'Kg', font)
         Global.system_data.add_process_listener(self._update)
         self._update(Global.system_data.process_cpu_percent)
 
     def do_layout(self):
+        h = self._font.text_extents('Ag').height
         p = ZERO_TOP_LEFT
         for child in self.children:
-            child.rectangle = Rectangle(p, Size(self.width, child.preferred_size.height + 2))
+            child.rectangle = Rectangle(p, Size(self.width, h + 2))
             p = child.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
 
     def _update(self, data: List[Tuple[str, float]]):
