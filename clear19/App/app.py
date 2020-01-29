@@ -16,6 +16,7 @@ from clear19.App.time_screen import TimeScreen
 from clear19.logitech.g19 import G19, DisplayKey
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import AppWidget, Screen
 
@@ -35,11 +36,12 @@ class App(AppWidget):
             self._g19 = G19()
             self._screen_size = self._g19.image_size
             self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
-                                             int(self.screen_size.height),
-                                             int(self.screen_size.width))
+                                             round(self.screen_size.height),
+                                             round(self.screen_size.width))
 
             super().__init__()
             Global.init(self.scheduler)
+            self.foreground = Color.GRAY90
             self._screens = {Screens.MAIN: MainScreen(self),
                              Screens.TIME: TimeScreen(self),
                              Screens.MENU: MenuScreen(self)}

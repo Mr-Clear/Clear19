@@ -81,11 +81,11 @@ class Font:
 
     def get_layout(self, text: str, ctx: Context = None, color: Color = Color.WHITE, escape_text=True) -> Layout:
         if ctx is None:
-            ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, int(1), int(1)))
+            ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, 1, 1))
         layout = pangocairo.create_layout(ctx)
         layout.set_markup('<span font_family={} size={} foreground={} style={} weight={}>{}</span>'
                           .format(quoteattr(self.name),
-                                  quoteattr(str(int(self.size * 1000))),
+                                  quoteattr(str(round(self.size * 1000))),
                                   quoteattr(color.to_hex()),
                                   '"italic"' if self.italic else '"normal"',
                                   '"bold"' if self.bold else '"normal"',
@@ -125,7 +125,7 @@ class TextWidget(Widget):
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.set_alignment(Alignment.LEFT)
         else:
-            layout.set_width(int(self.width * 1000))
+            layout.set_width(round(self.width * 1000))
             if self.h_alignment == TextWidget.HAlignment.CENTER:
                 layout.set_alignment(Alignment.CENTER)
             elif self.h_alignment == TextWidget.HAlignment.RIGHT:

@@ -58,19 +58,19 @@ class Color:
 
     @property
     def red_255(self) -> int:
-        return int(self.red * 255)
+        return round(self.red * 255)
 
     @property
     def green_255(self) -> int:
-        return int(self.green * 255)
+        return round(self.green * 255)
 
     @property
     def blue_255(self) -> int:
-        return int(self.blue * 255)
+        return round(self.blue * 255)
 
     @property
     def alpha_255(self) -> int:
-        return int(self._alpha * 255)
+        return round(self._alpha * 255)
 
     def with_value(self, **kwargs) -> Color:
         return Color(kwargs.get('red', self.red), kwargs.get('green', self.green), kwargs.get('blue', self.blue),

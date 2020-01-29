@@ -39,7 +39,7 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         self._font = font
         self._unselected = TextWidget(self, "", font)
         self._selected = TextWidget(self, "", font)
-        self._selected.background = Color.BLUE / 1.5
+        self._selected.background = Color.BLUE * 1.5
         self._update_play_state(self.media_player.current_play_state)
         self.media_player.add_listener(self._update_play_state)
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_position, priority=90)
@@ -114,7 +114,7 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
 
 def format_position(position: float):
-    minutes, seconds = divmod(position, 60)
+    minutes, seconds = divmod(round(position), 60)
     return "{:02.0f}:{:02.0f}".format(minutes, seconds)
 
 

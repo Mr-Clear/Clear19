@@ -38,12 +38,14 @@ class MainScreen(Screen):
         self.date.font = dataclasses.replace(self.date.font, bold=True)
         self.date.fit_font_size()
         self.date.set_height(self.date.preferred_size.height, VAnchor.TOP)
+        self.date.foreground = Color.GRAY75
 
         self.time = TimeWidget(self, '%H:%M:%S')
         self.time.rectangle = Rectangle(self.date.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 2),
                                         self.position(Anchor.BOTTOM_RIGHT))
         self.time.fit_font_size()
         self.time.set_height(self.time.preferred_size.height, VAnchor.TOP)
+        self.time.foreground = self.date.foreground
 
         self.lh1 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh1.rectangle = Rectangle(self.time.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
@@ -95,7 +97,7 @@ class MainScreen(Screen):
         self.track_title.rectangle = Rectangle(self.lh3.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
                                                Size(self.width, self.track_title.font.font_extents().height))
 
-        track_position_font = Font(size=11)
+        track_position_font = Font(size=11, bold=True)
         self.track_position = MediaPlayerTrackPositionWidget(self, Global.media_player, track_position_font)
         self.track_position.rectangle = Rectangle(
             self.track_title.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT),
@@ -142,14 +144,14 @@ class MainScreen(Screen):
         self.mem_stats_bar.foreground = Color.WHITE.with_value(alpha=0.9)
 
         self.disk_stats = DiskStats(self, Font(size=12))
-        self.disk_stats.rectangle = Rectangle(self.lv2_3.position(Anchor.BOTTOM_LEFT).anchored(Anchor.BOTTOM_RIGHT),
+        self.disk_stats.rectangle = Rectangle(self.lh2.position(Anchor.TOP_RIGHT).anchored(Anchor.BOTTOM_RIGHT),
                                               self.cpu_load_text.position(Anchor.TOP_RIGHT))
         self.disk_stats.h_alignment = TextWidget.HAlignment.CENTER
 
         self.lhs = Line(self, Line.Orientation.HORIZONTAL)
         self.lhs.rectangle = Rectangle(self.disk_stats.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
                                        + Point(0, -1), Size(self.disk_stats.width, self.lhs.preferred_size().height))
-        self.lhs.foreground = Color.GRAY67
+        self.lhs.foreground = Color.GRAY50
 
         self.processes = ProcessList(self, 5, Font(size=12))
         self.processes.rectangle = Rectangle(self.mem_stats_bar.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
