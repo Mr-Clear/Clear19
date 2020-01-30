@@ -1,21 +1,40 @@
-  Logitech G19 Linux Daemon
+  Clear 19
 ============================
 
   About
 -------
 
-  Now it just show countdown (personal date hardcoded) and listening my [ambient_light](https://bitbucket.org/GRayHook/logiled_ambient/src/master/) for G13 and G19.
+Use the LCD of a Logitech G19 on Linux.
 
-  Maybe libdraw will be useful for you. Libdraw allow you to draw some shapes and place pics on screen. It able to combine new pics with previously drawn screen by alpha-channel.
+Based on __Logitech G19 Linux__ with a lot of improvements:
+* Use Python 3.8.
+* Use Cairo instead of Pillow for high quality rendering.
+* Render directly to LCD format. No expensive conversion is required.
+* Use Pango for font rendering.
+* Replace applets architecture by a screens and widgets framework.
 
-  I going to clean up my fork, rebase commits with normal names, etc. After clean up i will continue to develop this.
 
-  Also i going to add G13 and G502 to this driver.
+   Features
+--------------
+![Example image](example.png)
+* Supports multiple screens which can be changed with the direction keys, but currently, only the 
+  main screen is implemented.
+* Show CPU and memory usage.
+* List tasks with highest CPU use.
+* Show disk usage.
+* Show current date and time.
+* Show current track of media player.
+* Show weather forecast from wetter.com.
+
 
   Requirements
 --------------
 
-  + Pyusb
-  + Pillow
-  + PyUserInput
-  + [ambient_light](https://bitbucket.org/GRayHook/logiled_ambient/src/master/) from link above (It disable by default)
+* Python 3.8
+* pyusb
+* cairocffi
+* pangocffi
+* pangocairocffi
+* CairoSVG
+* psutil
+* beautifulsoup4

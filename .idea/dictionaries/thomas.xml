@@ -2,6 +2,8 @@
   <dictionary name="thomas">
     <words>
       <w>asctime</w>
+      <w>beautifulsoup</w>
+      <w>cairocffi</w>
       <w>consolas</w>
       <w>dbus</w>
       <w>freedesktop</w>
@@ -13,8 +15,12 @@
       <w>logitech</w>
       <w>mpris</w>
       <w>noto</w>
+      <w>pango</w>
       <w>pangocairo</w>
+      <w>pangocairocffi</w>
+      <w>pangocffi</w>
       <w>proc</w>
+      <w>psutil</w>
       <w>pyusb</w>
       <w>rgba</w>
       <w>seeked</w>
