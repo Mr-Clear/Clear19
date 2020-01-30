@@ -1,3 +1,4 @@
 *.pyc
 *.swp
 test.*
+/clear19.ini

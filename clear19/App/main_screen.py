@@ -6,6 +6,7 @@ from xml.sax.saxutils import quoteattr
 
 from clear19.App import Global
 from clear19.App.screens import Screens
+from clear19.data import Config
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.color import Color
@@ -32,7 +33,7 @@ class MainScreen(Screen):
         self.lv2_3.rectangle = Rectangle(AnchoredPoint(self.width / 3 * 2, 0, Anchor.TOP_LEFT),
                                          Size(self.lv2_3.preferred_size().width, self.height))
 
-        self.date = TimeWidget(self, '%a %d.%m.%Y', h_alignment=TextWidget.HAlignment.CENTER)
+        self.date = TimeWidget(self, Config.DateTime.date_format(), h_alignment=TextWidget.HAlignment.CENTER)
         self.date.rectangle = Rectangle(self.lv2_3.position(Anchor.TOP_RIGHT).anchored(Anchor.TOP_LEFT),
                                         self.position(Anchor.BOTTOM_RIGHT))
         self.date.font = dataclasses.replace(self.date.font, bold=True)
@@ -40,7 +41,7 @@ class MainScreen(Screen):
         self.date.set_height(self.date.preferred_size.height, VAnchor.TOP)
         self.date.foreground = Color.GRAY75
 
-        self.time = TimeWidget(self, '%H:%M:%S')
+        self.time = TimeWidget(self, Config.DateTime.time_format())
         self.time.rectangle = Rectangle(self.date.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 2),
                                         self.position(Anchor.BOTTOM_RIGHT))
         self.time.fit_font_size()
@@ -51,7 +52,7 @@ class MainScreen(Screen):
         self.lh1.rectangle = Rectangle(self.time.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT),
                                        Size(self.width - self.lv2_3.left, self.lh1.preferred_size().height))
 
-        self.wetter_com = WetterCom('DE0008184003', Global.download_manager)
+        self.wetter_com = WetterCom(Config.Weather.city_code(), Global.download_manager)
         self.weather_widgets = WeatherWidgets(self, None, Global.download_manager)
         self.weather_widgets.rectangle = Rectangle(self.position(Anchor.BOTTOM_LEFT),
                                                    self.weather_widgets.preferred_size)
@@ -81,12 +82,12 @@ class MainScreen(Screen):
         self.balcony_temp.escape = False
         self.balcony_temp.h_alignment = TextWidget.HAlignment.CENTER
 
-        def get_klierlinge_values(_): Global.download_manager.get('https://klierlinge.de/log/values.php',
-                                                                  self.load_klierlinge_values,
-                                                                  timedelta(seconds=29))
+        def get_temp_values(_): Global.download_manager.get(Config.Weather.temp_values_url(),
+                                                            self.load_temp_values,
+                                                            timedelta(seconds=29))
 
-        get_klierlinge_values(None)
-        self.app.scheduler.schedule_synchronous(timedelta(minutes=1), get_klierlinge_values)
+        get_temp_values(None)
+        self.app.scheduler.schedule_synchronous(timedelta(minutes=1), get_temp_values)
 
         self.lh3 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh3.rectangle = Rectangle(self.out_temp.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT)
@@ -168,19 +169,19 @@ class MainScreen(Screen):
     def load_weather(self, _=None) -> Optional[List[WeatherPeriod]]:
         return self.wetter_com.load_weather(lambda wps2: self.weather_widgets.set_weather_periods(wps2))
 
-    def load_klierlinge_values(self, values: bytes):
+    def load_temp_values(self, values: bytes):
         data = json.loads(values.decode('UTF-8'))
         temp_out: List[float] = []
         temp_out_date = [datetime.now()]
-        self._add_klierlinge_value(data, '062419C2687B.TEMP2', temp_out, temp_out_date)
-        self._add_klierlinge_value(data, '0674ED7469BD.TEMP', temp_out, temp_out_date)
-        self._add_klierlinge_value(data, '0674ED7469BD.TEMP2', temp_out, temp_out_date)
+        self._add_temp_value(data, '062419C2687B.TEMP2', temp_out, temp_out_date)
+        self._add_temp_value(data, '0674ED7469BD.TEMP', temp_out, temp_out_date)
+        self._add_temp_value(data, '0674ED7469BD.TEMP2', temp_out, temp_out_date)
         temp_in: List[float] = []
         temp_in_date = [datetime.now()]
-        self._add_klierlinge_value(data, '030A84D918DC.TEMP', temp_in, temp_in_date)
-        self._add_klierlinge_value(data, '031B99C87CEE.TEMP', temp_in, temp_in_date)
-        self._add_klierlinge_value(data, '032602645A7F.TEMP', temp_in, temp_in_date)
-        self._add_klierlinge_value(data, 'PI_TEMP', temp_in, temp_in_date)
+        self._add_temp_value(data, '030A84D918DC.TEMP', temp_in, temp_in_date)
+        self._add_temp_value(data, '031B99C87CEE.TEMP', temp_in, temp_in_date)
+        self._add_temp_value(data, '032602645A7F.TEMP', temp_in, temp_in_date)
+        self._add_temp_value(data, 'PI_TEMP', temp_in, temp_in_date)
         self.out_temp.text = 'Out: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>' \
             .format(quoteattr(Color.interpolate(min(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
                     min(temp_out),
@@ -197,7 +198,7 @@ class MainScreen(Screen):
                     float(data['062419C2687B.TEMP']['Value']))
 
     @staticmethod
-    def _add_klierlinge_value(data: Dict[str, Dict[str, Any]], name: str, values: List[Any], max_age: List[datetime]):
+    def _add_temp_value(data: Dict[str, Dict[str, Any]], name: str, values: List[Any], max_age: List[datetime]):
         values.append(float(data[name]['Value']))
         date = datetime.strptime(data[name]['Time'], '%Y-%m-%d %H:%M:%S')
         if max_age[0] > date:

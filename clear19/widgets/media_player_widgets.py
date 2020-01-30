@@ -48,7 +48,9 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
         self._selected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
 
+    # noinspection PyUnusedLocal
     def shorten_title(self, track: Track, font: Font, space: Size) -> str:
+        # TODO: Cut text to fit in widget.
         player = self.media_player.current_player_name
         if player == 'spotify':
             title = "{} - {} - {}".format(track.artist, track.album, track.title)

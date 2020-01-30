@@ -240,6 +240,7 @@ class AppWidget(ContainerWidget):
     def screen_size(self) -> Size:
         return clear19.widgets.geometry.ZERO_SIZE
 
+    # noinspection PyMethodOverriding
     @property
     def rectangle(self) -> Rectangle:
         return Rectangle(ZERO_TOP_LEFT, self.screen_size)

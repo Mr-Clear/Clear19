@@ -11,6 +11,7 @@ import pangocairocffi as pangocairo
 from cairocffi import Context, ImageSurface
 from pangocffi import Layout, Alignment
 
+from clear19.data import Config
 from clear19.scheduler import TaskParameters
 from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
@@ -204,7 +205,7 @@ class TimeWidget(TextWidget):
     _time_format: str
     _extents_datetime: datetime = datetime(2000, 12, 25, 22, 22, 22)  # Monday may be the longest day string
 
-    def __init__(self, parent: ContainerWidget, time_format: str = "%H:%M:%S", font: Font = Font(),
+    def __init__(self, parent: ContainerWidget, time_format: str = Config.DateTime.date_time_format(), font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
                  v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
         super().__init__(parent, datetime.now().strftime(time_format), font,
