@@ -10,6 +10,9 @@ from clear19.widgets.widget import Widget, ContainerWidget
 
 
 class BarWidget(Widget):
+    """
+    Shows a bar, like a progress bar.
+    """
     ValueType = Tuple[float, Optional[Color]]
     ValuesType = List[ValueType]
 

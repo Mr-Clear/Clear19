@@ -13,8 +13,15 @@ from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
 
+"""
+Widgets that display information of media players.
+"""
+
 
 class MediaPlayerWidget(Widget, ABC):
+    """
+    Base class for all media player widgets.
+    """
     __metaclass__ = ABCMeta
 
     _media_player: MediaPlayer
@@ -29,6 +36,9 @@ class MediaPlayerWidget(Widget, ABC):
 
 
 class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
+    """
+    Shows the current track title and the progress.
+    """
     _font: Font
     _unselected: TextWidget
     _selected: TextWidget
@@ -116,11 +126,18 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
 
 def format_position(position: float):
+    """
+    :param position: Position in track in seconds.
+    :return: Position formatted as %m:%s.
+    """
     minutes, seconds = divmod(round(position), 60)
     return "{:02.0f}:{:02.0f}".format(minutes, seconds)
 
 
 class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):
+    """
+    Text widget that shows the current position.
+    """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
         TextWidget.__init__(self, parent, "--:--", font)
@@ -134,6 +151,9 @@ class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):
 
 
 class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
+    """
+    TextWidget that shows the remaining time of the current track.
+    """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
         TextWidget.__init__(self, parent, "--:--", font)
@@ -148,6 +168,9 @@ class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
 
 
 class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
+    """
+    TextWidget that shows the duration of the current track.
+    """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
         TextWidget.__init__(self, parent, "--:--", font)
@@ -162,6 +185,9 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
 
 
 class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):
+    """
+    ImageWidget that shows the album art of the current track.
+    """
     _image_url: str = ''
 
     def __init__(self, parent, media_player, alignment: Anchor = Anchor.CENTER_CENTER):

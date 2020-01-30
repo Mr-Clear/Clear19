@@ -9,6 +9,10 @@ from clear19.widgets.widget import Widget, ContainerWidget
 
 
 class ImageWidget(Widget):
+    """
+    Displays an image.
+    Supports all formats supported by pixbuf and SVG.
+    """
     _image: Optional[ImageSurface] = None
     _alignment: Anchor
 
@@ -85,6 +89,9 @@ class ImageWidget(Widget):
 
     @property
     def alignment(self) -> Anchor:
+        """
+        :return: Where to align the image within this widget when its doesn't fit exactly.
+        """
         return self._alignment
 
     @alignment.setter

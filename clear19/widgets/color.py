@@ -1,10 +1,20 @@
 from __future__ import annotations
 from typing import Dict, Optional
 
-from clear19.widgets import _clip
+
+def _clip(v: float, v_min: float = 0, v_max: float = 1) -> float:
+    if v < v_min:
+        return v_min
+    elif v > v_max:
+        return v_max
+    else:
+        return v
 
 
 class Color:
+    """Represents a color. To use with pycairo, use the unpacking operator:
+        ```context.set_source_rgba(*Color.WHITE)```
+        """
     BLACK: Color
     WHITE: Color
     RED: Color
@@ -95,6 +105,13 @@ class Color:
 
     @staticmethod
     def interpolate(value: float, gradient: Dict[float, Color]) -> Optional[Color]:
+        """
+        Create a linear interpolated color between two values corresponding to a given value.
+        :param value: Value to which a color is required.
+        :param gradient: Dict of tuples of value and color. This function finds a pair where the value parameter is
+                         between the two values and creates a color between the two colors.
+        :return: Interpolated Color.
+        """
         if not gradient:
             return None
         s = sorted(gradient)

@@ -18,6 +18,9 @@ class MenuWidgetEntry:
 
 
 class MenuWidget(ContainerWidget):
+    """
+    Widget that offers a menu for user selection.
+    """
     _menu: List[MenuWidgetEntry]
     _font: Font
     _current_entry: int

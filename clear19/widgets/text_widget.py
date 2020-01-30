@@ -4,6 +4,7 @@ import dataclasses
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import Optional
 from xml.sax.saxutils import escape, quoteattr
 
 import cairocffi as cairo
@@ -16,6 +17,10 @@ from clear19.scheduler import TaskParameters
 from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import Widget, ContainerWidget
+
+"""
+Widget to show text.
+"""
 
 
 @dataclass()
@@ -60,17 +65,32 @@ class Font:
             return copy._narrow(font, space, text, low, mid, ctx)
 
     def set(self, ctx: Context):
+        """
+        Set this font to get used on the given context.
+        :param ctx:
+        """
         ctx.select_font_face(self.name,
                              cairo.FONT_SLANT_ITALIC if self.italic else cairo.FONT_SLANT_NORMAL,
                              cairo.FONT_WEIGHT_BOLD if self.bold else cairo.FONT_WEIGHT_NORMAL)
         ctx.set_font_size(self.size)
 
-    def text_extents(self, text: str, inked: bool = True, ctx: Context = None) -> Size:
+    def text_extents(self, text: str, inked: bool = True, ctx: Optional[Context] = None) -> Size:
+        """
+        :param text: Arbitrary text
+        :param inked: If true, only the extend of the inked area is returned.
+        :param ctx: If None, a dummy context will be created.
+        :return: Extents of the given text.
+        """
         layout = self.get_layout(text, ctx)
         extents = layout.get_extents()[0 if inked else 1]
         return Size(extents.width / 1000, extents.height / 1000)
 
-    def font_extents(self, inked: bool = True, ctx: Context = None) -> Font.Extents:
+    def font_extents(self, inked: bool = True, ctx: Optional[Context] = None) -> Font.Extents:
+        """
+        :param inked: If true, only the extend of the inked area is returned.
+        :param ctx: If None, a dummy context will be created.
+        :return: Basic extents of this font which will are independent of the text.
+        """
         layout = self.get_layout('Mg', ctx)
         extents = layout.get_extents()
         baseline = layout.get_baseline()
@@ -80,7 +100,15 @@ class Font:
         else:
             return self.Extents(baseline / 1000, (extents[1].height - baseline) / 1000, extents[1].height / 1000, 0)
 
-    def get_layout(self, text: str, ctx: Context = None, color: Color = Color.WHITE, escape_text=True) -> Layout:
+    def get_layout(self, text: str, ctx: Optional[Context] = None, color: Color = Color.WHITE, escape_text=True)\
+            -> Layout:
+        """
+        :param text: Text to layout.
+        :param ctx: If None, a dummy context will be created.
+        :param color: Color of the text.
+        :param escape_text: If True, control characters will be macerated.
+        :return: A pango layout object that can be rendered on the screen.
+        """
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, 1, 1))
         layout = pangocairo.create_layout(ctx)
@@ -95,6 +123,9 @@ class Font:
 
 
 class TextWidget(Widget):
+    """
+    A widget that renders a text.
+    """
     class HAlignment(Enum):
         LEFT = 0
         CENTER = 1
@@ -162,6 +193,10 @@ class TextWidget(Widget):
             self.dirty = True
 
     def fit_font_size(self, text: str = None):
+        """
+        Changes the font size so that the given text fits into this widget.
+        :param text: If none, the current text is used.
+        """
         if text is None:
             text = self.text
         self.font = self.font.fit_size(self.size, text)
@@ -194,6 +229,9 @@ class TextWidget(Widget):
 
     @property
     def preferred_size(self) -> Size:
+        """
+        :return: The size of the current text with the current font.
+        """
         return self.font.text_extents(self.text)
 
     def __str__(self) -> str:
@@ -202,6 +240,9 @@ class TextWidget(Widget):
 
 
 class TimeWidget(TextWidget):
+    """
+    Shows the current date/time and updates automatically.
+    """
     _time_format: str
     _extents_datetime: datetime = datetime(2000, 12, 25, 22, 22, 22)  # Monday may be the longest day string
 

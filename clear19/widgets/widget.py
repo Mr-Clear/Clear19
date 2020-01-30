@@ -15,6 +15,7 @@ from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZE
 
 
 class Widget(ABC):
+    """ Base class for all widgets. """
     __metaclass__ = ABCMeta
     _parent: ContainerWidget
     _rectangle: Rectangle = clear19.widgets.geometry.ZERO_RECT
@@ -23,6 +24,9 @@ class Widget(ABC):
     _foreground: Color
 
     def __init__(self, parent: ContainerWidget):
+        """
+        :param parent: The container which holds this widget.
+        """
         self._background = parent.background
         self._foreground = parent.foreground
         self._parent = parent
@@ -35,10 +39,14 @@ class Widget(ABC):
 
     @property
     def dirty(self) -> bool:
+        """
+        :return: If true, this widget will be rendered soon.
+        """
         return self._dirty
 
     @dirty.setter
     def dirty(self, dirty: bool):
+        """ If set to True, the parent is also set to dirty. """
         if dirty != self._dirty:
             self._dirty = dirty
             if dirty and self.parent is not None:
@@ -46,6 +54,9 @@ class Widget(ABC):
 
     @property
     def rectangle(self) -> Rectangle:
+        """
+        :return: The position of this widget in it's parent coordinates.
+        """
         return self._rectangle
 
     @rectangle.setter
@@ -53,9 +64,15 @@ class Widget(ABC):
         self._rectangle = rectangle
 
     def position(self, anchor: Anchor) -> AnchoredPoint:
+        """
+        :return: The position of the specified point in the parent's coordinates.
+        """
         return self._rectangle.position(anchor)
 
     def set_position(self, point: AnchoredPoint):
+        """
+        Moves this widget while retaining it's size.
+        """
         self.rectangle = Rectangle(point, self.size)
 
     @property
@@ -84,6 +101,10 @@ class Widget(ABC):
         self.dirty = True
 
     def paint(self, ctx: Context):
+        """
+        Renders this widget.
+        :param ctx: Cairo context.
+        """
         if self.background:
             ctx.set_source_rgba(*self.background)
             self.paint_background(ctx)
@@ -93,43 +114,80 @@ class Widget(ABC):
 
     @abstractmethod
     def paint_foreground(self, ctx: Context):
+        """
+        Renders this widget. Is called by Widget.paint.
+        """
         return
 
     def paint_background(self, ctx: Context):
+        """
+        Renders the background of this widget. Is called by Widget.paint.
+        """
         ctx.rectangle(0, 0, *self.size)
         ctx.fill()
 
     @property
     def app(self) -> AppWidget:
+        """
+        :return: The App object which is the root of the widget hierarchy.
+        """
         return self.parent.app
 
     def repaint(self):
+        """
+        Sets the dirty flag.
+        """
         self.dirty = True
 
     @property
     def preferred_size(self) -> Size:
+        """
+        :return: If overridden, the Size this widget should have to fit all it's content.
+        """
         return self.size
 
     def on_key_down(self, key: G19Key) -> bool:
+        """
+        Receives key down events.
+        :param key: The pressed key.
+        :return: If True, the event will not be received by further widgets.
+        """
         return False
 
     def on_key_up(self, key: G19Key) -> bool:
+        """
+        Receives key up events.
+        :param key: The released key.
+        :return: If True, the event will not be received by further widgets.
+        """
         return False
 
     @property
     def left(self) -> float:
+        """
+        :return: Left edge of this widget in the parent's coordinates.
+        """
         return self._rectangle.left
 
     @property
     def right(self) -> float:
+        """
+        :return: Right edge of this widget in the parent's coordinates.
+        """
         return self._rectangle.right
 
     @property
     def top(self) -> float:
+        """
+        :return: Top edge of this widget in the parent's coordinates.
+        """
         return self._rectangle.top
 
     @property
     def bottom(self) -> float:
+        """
+        :return: Bottom edge of this widget in the parent's coordinates.
+        """
         return self._rectangle.bottom
 
     @property
@@ -153,6 +211,9 @@ class Widget(ABC):
 
 
 class ContainerWidget(Widget):
+    """
+    Widget that contains other widgets as children.
+    """
     __metaclass__ = ABCMeta
     _children: List[Widget]
 
@@ -161,6 +222,9 @@ class ContainerWidget(Widget):
         super().__init__(parent)
 
     def do_layout(self):
+        """
+        Called then the size of this ContainerWidget changes to rearrange children.
+        """
         pass
 
     @property
@@ -174,6 +238,9 @@ class ContainerWidget(Widget):
         self.do_layout()
 
     def paint_foreground(self, ctx: Context):
+        """
+        Paints all the children.
+        """
         self.paint_children(ctx)
         self.dirty = False
 
@@ -187,12 +254,18 @@ class ContainerWidget(Widget):
             ctx.restore()
 
     def repaint(self):
+        """
+        Sets the dirty flag of this ContainerWidget and all its direct and indirect children.
+        """
         self.dirty = True
         for child in self.children:
             child.repaint()
 
 
 class Screen(ContainerWidget):
+    """
+    A ContainerWidget which fills the whole screen.
+    """
     __metaclass__ = ABCMeta
     _name: str
 
@@ -219,6 +292,9 @@ class Screen(ContainerWidget):
 
 
 class AppWidget(ContainerWidget):
+    """
+    The root of the widget hierarchy. Shall only contain Screen widgets.
+    """
     __metaclass__ = ABCMeta
 
     _current_screen: Optional[Enum] = None
@@ -236,10 +312,6 @@ class AppWidget(ContainerWidget):
         self._current_screen_object.paint(ctx)
         self.dirty = False
 
-    @property
-    def screen_size(self) -> Size:
-        return clear19.widgets.geometry.ZERO_SIZE
-
     # noinspection PyMethodOverriding
     @property
     def rectangle(self) -> Rectangle:
@@ -247,10 +319,17 @@ class AppWidget(ContainerWidget):
 
     @property
     def current_screen(self) -> Optional[Enum]:
+        """
+        :return: The currently displayed screen.
+        """
         return self._current_screen
 
     @current_screen.setter
     def current_screen(self, current_screen: Enum):
+        """
+        Sets the currently displayed screen.
+        :param current_screen: Identifier for the screen.
+        """
         if self._current_screen != current_screen:
             if self._current_screen:
                 if self._last_screens and self._last_screens[-1] == current_screen:
@@ -265,11 +344,10 @@ class AppWidget(ContainerWidget):
     def _current_screen_object(self) -> Screen:
         return self._screen_object(self._current_screen)
 
-    @abstractmethod
-    def _screen_object(self, screen: Enum) -> Screen:
-        pass
-
     def navigate_back(self):
+        """
+        Change current screen to previous screen.
+        """
         if self._last_screens:
             self.app.current_screen = self._last_screens[-1]
 
@@ -281,10 +359,33 @@ class AppWidget(ContainerWidget):
     def app(self) -> AppWidget:
         return self
 
+    @property
+    def screen_size(self) -> Size:
+        """
+        Needs to be overridden by App implementation!
+        :return: The size of the display.
+        """
+        return clear19.widgets.geometry.ZERO_SIZE
+
     @abstractmethod
     def screens(self) -> Type[Enum]:
+        """
+        :return: List of known screens.
+        """
+        pass
+
+    @abstractmethod
+    def _screen_object(self, screen: Enum) -> Screen:
+        """
+        :param screen: Value that identifies a screen.
+        :return: Screen instance for the given screen Enum.
+        """
         pass
 
     @abstractmethod
     def exit(self, exit_code: int = 0):
+        """
+        Closes the app.
+        :param exit_code: Exit code given ro the parent process.
+        """
         pass

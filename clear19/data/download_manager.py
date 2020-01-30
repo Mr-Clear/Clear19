@@ -18,6 +18,9 @@ def file_name_from_url(url: str) -> str:
 
 
 class DownloadManager:
+    """
+    Downloads files and caches them on disk and memory.
+    """
     @dataclass
     class _DownloadJob:
         url: str
@@ -37,6 +40,11 @@ class DownloadManager:
     _running: bool = True
 
     def __init__(self, cache_path: Path, name_generator: Callable[[str], str] = file_name_from_url):
+        """
+        :param cache_path: Path where cached files shall be stored.
+        :param name_generator: Generates file names for the cached files from the URL. Default implementation just
+                               preserves the file name.
+        """
         self._cache_path = cache_path
         self._name_generator = name_generator
         self._mem_cache = {}
@@ -51,6 +59,14 @@ class DownloadManager:
 
     def get(self, url: str, callback: Callable[[bytes], None] = None, lifetime: timedelta = timedelta(days=30)) \
             -> Optional[bytes]:
+        """
+        Downloads a file. Content is only returned, if file is already in memory.
+        :param url: URL of file.
+        :param callback: Function that shall be called when the download is finished. Will instantly be called when
+                         the file is in memory.
+        :param lifetime: Maximum age of cached file.
+        :return: Content of file or None.
+        """
         with self._mem_cache_lock:
             if url in self._mem_cache:
                 if self._mem_cache[url].date + lifetime >= datetime.now():

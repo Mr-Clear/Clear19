@@ -4,8 +4,15 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterator, Union
 
+"""
+Classes for widget geometry.
+"""
+
 
 class Anchor(Enum):
+    """
+    Position on a widgets border.
+    """
     TOP_LEFT = 11
     TOP_CENTER = 12
     TOP_RIGHT = 13
@@ -18,6 +25,9 @@ class Anchor(Enum):
 
 
 class VAnchor(Enum):
+    """
+    Vertical position on a widget.
+    """
     TOP = 1
     CENTER = 2
     BOTTOM = 3
@@ -27,6 +37,9 @@ class VAnchor(Enum):
 
 
 class HAnchor(Enum):
+    """
+    Horizontal position on a widget.
+    """
     LEFT = 1
     Center = 2
     RIGHT = 3
@@ -37,16 +50,34 @@ class HAnchor(Enum):
 
 @dataclass
 class Point:
+    """
+    A 2D Point on the display.
+    """
     x: float
     y: float
 
     def anchored(self, anchor: Anchor) -> AnchoredPoint:
+        """
+        :param anchor: Role of this Point on a widgets border.
+        :return: An anchored version of this Point.
+        """
         return AnchoredPoint(self.x, self.y, anchor)
 
     def __add__(self, other: Point) -> Point:
+        """
+        Vector-Like addition of points.
+        :param other: Point to add.
+        :return: New Point with added coordinates.
+        """
         return Point(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other: Point) -> Size:
+        """
+        Creates a Size between this Point and the Ohter Point.
+        WARNING: This is not the inverse of the __add__ function!
+        :param other: Other point.
+        :return: Size between both points.
+        """
         return Size(abs(self.x - other.x), abs(self.y - other.y))
 
     def __iter__(self) -> Iterator[float]:
@@ -54,6 +85,9 @@ class Point:
 
 
 class AnchoredPoint(Point):
+    """
+    Point with information on which position on an widgets border it is.
+    """
     _anchor: Anchor
 
     def __init__(self, x: float, y: float, anchor: Anchor):
@@ -69,10 +103,17 @@ class AnchoredPoint(Point):
 
 
 class Rectangle:
+    """
+    Combination of Point and Size which defined a rectangle.
+    """
     _top_left: Point
     _size: Size
 
     def __init__(self, point: AnchoredPoint, size: Union[Size, Point]):
+        """
+        :param point: Point from which the rectangle is spanned.
+        :param size: Size of the Rectangle.
+        """
         if isinstance(size, Point):
             self._size = point - size
         else:
@@ -154,10 +195,17 @@ class Rectangle:
 
 @dataclass(frozen=True)
 class Size:
+    """
+    Size of a widget.
+    """
     width: float
     height: float
 
     def fits_into(self, other: Size) -> bool:
+        """
+        :param other:
+        :return: True, if this Size is smaller then the other size in all dimensions.
+        """
         return self.width <= other.width and self.height <= other.height
 
     def position(self, anchor: Anchor) -> AnchoredPoint:

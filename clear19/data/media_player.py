@@ -45,6 +45,9 @@ class PlayState:
 
 
 class MediaPlayer:
+    """
+    Reads data about media players from dbus.
+    """
     _listeners: List[Callable[[PlayState], None]]
     _listeners_mutex: Lock
 

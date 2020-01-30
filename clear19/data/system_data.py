@@ -9,6 +9,9 @@ from clear19.scheduler import Scheduler
 
 
 class SystemData:
+    """
+    Reads system performance data.
+    """
     CpuTimes: Type = psutil._pslinux.scputimes
     MemStats: Type = psutil._pslinux.svmem
 

@@ -14,8 +14,15 @@ from clear19.widgets.geometry import ZERO_TOP_LEFT, Size
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
 
+"""
+Widgets that show system statistics.
+"""
+
 
 class CpuLoadBarWidget (BarWidget):
+    """
+    Shows the CPU load as bar.
+    """
     def __init__(self, parent: ContainerWidget, orientation: BarWidget.Orientation, border: Optional[Color] = None,
                  border_width: float = 1, border_corner: float = 5):
         super().__init__(parent, orientation, None, border, border_width, border_corner)
@@ -39,6 +46,9 @@ class CpuLoadBarWidget (BarWidget):
 
 
 class CpuLoadTextWidget(TextWidget):
+    """
+    Shows the CPU load as text.
+    """
     def __init__(self, parent: ContainerWidget, font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT):
         super().__init__(parent, "0.0", font, h_alignment)
@@ -54,6 +64,9 @@ class CpuLoadTextWidget(TextWidget):
 
 
 class MemStatsBar(ContainerWidget):
+    """
+    Shows the memory usage as bar and text.
+    """
     _bar: BarWidget
     _mem: SystemData.MemStats = None
 
@@ -90,6 +103,9 @@ class MemStatsBar(ContainerWidget):
 
 
 class DiskStats(TextWidget):
+    """
+    Shows the disk usage as text.
+    """
     def __init__(self, parent: ContainerWidget, font: Font = Font()):
         super().__init__(parent, '', font)
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update)
@@ -101,6 +117,9 @@ class DiskStats(TextWidget):
 
 
 class ProcessList(ContainerWidget):
+    """
+    Shows a list of the most busy processes.
+    """
     _font: Font
 
     def __init__(self, parent: ContainerWidget, entries: int, font: Font):

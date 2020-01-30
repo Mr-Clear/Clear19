@@ -19,8 +19,10 @@
       <w>pangocairo</w>
       <w>pangocairocffi</w>
       <w>pangocffi</w>
+      <w>pixbuf</w>
       <w>proc</w>
       <w>psutil</w>
+      <w>pycairo</w>
       <w>pyusb</w>
       <w>rgba</w>
       <w>seeked</w>

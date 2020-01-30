@@ -38,3 +38,8 @@ Based on __Logitech G19 Linux__ with a lot of improvements:
 * CairoSVG
 * psutil
 * beautifulsoup4
+
+
+   How to modify
+---------------
+Look at the file clear19/App/main_screen.py. Try to modify add ao remove some widgets.

@@ -12,6 +12,9 @@ from clear19.data.download_manager import DownloadManager
 
 @dataclass
 class WeatherPeriod:
+    """
+    Reads data from wetter.com.
+    """
     start: datetime = None
     end: datetime = None
     short_text: str = None

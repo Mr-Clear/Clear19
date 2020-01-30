@@ -10,6 +10,9 @@ from clear19.widgets.widget import Widget, ContainerWidget
 
 
 class Line(Widget):
+    """
+    A Line to build borders between widgets.
+    """
     class Orientation(Enum):
         HORIZONTAL = 1
         VERTICAL = 2
