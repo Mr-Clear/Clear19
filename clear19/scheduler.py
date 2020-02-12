@@ -51,7 +51,7 @@ class Scheduler:
     def __init__(self, name: str = None):
         super().__init__()
         if name:
-            self._name = 'Scheduler "{}"'.format(name)
+            self._name = f'Scheduler "{name}"'
         else:
             self._name = "Scheduler"
         self._running = True
@@ -135,7 +135,7 @@ class Scheduler:
             self._queue_lock.notify()
 
     def _run(self):
-        logging.debug("{} started.".format(self._name))
+        logging.debug(f"{self._name} started.")
         with self._queue_lock:
             while self._running:
                 if self._queue:
@@ -151,8 +151,8 @@ class Scheduler:
                             try:
                                 job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
                             except Exception as e:
-                                logging.info("Exception in scheduled job: {}".format(''.join(
-                                    traceback.format_exception(None, e, e.__traceback__))))
+                                logging.info(f"Exception in scheduled job: "
+                                             f"{''.join(traceback.format_exception(None, e, e.__traceback__))}")
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
                                 heappush(self._queue, job)
@@ -160,4 +160,4 @@ class Scheduler:
                         self._queue_lock.wait((self._queue[0].next_run - datetime.now()).total_seconds())
                 else:
                     self._queue_lock.wait()
-        logging.debug("{} stopped.".format(self._name))
+        logging.debug(f"{self._name} stopped.")

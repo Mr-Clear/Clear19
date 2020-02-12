@@ -182,20 +182,17 @@ class MainScreen(Screen):
         self._add_temp_value(data, '031B99C87CEE.TEMP', temp_in, temp_in_date)
         self._add_temp_value(data, '032602645A7F.TEMP', temp_in, temp_in_date)
         self._add_temp_value(data, 'PI_TEMP', temp_in, temp_in_date)
-        self.out_temp.text = 'Out: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>' \
-            .format(quoteattr(Color.interpolate(min(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
-                    min(temp_out),
-                    quoteattr(Color.interpolate(max(temp_out), WeatherWidget.temp_color_gradient).to_hex()),
-                    max(temp_out))
-        self.in_temp.text = 'In: <span foreground={}>{:2.1f}°</span> - <span foreground={}>{:2.1f}°</span>' \
-            .format(quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
-                    min(temp_in),
-                    quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex()),
-                    max(temp_in))
-        self.balcony_temp.text = 'Blk: <span foreground={}>{:2.1f}°</span>' \
-            .format(quoteattr(Color.interpolate(float(data['062419C2687B.TEMP']['Value']),
-                                                WeatherWidget.temp_color_gradient).to_hex()),
-                    float(data['062419C2687B.TEMP']['Value']))
+        out_min_col = quoteattr(Color.interpolate(min(temp_out), WeatherWidget.temp_color_gradient).to_hex())
+        out_max_col = quoteattr(Color.interpolate(max(temp_out), WeatherWidget.temp_color_gradient).to_hex())
+        self.out_temp.text = f'Out: <span foreground={out_min_col}>{min(temp_out):2.1f}°</span> - ' \
+                             f'<span foreground={out_max_col}>{max(temp_out):2.1f}°</span> '
+        in_min_col = quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex())
+        in_max_col = quoteattr(Color.interpolate(min(temp_in), WeatherWidget.temp_color_gradient).to_hex())
+        self.in_temp.text = f'In: <span foreground={in_min_col}>{min(temp_in):2.1f}°</span> - ' \
+                            f'<span foreground={in_max_col}>{max(temp_in):2.1f}°</span>'
+        balcony_temp = float(data["062419C2687B.TEMP"]["Value"])
+        balcony_col = quoteattr(Color.interpolate(balcony_temp, WeatherWidget.temp_color_gradient).to_hex())
+        self.balcony_temp.text = f'Blk: <span foreground={balcony_col}>{balcony_temp:2.1f}°</span>'
 
     @staticmethod
     def _add_temp_value(data: Dict[str, Dict[str, Any]], name: str, values: List[Any], max_age: List[datetime]):

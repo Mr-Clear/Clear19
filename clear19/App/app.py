@@ -63,16 +63,16 @@ class App(AppWidget):
                         if self.dirty:
                             self.update_lcd()
                     else:
-                        logging.warning("Unknown command: {}".format(p.command))
+                        logging.warning(f"Unknown command: {p.command}")
                 elif isinstance(p, KeyListener.KeyEvent):
                     if p.type == KeyListener.KeyEvent.Type.DOWN:
                         self.on_key_down(p)
                     elif p.type == KeyListener.KeyEvent.Type.UP:
                         self.on_key_up(p)
                     else:
-                        logging.critical("Unknown key event: {}".format(p))
+                        logging.critical(f"Unknown key event: {p}")
                 else:
-                    logging.warning("Unknown queue content: {}".format(p))
+                    logging.warning(f"Unknown queue content: {p}")
             if key_listener:
                 key_listener.stop()
             self.scheduler.stop_scheduler()
@@ -114,7 +114,7 @@ class App(AppWidget):
 
     # noinspection PyUnusedLocal
     def _on_signal(self, signum, frame):
-        logging.info("Received signal {}({})".format(signum, signal.Signals(signum).name))
+        logging.info(f"Received signal {signum}({signal.Signals(signum).name})")
         self._running = False
 
     def screens(self) -> Type[Screens]:

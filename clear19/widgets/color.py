@@ -87,7 +87,7 @@ class Color:
                      kwargs.get('alpha', self.alpha))
 
     def to_hex(self) -> str:
-        return '#{:02x}{:02x}{:02x}{:02x}'.format(self.red_255, self.green_255, self.blue_255, self.alpha_255)
+        return f'#{self.red_255:02x}{self.green_255:02x}{self.blue_255:02x}{self.alpha_255:02x}'
 
     def __truediv__(self, divisor: float) -> Color:
         return Color(_clip(self.red / divisor), _clip(self.green / divisor), _clip(self.blue / divisor), self.alpha)
@@ -100,8 +100,8 @@ class Color:
         return (self.red, self.green, self.blue, self.alpha).__iter__()
 
     def __str__(self) -> str:
-        return "{}(red={}, green={}, blue={}, alpha={})".format(self.__class__.__name__, self.red_255, self.green_255,
-                                                                self.blue_255, self.alpha_255)
+        return f"{self.__class__.__name__}(red={self.red_255}, green={self.green_255}, " \
+               f"blue={self.blue_255}, alpha={self.alpha_255})"
 
     @staticmethod
     def interpolate(value: float, gradient: Dict[float, Color]) -> Optional[Color]:

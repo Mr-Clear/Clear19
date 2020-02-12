@@ -25,7 +25,7 @@ if __name__ == "__main__":
     try:
         app = App()
     except Exception as e:
-        logging.critical("Exception in App\n{}".format(''.join(traceback.format_exception(None, e, e.__traceback__))))
+        logging.critical(f"Exception in App\n{''.join(traceback.format_exception(None, e, e.__traceback__))}")
         os._exit(os.EX_SOFTWARE)
     logging.info("END")
     sys.exit(app.exit_code)

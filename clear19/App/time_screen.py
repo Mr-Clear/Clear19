@@ -82,12 +82,12 @@ class TimeScreen(Screen):
         hours, remainder = divmod(passed.seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         if passed.days > 0:
-            p = '{}d {:02}:{:02}h'.format(passed.days, hours, minutes)
+            p = f'{passed.days}d {hours:02}:{minutes:02}h'
         elif hours > 0:
-            p = '{:02}:{:02}h'.format(hours, minutes)
+            p = f'{hours:02}:{minutes:02}h'
         else:
-            p = '{:02}min'.format(minutes)
-        return 'Up {} since {}'.format(p, self.uptime.strftime(f))
+            p = f'{minutes:02}min'
+        return f'Up {p} since {self.uptime.strftime(f)}'
 
     def _update_uptime(self, _=None):
         self.uptime_widget.text = self._uptime()

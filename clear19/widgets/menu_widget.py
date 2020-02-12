@@ -72,7 +72,7 @@ class MenuWidget(ContainerWidget):
     def on_key_down(self, key: G19Key) -> bool:
         entry = self.menu[self.current_entry]
         if key == DisplayKey.OK:
-            logging.info('Selected menu entry "{}"'.format(entry.text))
+            logging.info(f'Selected menu entry "{entry.text}"')
             entry.on_click(entry)
             return True
         return False

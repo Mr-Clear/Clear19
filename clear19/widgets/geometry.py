@@ -190,7 +190,7 @@ class Rectangle:
         return self._size.height
 
     def __str__(self) -> str:
-        return "Rectangle(Top-Left={}, Size={})".format(self.position(Anchor.TOP_LEFT), self.size)
+        return f"Rectangle(Top-Left={self.position(Anchor.TOP_LEFT)}, Size={self.size})"
 
 
 @dataclass(frozen=True)

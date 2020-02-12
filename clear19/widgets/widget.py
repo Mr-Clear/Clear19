@@ -206,8 +206,8 @@ class Widget(ABC):
         self.dirty = True
 
     def __str__(self) -> str:
-        return "{}(rectangle={}, background={}, foreground={})".format(self.__class__.__name__, self.rectangle,
-                                                                       self.background, self.foreground)
+        return f"{self.__class__.__name__}(rectangle={self.rectangle}, background={self.background}, " \
+               f"foreground={self.foreground})"
 
 
 class ContainerWidget(Widget):
@@ -338,7 +338,7 @@ class AppWidget(ContainerWidget):
                     self._last_screens.append(self.current_screen)
             self._current_screen = current_screen
             self.repaint()
-            logging.info("Screen changed to {}.".format(self._current_screen.name))
+            logging.info(f"Screen changed to {self._current_screen.name}.")
 
     @property
     def _current_screen_object(self) -> Screen:

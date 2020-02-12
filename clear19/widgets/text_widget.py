@@ -112,13 +112,11 @@ class Font:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, 1, 1))
         layout = pangocairo.create_layout(ctx)
-        layout.set_markup('<span font_family={} size={} foreground={} style={} weight={}>{}</span>'
-                          .format(quoteattr(self.name),
-                                  quoteattr(str(round(self.size * 1000))),
-                                  quoteattr(color.to_hex()),
-                                  '"italic"' if self.italic else '"normal"',
-                                  '"bold"' if self.bold else '"normal"',
-                                  escape(text) if escape_text else text))
+        style = '"italic"' if self.italic else '"normal"'
+        weight = '"bold"' if self.bold else '"normal"'
+        layout.set_markup(f'<span font_family={quoteattr(self.name)} size={quoteattr(str(round(self.size * 1000)))} '
+                          f'foreground={quoteattr(color.to_hex())} style={style} '
+                          f'weight={weight}>{escape(text) if escape_text else text}</span>')
         return layout
 
 
@@ -235,8 +233,8 @@ class TextWidget(Widget):
         return self.font.text_extents(self.text)
 
     def __str__(self) -> str:
-        return "{}(rectangle={}, background={}, foreground={}, text={}, font={}" \
-            .format(self.__class__.__name__, self.rectangle, self.background, self.foreground, self.text, self.font)
+        return f"{self.__class__.__name__}(rectangle={self.rectangle}, background={self.background}, " \
+               f"foreground={self.foreground}, text={self.text}, font={self.font}"
 
 
 class TimeWidget(TextWidget):

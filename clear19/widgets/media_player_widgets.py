@@ -63,9 +63,9 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         # TODO: Cut text to fit in widget.
         player = self.media_player.current_player_name
         if player == 'spotify':
-            title = "{} - {} - {}".format(track.artist, track.album, track.title)
+            title = f"{track.artist} - {track.album} - {track.title}"
         else:
-            title = "{}".format(track.title)
+            title = f"{track.title}"
         return title
 
     def _update_play_state(self, play_state: PlayState):
@@ -131,7 +131,7 @@ def format_position(position: float):
     :return: Position formatted as %m:%s.
     """
     minutes, seconds = divmod(round(position), 60)
-    return "{:02.0f}:{:02.0f}".format(minutes, seconds)
+    return f"{minutes:02.0f}:{seconds:02.0f}"
 
 
 class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):

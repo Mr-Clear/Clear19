@@ -25,7 +25,7 @@ class ImageWidget(Widget):
             try:
                 self._image = pixbuf.decode_to_image_surface(image_data)[0]
             except pixbuf.ImageLoadingError as e:
-                logging.error("Error while loading image: {}".format(e))
+                logging.error(f"Error while loading image: {e}")
                 self._image = None
         else:
             self._image = None

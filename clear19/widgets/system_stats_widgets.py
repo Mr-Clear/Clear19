@@ -56,11 +56,11 @@ class CpuLoadTextWidget(TextWidget):
 
     def _update(self, data: SystemData.CpuTimes):
         if data.idle > 90:
-            self.text = '{:1.1f}'.format(100 - data.idle)
+            self.text = f'{100 - data.idle:1.1f}'
         elif data.idle < 1:
-            self.text = "100"
+            self.text = '100'
         else:
-            self.text = '{:2.0f}'.format(100 - data.idle)
+            self.text = f'{100 - data.idle:2.0f}'
 
 
 class MemStatsBar(ContainerWidget):
@@ -92,8 +92,7 @@ class MemStatsBar(ContainerWidget):
         free = mem.total - mem.slab - mem.used - buff
         self._bar.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
                             (mem.cached, Color.GREEN / 2), (free, None)]
-        self._text.text = '{}%  {:3.1f} GiB / {:3.1f} GiB'.format(mem.percent, (mem.total - mem.available) / 2**30,
-                                                                  mem.total / 2**30)
+        self._text.text = f'{mem.percent}%  {(mem.total - mem.available) / 2 ** 30:3.1f} GiB / {mem.total / 2 ** 30:3.1f} GiB'
 
     @Widget.foreground.setter
     def foreground(self, foreground: Color):
@@ -113,7 +112,7 @@ class DiskStats(TextWidget):
     def _update(self, _):
         root = psutil.disk_usage('/')
         home = psutil.disk_usage('/home')
-        self.text = '/: {}%, /home: {}%'.format(root.percent, home.percent)
+        self.text = f'/: {root.percent}%, /home: {home.percent}%'
 
 
 class ProcessList(ContainerWidget):
@@ -141,4 +140,4 @@ class ProcessList(ContainerWidget):
         d = sorted(data, key=operator.itemgetter(1), reverse=True)
         for i in range(len(self.children)):
             # noinspection PyUnresolvedReferences
-            self.children[i].text = '{:3.0f}% {}'.format(d[i][1], d[i][0])
+            self.children[i].text = f'{d[i][1]:3.0f}% {d[i][0]}'

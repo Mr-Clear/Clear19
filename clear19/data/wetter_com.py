@@ -42,7 +42,7 @@ class WeatherPeriod:
             a = self
             b = other
         if a.end != b.start:
-            raise ValueError('Weather periods cannot be connected: {}, {}'.format(a, b))
+            raise ValueError(f'Weather periods cannot be connected: {a}, {b}')
 
         c = WeatherPeriod(a.start, b.end, a.short_text, a.long_text, a.icon)
         ads = a.duration.seconds
@@ -70,7 +70,7 @@ class WetterCom:
 
     def load_weather(self, callback: Optional[Callable[[Optional[List[WeatherPeriod]]], None]])\
             -> Optional[List[WeatherPeriod]]:
-        url = 'https://www.wetter.com/deutschland/{}.html'.format(self._location_id)
+        url = f'https://www.wetter.com/deutschland/{self._location_id}.html'
         wps = self._download_manager.get(url, lambda content: callback(self.parse_html(content) if callback else None),
                                          timedelta(minutes=9))
         return self.parse_html(wps)
