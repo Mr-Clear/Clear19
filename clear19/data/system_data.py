@@ -58,8 +58,9 @@ class SystemData:
                     p = psutil.Process(pid)
                 except NoSuchProcess:
                     p = None
-            process_cpu_percent.append((p.name(), p.cpu_percent()))
-            new_processes[pid] = p
+            if p:
+                process_cpu_percent.append((p.name(), p.cpu_percent()))
+                new_processes[pid] = p
         self._processes = new_processes
         self._process_cpu_percent = process_cpu_percent
         self._fire_process_update(process_cpu_percent)
