@@ -5,12 +5,29 @@ import os
 import shutil
 import sys
 import traceback
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 from clear19.App.app import App
 from clear19.data import Config
 
-logging.basicConfig(format='%(asctime)s [%(levelname)-8s] %(message)s', level=logging.DEBUG, force=True)
+rootLogger = logging.getLogger()
+for h in rootLogger.handlers[:]:
+    rootLogger.removeHandler(h)
+    h.close()
+
+logFormatter = logging.Formatter('%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')
+rootLogger.setLevel(logging.DEBUG)
+
+Path("logs").mkdir(exist_ok=True)
+fileHandler = logging.FileHandler(f"logs/{datetime.now().isoformat()}.log")
+fileHandler.setFormatter(logFormatter)
+rootLogger.addHandler(fileHandler)
+
+consoleHandler = logging.StreamHandler(sys.stdout)
+consoleHandler.setFormatter(logFormatter)
+rootLogger.addHandler(consoleHandler)
 
 if __name__ == "__main__":
     logging.info("START")
