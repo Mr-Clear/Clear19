@@ -12,6 +12,8 @@ from typing import Dict, Callable, Optional
 from urllib.error import URLError
 from urllib.parse import urlparse
 
+log = logging.getLogger(__name__)
+
 
 def file_name_from_url(url: str) -> str:
     return os.path.basename(urlparse(url).path)
@@ -81,7 +83,7 @@ class DownloadManager:
                 self._disk_load_queue.put(self._DownloadJob(url, callback))
                 return None
             else:
-                logging.debug(f"File {cache_file} is too old. Deleting it.")
+                log.debug(f"File {cache_file} is too old. Deleting it.")
                 cache_file.unlink()
 
         self._download_queue.put(self._DownloadJob(url, callback))
@@ -116,13 +118,13 @@ class DownloadManager:
                         job.callback(self._mem_cache[job.url].content)
                     in_mem_cache = True
             if not in_mem_cache:
-                logging.debug(f"Downloading: {job.url}")
+                log.debug(f"Downloading: {job.url}")
                 now = datetime.now()
                 try:
                     with urllib.request.urlopen(job.url) as file:
                         content = file.read()
                 except URLError as err:
-                    logging.error(f'Failed to download "{job.url}": {err.reason}')
+                    log.error(f'Failed to download "{job.url}": {err.reason}')
                     content = None
                 if content:
                     with self._mem_cache_lock:

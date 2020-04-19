@@ -10,6 +10,8 @@ from typing import Set, Union
 from clear19.logitech.g19 import DisplayKey, G19, GKey, G19Key
 from clear19.scheduler import Scheduler, TaskParameters
 
+log = logging.getLogger(__name__)
+
 
 class KeyListener:
     @dataclass(frozen=True)
@@ -57,7 +59,7 @@ class KeyListener:
             data = self._g19.read_display_menu_keys()
             if data:
                 if data[1] != 128:
-                    logging.warning("Unknown data: %s", data)
+                    log.warning("Unknown data: %s", data)
                 down_key_codes: int = ~self._pressed_display_keys & data[0]
                 up_key_codes: int = self._pressed_display_keys & ~data[0]
                 if down_key_codes:

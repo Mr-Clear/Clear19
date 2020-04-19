@@ -9,6 +9,8 @@ from clear19.widgets.geometry import Anchor, AnchoredPoint, Rectangle
 from clear19.widgets.text_widget import Font, TextWidget
 from clear19.widgets.widget import ContainerWidget
 
+log = logging.getLogger(__name__)
+
 
 @dataclass()
 class MenuWidgetEntry:
@@ -72,7 +74,7 @@ class MenuWidget(ContainerWidget):
     def on_key_down(self, key: G19Key) -> bool:
         entry = self.menu[self.current_entry]
         if key == DisplayKey.OK:
-            logging.info(f'Selected menu entry "{entry.text}"')
+            log.info(f'Selected menu entry "{entry.text}"')
             entry.on_click(entry)
             return True
         return False

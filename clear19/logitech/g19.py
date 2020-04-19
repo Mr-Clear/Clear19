@@ -11,6 +11,8 @@ from usb import Device
 
 from clear19.widgets.geometry import Size
 
+log = logging.getLogger(__name__)
+
 
 class G19Key(Enum):
     pass
@@ -188,7 +190,7 @@ class G19(object):
         try:
             self._usb_device.handle_if_0.bulkWrite(2, frame, 1000)
         except usb.USBError as err:
-            logging.error(f"USB error({err.errno}): {err.strerror}")
+            log.error(f"USB error({err.errno}): {err.strerror}")
         finally:
             self._usb_device_mutex.release()
 

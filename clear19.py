@@ -12,12 +12,14 @@ from typing import Optional
 from clear19.App.app import App
 from clear19.data import Config
 
+log = logging.getLogger(__name__)
+
 rootLogger = logging.getLogger()
 for h in rootLogger.handlers[:]:
     rootLogger.removeHandler(h)
     h.close()
 
-logFormatter = logging.Formatter('%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')
+logFormatter = logging.Formatter('%(asctime)s [%(name)-24.24s] [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')
 rootLogger.setLevel(logging.DEBUG)
 
 Path("logs").mkdir(exist_ok=True)
@@ -30,10 +32,10 @@ consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
 if __name__ == "__main__":
-    logging.info("START")
+    log.info("START")
 
     if not os.path.exists('clear19.ini'):
-        logging.warning("No settings file found. Restore from default settings file.")
+        log.warning("No settings file found. Restore from default settings file.")
         shutil.copyfile('clear19.default.ini', 'clear19.ini')
 
     locale.setlocale(locale.LC_ALL, (Config.locale(), 'UTF-8'))
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     try:
         app = App()
     except Exception as e:
-        logging.critical(f"Exception in App\n{''.join(traceback.format_exception(None, e, e.__traceback__))}")
+        log.critical(f"Exception in App\n{''.join(traceback.format_exception(None, e, e.__traceback__))}")
         os._exit(os.EX_SOFTWARE)
-    logging.info("END")
+    log.info("END")
     sys.exit(app.exit_code)

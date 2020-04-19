@@ -9,6 +9,8 @@ from queue import Queue, Full
 from threading import Thread, Condition, Lock
 from typing import Callable, Any, List, Dict
 
+log = logging.getLogger(__name__)
+
 
 @dataclass(frozen=True)
 class TaskParameters:
@@ -135,7 +137,7 @@ class Scheduler:
             self._queue_lock.notify()
 
     def _run(self):
-        logging.debug(f"{self._name} started.")
+        log.debug(f"{self._name} started.")
         with self._queue_lock:
             while self._running:
                 if self._queue:
@@ -151,7 +153,7 @@ class Scheduler:
                             try:
                                 job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
                             except Exception as e:
-                                logging.info(f"Exception in scheduled job: "
+                                log.info(f"Exception in scheduled job: "
                                              f"{''.join(traceback.format_exception(None, e, e.__traceback__))}")
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
@@ -160,4 +162,4 @@ class Scheduler:
                         self._queue_lock.wait((self._queue[0].next_run - datetime.now()).total_seconds())
                 else:
                     self._queue_lock.wait()
-        logging.debug(f"{self._name} stopped.")
+        log.debug(f"{self._name} stopped.")

@@ -20,6 +20,8 @@ from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import AppWidget, Screen
 
+log = logging.getLogger(__name__)
+
 
 class App(AppWidget):
     _image: cairo.ImageSurface
@@ -32,7 +34,7 @@ class App(AppWidget):
     def __init__(self):
         try:
             schedule_queue: Queue[Union[TaskParameters, KeyListener.KeyEvent]] = Queue()
-            logging.debug("Connect LCD")
+            log.debug("Connect LCD")
             self._g19 = G19()
             self._screen_size = self._g19.image_size
             self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
@@ -63,23 +65,23 @@ class App(AppWidget):
                         if self.dirty:
                             self.update_lcd()
                     else:
-                        logging.warning(f"Unknown command: {p.command}")
+                        log.warning(f"Unknown command: {p.command}")
                 elif isinstance(p, KeyListener.KeyEvent):
                     if p.type == KeyListener.KeyEvent.Type.DOWN:
                         self.on_key_down(p)
                     elif p.type == KeyListener.KeyEvent.Type.UP:
                         self.on_key_up(p)
                     else:
-                        logging.critical(f"Unknown key event: {p}")
+                        log.critical(f"Unknown key event: {p}")
                 else:
-                    logging.warning(f"Unknown queue content: {p}")
+                    log.warning(f"Unknown queue content: {p}")
             if key_listener:
                 key_listener.stop()
             self.scheduler.stop_scheduler()
 
         finally:
             if self._g19 is not None:
-                logging.debug("Reset LCD")
+                log.debug("Reset LCD")
                 self._g19.reset()
 
     def on_key_down(self, evt: KeyListener.KeyEvent):
@@ -114,7 +116,7 @@ class App(AppWidget):
 
     # noinspection PyUnusedLocal
     def _on_signal(self, signum, frame):
-        logging.info(f"Received signal {signum}({signal.Signals(signum).name})")
+        log.info(f"Received signal {signum}({signal.Signals(signum).name})")
         self._running = False
 
     def screens(self) -> Type[Screens]:

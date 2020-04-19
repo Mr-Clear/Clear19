@@ -13,6 +13,8 @@ from clear19.scheduler import Scheduler
 from clear19.widgets.color import Color
 from clear19.widgets.geometry import Anchor, VAnchor, HAnchor, AnchoredPoint, ZERO_TOP_LEFT, Rectangle, Size
 
+log = logging.getLogger(__name__)
+
 
 class Widget(ABC):
     """ Base class for all widgets. """
@@ -338,7 +340,7 @@ class AppWidget(ContainerWidget):
                     self._last_screens.append(self.current_screen)
             self._current_screen = current_screen
             self.repaint()
-            logging.info(f"Screen changed to {self._current_screen.name}.")
+            log.info(f"Screen changed to {self._current_screen.name}.")
 
     @property
     def _current_screen_object(self) -> Screen:
