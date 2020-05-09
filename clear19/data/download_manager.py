@@ -114,8 +114,7 @@ class DownloadManager:
             in_mem_cache = False
             with self._mem_cache_lock:
                 if job.url in self._mem_cache:
-                    if job.callback:
-                        job.callback(self._mem_cache[job.url].content)
+                    self._notify(job, self._mem_cache[job.url].content)
                     in_mem_cache = True
             if not in_mem_cache:
                 log.debug(f"Downloading: {job.url}")
@@ -132,8 +131,7 @@ class DownloadManager:
                     cache_file = self.cache_path.joinpath(self.name_generator(job.url))
                     with open(str(cache_file), 'wb') as file:
                         file.write(content)
-                if job.callback:
-                    job.callback(content)
+                self._notify(job, content)
 
     def _disk_load_worker(self):
         while self.running:
@@ -144,8 +142,7 @@ class DownloadManager:
             in_mem_cache = False
             with self._mem_cache_lock:
                 if job.url in self._mem_cache:
-                    if job.callback:
-                        job.callback(self._mem_cache[job.url].content)
+                    self._notify(job, self._mem_cache[job.url].content)
                     in_mem_cache = True
             if not in_mem_cache:
                 cache_file = self.cache_path.joinpath(self.name_generator(job.url))
@@ -154,5 +151,12 @@ class DownloadManager:
                     content = file.read()
                 with self._mem_cache_lock:
                     self._mem_cache[job.url] = self._CacheEntry(content, now)
-                if job.callback:
-                    job.callback(content)
+                self._notify(job, content)
+
+    @staticmethod
+    def _notify(job: Optional[DownloadManager._DownloadJob], data: bytes):
+        if job:
+            try:
+                job.callback(data)
+            except Exception as e:
+                log.error(f"Error when notify job: {e}")
