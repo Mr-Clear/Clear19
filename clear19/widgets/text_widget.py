@@ -141,7 +141,8 @@ class TextWidget(Widget):
     _escape: bool
 
     def __init__(self, parent: ContainerWidget, text: str = "", font: Font = Font(),
-                 h_alignment: HAlignment = HAlignment.LEFT, v_alignment: VAlignment = VAlignment.TOP,
+                 h_alignment: TextWidget.HAlignment = HAlignment.LEFT,
+                 v_alignment: TextWidget.VAlignment = VAlignment.TOP,
                  escape: bool = True):
         super().__init__(parent)
         self._text = text
@@ -200,20 +201,20 @@ class TextWidget(Widget):
         self.font = self.font.fit_size(self.size, text)
 
     @property
-    def h_alignment(self) -> HAlignment:
+    def h_alignment(self) -> TextWidget.HAlignment:
         return self._h_alignment
 
     @h_alignment.setter
-    def h_alignment(self, h_alignment: HAlignment):
+    def h_alignment(self, h_alignment: TextWidget.HAlignment):
         self._h_alignment = h_alignment
         self.dirty = True
 
     @property
-    def v_alignment(self) -> VAlignment:
+    def v_alignment(self) -> TextWidget.VAlignment:
         return self._v_alignment
 
     @v_alignment.setter
-    def v_alignment(self, v_alignment: VAlignment):
+    def v_alignment(self, v_alignment: TextWidget.VAlignment):
         self._v_alignment = v_alignment
         self.dirty = True
 
