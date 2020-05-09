@@ -188,10 +188,11 @@ class MediaPlayer:
         with self._listeners_mutex:
             current_state = self.current_play_state
             for listener in self._listeners:
+                # noinspection PyBroadException
                 try:
                     listener(current_state)
-                except Exception as e:
-                    log.error(f"Exception in play state listener: {e}", exc_info=1)
+                except Exception:
+                    log.error("Exception in play state listener.", exc_info=True)
 
     @property
     def current_track(self) -> Track:

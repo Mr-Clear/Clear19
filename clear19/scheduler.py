@@ -154,7 +154,7 @@ class Scheduler:
                                 job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
                             except Exception as e:
                                 log.info(f"Exception in scheduled job: "
-                                             f"{''.join(traceback.format_exception(None, e, e.__traceback__))}")
+                                         f"{''.join(traceback.format_exception(None, e, e.__traceback__))}")
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
                                 heappush(self._queue, job)

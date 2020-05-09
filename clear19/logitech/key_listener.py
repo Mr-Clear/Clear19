@@ -42,7 +42,7 @@ class KeyListener:
         self._pressed_keys = set()
         self._job_id = scheduler.schedule_to_queue(self._poll_interval, self._job_queue,
                                                    priority=0, command="KEY")
-        Thread(target=self._key_reader).start()
+        Thread(target=self._key_reader, daemon=True).start()
 
     def stop(self) -> None:
         self._scheduler.stop_job(self._job_id)

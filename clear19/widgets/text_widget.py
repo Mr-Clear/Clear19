@@ -244,7 +244,8 @@ class TimeWidget(TextWidget):
     _time_format: str
     _extents_datetime: datetime = datetime(2000, 12, 25, 22, 22, 22)  # Monday may be the longest day string
 
-    def __init__(self, parent: ContainerWidget, time_format: str = Config.DateTime.date_time_format(), font: Font = Font(),
+    def __init__(self, parent: ContainerWidget, time_format: str = Config.DateTime.date_time_format(),
+                 font: Font = Font(),
                  h_alignment: TextWidget.HAlignment = TextWidget.HAlignment.LEFT,
                  v_alignment: TextWidget.VAlignment = TextWidget.VAlignment.TOP):
         super().__init__(parent, datetime.now().strftime(time_format), font,

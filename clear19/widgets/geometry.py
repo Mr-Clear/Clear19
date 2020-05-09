@@ -73,7 +73,7 @@ class Point:
 
     def __sub__(self, other: Point) -> Size:
         """
-        Creates a Size between this Point and the Ohter Point.
+        Creates a Size between this Point and the other Point.
         WARNING: This is not the inverse of the __add__ function!
         :param other: Other point.
         :return: Size between both points.

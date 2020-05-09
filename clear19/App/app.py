@@ -3,6 +3,7 @@ import logging
 import math
 import signal
 from datetime import timedelta
+from enum import EnumMeta
 from queue import Queue
 from typing import Union, Type, Dict
 
@@ -116,7 +117,7 @@ class App(AppWidget):
 
     # noinspection PyUnusedLocal
     def _on_signal(self, signum, frame):
-        log.info(f"Received signal {signum}({signal.Signals(signum).name})")
+        log.info(f"Received signal {signum}({EnumMeta.Signals(signum).name})")
         self._running = False
 
     def screens(self) -> Type[Screens]:
