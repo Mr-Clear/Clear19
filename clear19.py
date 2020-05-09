@@ -22,6 +22,8 @@ for h in rootLogger.handlers[:]:
 logFormatter = logging.Formatter('%(asctime)s [%(name)-24.24s] [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s')
 rootLogger.setLevel(logging.DEBUG)
 
+logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
+
 Path("logs").mkdir(exist_ok=True)
 fileHandler = logging.FileHandler(f"logs/{datetime.now().isoformat()}.log")
 fileHandler.setFormatter(logFormatter)

@@ -7,14 +7,17 @@ from xml.sax.saxutils import quoteattr
 from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data import Config
+from clear19.data.fritzbox import FritzBox
 from clear19.data.wetter_com import WetterCom, WeatherPeriod
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.color import Color
 from clear19.widgets.bar_widget import BarWidget
+from clear19.widgets.fritz_box_widgets import FritzBoxConnectedWidget, FritzBoxSpeedWidget, FritzBoxIp6Widget, \
+    FritzBoxIp4Widget, FritzBoxHostsWidget, FritzBoxTrafficWidget
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, Point
 from clear19.widgets.line import Line
 from clear19.widgets.media_player_widgets import MediaPlayerTrackTitleWidget, MediaPlayerTrackPositionWidget, \
-    MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget, MediaPlayerAlbumArt
+    MediaPlayerTrackDurationWidget, MediaPlayerTrackRemainingWidget
 from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWidget, MemStatsBar, DiskStats, \
     ProcessList
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
@@ -23,9 +26,6 @@ from clear19.widgets.widget import Screen, AppWidget
 
 
 class MainScreen(Screen):
-    wetter_com: WetterCom
-    weather_widgets: WeatherWidgets = None
-
     def __init__(self, parent: AppWidget):
         super().__init__(parent, "Main")
 
@@ -116,15 +116,10 @@ class MainScreen(Screen):
             Size(self.width / 3, self.track_remaining.font.font_extents().height))
         self.track_remaining.h_alignment = TextWidget.HAlignment.RIGHT
 
-        self.album_art = MediaPlayerAlbumArt(self, Global.media_player, Anchor.CENTER_CENTER)
-        self.album_art.rectangle = Rectangle(
-            self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
-            self.track_remaining.position(Anchor.TOP_RIGHT) + Point(0, -3))
-
         self.lh2 = Line(self, Line.Orientation.HORIZONTAL)
         self.lh2.rectangle = Rectangle(
             self.track_position.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
-            Size(self.lv2_3.left, self.lh2.preferred_size().height))
+            Size(self.width, self.lh2.preferred_size().height))
 
         self.lv2_3.set_height(self.lh2.bottom, VAnchor.TOP)
 
@@ -145,8 +140,8 @@ class MainScreen(Screen):
         self.mem_stats_bar.foreground = Color.WHITE.with_value(alpha=0.9)
 
         self.disk_stats = DiskStats(self, Font(size=12))
-        self.disk_stats.rectangle = Rectangle(self.lh2.position(Anchor.TOP_RIGHT).anchored(Anchor.BOTTOM_RIGHT),
-                                              self.cpu_load_text.position(Anchor.TOP_RIGHT))
+        self.disk_stats.rectangle = Rectangle(self.lv2_3.position(Anchor.BOTTOM_LEFT).anchored(Anchor.BOTTOM_RIGHT)
+                                              + Point(0, -3), self.cpu_load_text.position(Anchor.TOP_RIGHT))
         self.disk_stats.h_alignment = TextWidget.HAlignment.CENTER
 
         self.lhs = Line(self, Line.Orientation.HORIZONTAL)
@@ -159,12 +154,46 @@ class MainScreen(Screen):
                                              + Point(2, 5),
                                              self.lhs.position(Anchor.TOP_RIGHT))
 
+        self.fritz_box = FritzBox(self.app.scheduler, Config.FritzBox.address(), Config.FritzBox.password())
+        self.fritz_box_connected = FritzBoxConnectedWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_connected.rectangle = Rectangle(
+            self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(1, 1),
+            Size(self.lh1.width, self.fritz_box_connected.preferred_size.height))
+
+        self.fritz_box_speed = FritzBoxSpeedWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_speed.rectangle = Rectangle(
+            self.fritz_box_connected.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+            Size(self.fritz_box_connected.width, self.fritz_box_speed.preferred_size.height))
+
+        self.fritz_box_hosts = FritzBoxHostsWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_hosts.rectangle = Rectangle(
+            self.fritz_box_speed.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+            Size(self.fritz_box_connected.width, self.fritz_box_hosts.preferred_size.height))
+
+        self.fritz_box_ip6 = FritzBoxIp6Widget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_ip6.rectangle = Rectangle(
+            self.lv2_3.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.BOTTOM_LEFT) + Point(1, -3),
+            Size(self.fritz_box_connected.width, self.fritz_box_ip6.preferred_size.height))
+        self.fritz_box_ip6.fit_font_size()
+        self.fritz_box_ip6.set_height(self.fritz_box_ip6.preferred_size.height, VAnchor.BOTTOM)
+
+        self.fritz_box_ip4 = FritzBoxIp4Widget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_ip4.rectangle = Rectangle(
+            self.fritz_box_ip6.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
+            Size(self.fritz_box_connected.width, self.fritz_box_ip4.preferred_size.height))
+
+        self.fritz_box_traffic = FritzBoxTrafficWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_traffic.rectangle = Rectangle(
+            self.fritz_box_hosts.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+            self.fritz_box_ip4.position(Anchor.TOP_RIGHT) + Point(0, -1))
+
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
             return True
         if key == DisplayKey.UP:
             self.app.current_screen = Screens.TIME
             return True
+        return False
 
     def load_weather(self, _=None) -> Optional[List[WeatherPeriod]]:
         return self.wetter_com.load_weather(lambda wps2: self.weather_widgets.set_weather_periods(wps2))

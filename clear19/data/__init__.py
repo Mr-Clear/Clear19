@@ -33,3 +33,12 @@ class Config:
         @staticmethod
         def temp_values_url() -> str:
             return Config._config()['Weather']['temp_values']
+
+    class FritzBox:
+        @staticmethod
+        def address() -> str:
+            return Config._config()['FritzBox']['address']
+
+        @staticmethod
+        def password() -> str:
+            return Config._config()['FritzBox']['password']
