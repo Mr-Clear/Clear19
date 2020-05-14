@@ -96,7 +96,11 @@ class App(AppWidget):
 
     def update_lcd(self):
         ctx = self.get_lcd_context()
-        self.paint(ctx)
+        # noinspection PyBroadException
+        try:
+            self.paint(ctx)
+        except Exception:
+            log.error("Error when updating display.", exc_info=True)
         if self._g19:
             self._g19.send_frame(self._image.get_data())
 
