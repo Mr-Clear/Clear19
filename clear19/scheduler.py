@@ -1,6 +1,5 @@
 import inspect
 import logging
-import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from heapq import heappush, heappop
@@ -8,6 +7,8 @@ from math import floor
 from queue import Queue, Full
 from threading import Thread, Condition, Lock
 from typing import Callable, Any, List, Dict
+
+import psutil
 
 log = logging.getLogger(__name__)
 
@@ -152,9 +153,8 @@ class Scheduler:
                             # noinspection PyBroadException
                             try:
                                 job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
-                            except Exception as e:
-                                log.info(f"Exception in scheduled job: "
-                                         f"{''.join(traceback.format_exception(None, e, e.__traceback__))}")
+                            except psutil.NoSuchProcess:
+                                pass  # Sometimes it happens that a process is destroyed before we can read it's data.
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
                                 heappush(self._queue, job)
