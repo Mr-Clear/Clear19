@@ -155,6 +155,8 @@ class Scheduler:
                                 job.task(TaskParameters(job.command, job.next_run, job.job_id, job.run_count))
                             except psutil.NoSuchProcess:
                                 pass  # Sometimes it happens that a process is destroyed before we can read it's data.
+                            except Exception as e:
+                                log.exception(f'Failed to run job: {str(e)}')
                             if job.interval:
                                 job.next_run = job.next_run + job.interval
                                 heappush(self._queue, job)
