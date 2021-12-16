@@ -64,13 +64,13 @@ class Scheduler:
         self._jobs = dict()
         self._jobs_lock = Lock()
         self._thread = Thread(target=self._run)
-        self._thread.setName(self._name)
+        self._thread.name = self._name
         self._thread.start()
 
     def schedule_synchronous(self, interval: timedelta, task: Callable[[TaskParameters], Any],
                              command: Any = None, start: datetime = None, priority: float = 100):
         """
-        Schedules an periodic event that will be called in the schedulers thread.
+        Schedules a periodic event that will be called in the schedulers thread.
         :param interval: Time between two calls. If 0, the event will only occur once.
         :param task: Task to be called. Has to take one parameter of type TaskParameters.
         :param command: Arbitrary data that will be sent to the task within the TaskParameters object.
