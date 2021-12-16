@@ -154,7 +154,10 @@ class MediaPlayer:
                 if not play_state:
                     play_state = str(props_iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')) == 'Playing'
                 if not position:
-                    position = float(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Position')) / 1000000
+                    try:
+                        position = float(props_iface.Get('org.mpris.MediaPlayer2.Player', 'Position')) / 1000000
+                    except dbus.exceptions.DBusException:
+                        pass
 
         self.current_track = self._read_metadata(metadata)
         self._set_playing(play_state)
@@ -167,7 +170,7 @@ class MediaPlayer:
         if not metadata:
             return None
 
-        return Track(float(metadata['mpris:length']) / 1000000 if 'mpris:length' in metadata else None,
+        return Track(float(metadata['mpris:length']) / 1000000 if 'mpris:length' in metadata else 0,
                      str(metadata['xesam:title']) if 'xesam:title' in metadata else None,
                      int(metadata['xesam:trackNumber']) if 'xesam:trackNumber' in metadata else None,
                      str(metadata['xesam:album']) if 'xesam:album' in metadata else None,
