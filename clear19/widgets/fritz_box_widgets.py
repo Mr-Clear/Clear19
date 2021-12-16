@@ -110,10 +110,10 @@ class FritzBoxHostsWidget(FritzBoxWidget, TextWidget):
     def update(self, data: Optional[FritzBoxData]):
         if data and data.hosts and data.wlan:
             total = len(list(filter(lambda d: d['status'], data.hosts.get_hosts_info())))
-            self.text = f'{total - data.wlan.total_host_number}/{data.wlan.total_host_number}'
+            self.text = f'{total - data.wlan.total_host_number} LAN, {data.wlan.total_host_number} WLAN'
             self.foreground = self.parent.foreground
         else:
-            self.text = '?/?'
+            self.text = '? LAN, ? WLAN'
             self.foreground = Color.GRAY50
 
 
