@@ -126,9 +126,9 @@ class FritzBoxTrafficWidget(FritzBoxWidget, TextWidget):
     # noinspection PyUnresolvedReferences
     def update(self, data: Optional[FritzBoxData]):
         if data and data.hosts and data.wlan:
-            up = humanize.naturalsize(data.status.bytes_sent - data.status.last_bytes_sent,
+            up = humanize.naturalsize(data.status.transmission_rate[0],
                                       binary=True, gnu=True, format='%.0f')
-            down = humanize.naturalsize(data.status.bytes_received - data.status.last_bytes_received,
+            down = humanize.naturalsize(data.status.transmission_rate[1],
                                         binary=True, gnu=True, format='%.0f')
             self.text = f'🠕 {up} 🠗 {down}'
             self.foreground = self.parent.foreground
