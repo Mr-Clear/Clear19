@@ -112,8 +112,8 @@ class DiskStats(TextWidget):
 
     def _update(self, _):
         root = psutil.disk_usage('/')
-        home = psutil.disk_usage('/home')
-        self.text = f'/: {root.percent}%, /home: {home.percent}%'
+        daten = psutil.disk_usage('/mnt/disk/Daten')
+        self.text = f'/: {root.percent}%, Daten: {daten.percent}%'
 
 
 class ProcessList(ContainerWidget):
