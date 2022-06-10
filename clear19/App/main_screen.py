@@ -128,10 +128,10 @@ class MainScreen(Screen):
             self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(1, 1),
             Size(self.lh1.width, self.fritz_box_connected.preferred_size.height))
 
-        self.fritz_box_hosts = FritzBoxHostsWidget(self, self.fritz_box, Font(size=12))
-        self.fritz_box_hosts.rectangle = Rectangle(
+        self.fritz_box_speed = FritzBoxSpeedWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_speed.rectangle = Rectangle(
             self.fritz_box_connected.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
-            Size(self.fritz_box_connected.width, self.fritz_box_hosts.preferred_size.height))
+            Size(self.fritz_box_connected.width, self.fritz_box_speed.preferred_size.height))
 
         self.fritz_box_ip6 = FritzBoxIp6Widget(self, self.fritz_box, Font(size=12))
         self.fritz_box_ip6.rectangle = Rectangle(
@@ -145,10 +145,15 @@ class MainScreen(Screen):
             self.fritz_box_ip6.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
             Size(self.fritz_box_connected.width, self.fritz_box_ip4.preferred_size.height))
 
-        self.fritz_box_traffic = FritzBoxTrafficWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_traffic = FritzBoxTrafficGraphWidget(self, self.fritz_box)
         self.fritz_box_traffic.rectangle = Rectangle(
-            self.fritz_box_hosts.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+            self.fritz_box_speed.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.fritz_box_ip4.position(Anchor.TOP_RIGHT) + Point(0, -1))
+
+        self.fritz_box_hosts = FritzBoxHostsWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_hosts.rectangle = Rectangle(
+            self.fritz_box_speed.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
+            Size(self.fritz_box_connected.width, self.fritz_box_hosts.preferred_size.height))
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
