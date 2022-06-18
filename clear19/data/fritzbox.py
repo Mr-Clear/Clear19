@@ -37,7 +37,7 @@ class FritzBox:
         self._queue = Queue(maxsize=1)
         self._listeners = []
         self._listeners_mutex = Lock()
-        scheduler.schedule_to_queue(timedelta(seconds=5), self._queue)
+        scheduler.schedule_to_queue(timedelta(seconds=1), self._queue)
         Thread(target=self._poll_loop, daemon=True).start()
 
     def _poll_loop(self):

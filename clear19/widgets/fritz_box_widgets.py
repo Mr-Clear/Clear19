@@ -141,6 +141,10 @@ class FritzBoxTrafficWidget(FritzBoxWidget, TextWidget):
             self.text = "🠕 Unknown 🠗"
             self.foreground = Color.GRAY50
 
+    def paint_background(self, ctx: Context):
+        """ Transparent widget """
+        pass
+
 
 class FritzBoxTrafficGraphWidget(FritzBoxWidget):
     @dataclass
@@ -149,13 +153,20 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
         up: int
         down: int
 
+        def __getitem__(self, key: int) -> int:
+            if key == 0:
+                return self.up
+            if key == 1:
+                return self.down
+            raise IndexError('Index must be 0 for UP or 1 for DOWN.')
+
     def __init__(self, parent: ContainerWidget, fritz_box_data_provider: FritzBox,
                  time_span: timedelta = timedelta(minutes=1)):
         FritzBoxWidget.__init__(self, parent, fritz_box_data_provider)
         self._measurements: deque[FritzBoxTrafficGraphWidget.Measurement] = deque()
         self._measurements_mutex = Lock()
         self._time_span = time_span
-        self._max = 0
+        self._max = (0., 0.)
         self._bar_width = 20
         self._last_time: datetime = datetime(1, 1, 1)
         self._last_up = -1
@@ -163,10 +174,9 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
 
     def update(self, data: Optional[FritzBoxData]):
         # noinspection PyUnresolvedReferences
-        if data and data.status and data.status.last_bytes_sent + data.status.last_bytes_received > 0:
+        if data and data.status:
             now = datetime.now()
             if self._last_up >= 0:
-
                 time_diff = (now - self._last_time).total_seconds()
                 up = (data.status.bytes_sent - self._last_up) / time_diff * 8
                 down = (data.status.bytes_received - self._last_down) / time_diff * 8
@@ -176,7 +186,7 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
                         FritzBoxTrafficGraphWidget.Measurement(now, up, down))
                     while self._measurements and self._measurements[-1].time < now - self._time_span:
                         self._measurements.popleft()
-                self._max = max(data.status.max_bit_rate)
+                self._max = data.status.max_bit_rate
 
             self._last_time = now
             self._last_up = data.status.bytes_sent
@@ -185,29 +195,27 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
     def paint_foreground(self, ctx: Context):
         if self._measurements and self._max:
             sx = (self.width - self._bar_width) / self._time_span.total_seconds()
-            sy = self.height / self._max
+            sy = (self.height / self._max[0], self.height / self._max[1])
+            colors = (Color.GREEN, Color.RED)
             current = self._measurements[-1]
 
-            current_y = current.down * sy
-            ctx.set_source_rgba(*Color.RED)
-            ctx.rectangle(self.width - self._bar_width, self.height - current_y, self._bar_width, current_y)
-            ctx.fill()
+            for i in (1, 0):
+                current_y = current[i] * sy[i]
+                ctx.set_source_rgba(*colors[i])
+                ctx.rectangle(self.width - self._bar_width, self.height - current_y,
+                              self._bar_width / (2 - i), current_y)
+                ctx.fill()
 
-            current_y = current.up * sy
-            ctx.set_source_rgba(*Color.GREEN)
-            ctx.rectangle(self.width - self._bar_width + 2, self.height - current_y, self._bar_width - 2, current_y)
-            ctx.fill()
+                first = True
+                with self._measurements_mutex:
+                    for m in self._measurements:
+                        m_x = (self.width - self._bar_width) - (current.time - m.time).total_seconds() * sx
+                        m_y = self.height - m[i] * sy[i]
+                        if first:
+                            ctx.move_to(m_x, m_y)
+                            first = False
+                        else:
+                            ctx.line_to(m_x, m_y)
 
-            first = True
-            with self._measurements_mutex:
-                for m in self._measurements:
-                    m_x = (self.width - self._bar_width) - (current.time - m.time).total_seconds() * sx
-                    m_y = self.height - m.down * sy
-                    if first:
-                        ctx.move_to(m_x, m_y)
-                        first = False
-                    else:
-                        ctx.line_to(m_x, m_y)
-
-            ctx.set_source_rgba(*Color.RED)
-            ctx.stroke()
+                ctx.set_source_rgba(*colors[i])
+                ctx.stroke()
