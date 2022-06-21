@@ -72,6 +72,7 @@ class DownloadManager:
         with self._mem_cache_lock:
             if url in self._mem_cache:
                 if self._mem_cache[url].date + lifetime >= datetime.now():
+                    log.verbose(f"Getting URL '{url}' from memory cache.")
                     return self._mem_cache[url].content
                 else:
                     del self._mem_cache[url]
@@ -81,11 +82,13 @@ class DownloadManager:
             file_time = datetime.fromtimestamp(cache_file.stat().st_mtime)
             if file_time + lifetime >= datetime.now():
                 self._disk_load_queue.put(self._DownloadJob(url, callback))
+                log.verbose(f"Loading URL '{url}' from file cache.")
                 return None
             else:
                 log.debug(f"File {cache_file} is too old. Deleting it.")
                 cache_file.unlink()
 
+        log.verbose(f"Downloading URL '{url}'.")
         self._download_queue.put(self._DownloadJob(url, callback))
         return None
 
