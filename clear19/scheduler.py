@@ -96,7 +96,7 @@ class Scheduler:
     def schedule_to_queue(self, interval: timedelta, queue: 'Queue[TaskParameters]',
                           command: Any = None, start: datetime = datetime.now(), priority: float = 100):
         """
-        Schedules an periodic event that will be send a TaskParameters object to given queue.
+        Schedules a periodic event that will send a TaskParameters object to given queue.
         :param interval: Task to be called. Has to take one parameter of type TaskParameters.
         :param queue: Thread save Queue which will receive the events.
         :param command: Arbitrary data that will be sent to the task within the TaskParameters object.

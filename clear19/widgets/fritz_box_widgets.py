@@ -23,6 +23,7 @@ class FritzBoxWidget(Widget, ABC):
     _fritz_box_data_provider: FritzBox
 
     def __init__(self, parent: ContainerWidget, fritz_box_data_provider: FritzBox):
+        self._data_mutex = Lock()
         super().__init__(parent)
         self._fritz_box_data_provider = fritz_box_data_provider
         fritz_box_data_provider.add_listener(self.update)
@@ -31,6 +32,10 @@ class FritzBoxWidget(Widget, ABC):
     @abstractmethod
     def update(self, data: FritzBoxData):
         pass
+
+    def paint_foreground(self, ctx: Context):
+        with self._data_mutex:
+            super().paint_foreground(ctx)
 
     @property
     def fritz_box_data_provider(self) -> FritzBox:
@@ -44,19 +49,20 @@ class FritzBoxConnectedWidget(FritzBoxWidget, TextWidget):
         self.update(None)
 
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.status:
-            if not data.status.is_linked:
-                self.text = "Not Linked"
-                self.foreground = Color.RED
-            elif not data.status.is_connected:
-                self.text = "Connecting"
-                self.foreground = Color.YELLOW
+        with self._data_mutex:
+            if data:
+                if not data.is_linked:
+                    self.text = "Not Linked"
+                    self.foreground = Color.RED
+                elif not data.is_connected:
+                    self.text = "Connecting"
+                    self.foreground = Color.YELLOW
+                else:
+                    self.text = "Connected"
+                    self.foreground = self.parent.foreground
             else:
-                self.text = "Connected"
-                self.foreground = self.parent.foreground
-        else:
-            self.text = "Unknown"
-            self.foreground = Color.GRAY50
+                self.text = "Unknown"
+                self.foreground = Color.GRAY50
 
 
 class FritzBoxSpeedWidget(FritzBoxWidget, TextWidget):
@@ -66,14 +72,15 @@ class FritzBoxSpeedWidget(FritzBoxWidget, TextWidget):
         self.update(None)
 
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.status:
-            up = f'{round(data.status.max_bit_rate[0] / 1000000)}Mb'
-            down = f'{round(data.status.max_bit_rate[1] / 1000000)}Mb'
-            self.text = f'🠕 {up} 🠗 {down}'
-            self.foreground = self.parent.foreground
-        else:
-            self.text = "🠕 Unknown 🠗"
-            self.foreground = Color.GRAY50
+        with self._data_mutex:
+            if data:
+                up = f'{round(data.max_bit_rate[0] / 1000000)}Mb'
+                down = f'{round(data.max_bit_rate[1] / 1000000)}Mb'
+                self.text = f'🠕 {up} 🠗 {down}'
+                self.foreground = self.parent.foreground
+            else:
+                self.text = "🠕 Unknown 🠗"
+                self.foreground = Color.GRAY50
 
 
 class FritzBoxIp4Widget(FritzBoxWidget, TextWidget):
@@ -83,12 +90,13 @@ class FritzBoxIp4Widget(FritzBoxWidget, TextWidget):
         self.update(None)
 
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.status:
-            self.text = data.status.external_ip
-            self.foreground = self.parent.foreground
-        else:
-            self.text = '0.0.0.0'
-            self.foreground = Color.GRAY50
+        with self._data_mutex:
+            if data:
+                self.text = data.external_ip
+                self.foreground = self.parent.foreground
+            else:
+                self.text = '0.0.0.0'
+                self.foreground = Color.GRAY50
 
 
 class FritzBoxIp6Widget(FritzBoxWidget, TextWidget):
@@ -98,12 +106,13 @@ class FritzBoxIp6Widget(FritzBoxWidget, TextWidget):
         self.update(None)
 
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.status:
-            self.text = data.status.external_ipv6
-            self.foreground = self.parent.foreground
-        else:
-            self.text = '::0'
-            self.foreground = Color.GRAY50
+        with self._data_mutex:
+            if data:
+                self.text = data.external_ipv6
+                self.foreground = self.parent.foreground
+            else:
+                self.text = '::0'
+                self.foreground = Color.GRAY50
 
 
 class FritzBoxHostsWidget(FritzBoxWidget, TextWidget):
@@ -113,13 +122,13 @@ class FritzBoxHostsWidget(FritzBoxWidget, TextWidget):
         self.update(None)
 
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.hosts and data.wlan:
-            total = len(list(filter(lambda d: d['status'], data.hosts.get_hosts_info())))
-            self.text = f'{total - data.wlan.total_host_number} LAN, {data.wlan.total_host_number} WLAN'
-            self.foreground = self.parent.foreground
-        else:
-            self.text = '? LAN, ? WLAN'
-            self.foreground = Color.GRAY50
+        with self._data_mutex:
+            if data:
+                self.text = f'{data.lan_hosts} LAN, {data.wifi_hosts} WLAN'
+                self.foreground = self.parent.foreground
+            else:
+                self.text = '? LAN, ? WLAN'
+                self.foreground = Color.GRAY50
 
 
 class FritzBoxTrafficWidget(FritzBoxWidget, TextWidget):
@@ -128,18 +137,18 @@ class FritzBoxTrafficWidget(FritzBoxWidget, TextWidget):
         TextWidget.__init__(self, parent, '🠕 00Mb 🠗 00Mb', font)
         self.update(None)
 
-    # noinspection PyUnresolvedReferences
     def update(self, data: Optional[FritzBoxData]):
-        if data and data.hosts and data.wlan:
-            up = humanize.naturalsize(data.status.transmission_rate[0],
-                                      binary=True, gnu=True, format='%.0f')
-            down = humanize.naturalsize(data.status.transmission_rate[1],
-                                        binary=True, gnu=True, format='%.0f')
-            self.text = f'🠕 {up} 🠗 {down}'
-            self.foreground = self.parent.foreground
-        else:
-            self.text = "🠕 Unknown 🠗"
-            self.foreground = Color.GRAY50
+        with self._data_mutex:
+            if data and data.transmission_rate:
+                up = humanize.naturalsize(data.transmission_rate[0],
+                                          binary=True, gnu=True, format='%.0f')
+                down = humanize.naturalsize(data.transmission_rate[1],
+                                            binary=True, gnu=True, format='%.0f')
+                self.text = f'🠕 {up} 🠗 {down}'
+                self.foreground = self.parent.foreground
+            else:
+                self.text = "🠕 Unknown 🠗"
+                self.foreground = Color.GRAY50
 
     def paint_background(self, ctx: Context):
         """ Transparent widget """
@@ -162,7 +171,6 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
 
     def __init__(self, parent: ContainerWidget, fritz_box_data_provider: FritzBox,
                  time_span: timedelta = timedelta(minutes=1)):
-        FritzBoxWidget.__init__(self, parent, fritz_box_data_provider)
         self._measurements: deque[FritzBoxTrafficGraphWidget.Measurement] = deque()
         self._measurements_mutex = Lock()
         self._time_span = time_span
@@ -171,51 +179,53 @@ class FritzBoxTrafficGraphWidget(FritzBoxWidget):
         self._last_time: datetime = datetime(1, 1, 1)
         self._last_up = -1
         self._last_down = -1
+        FritzBoxWidget.__init__(self, parent, fritz_box_data_provider)
 
     def update(self, data: Optional[FritzBoxData]):
-        # noinspection PyUnresolvedReferences
-        if data and data.status:
-            now = datetime.now()
-            if self._last_up >= 0:
-                time_diff = (now - self._last_time).total_seconds()
-                up = (data.status.bytes_sent - self._last_up) / time_diff * 8
-                down = (data.status.bytes_received - self._last_down) / time_diff * 8
-                # noinspection PyCallByClass
-                with self._measurements_mutex:
-                    self._measurements.append(
-                        FritzBoxTrafficGraphWidget.Measurement(now, up, down))
-                    while self._measurements and self._measurements[-1].time < now - self._time_span:
-                        self._measurements.popleft()
-                self._max = data.status.max_bit_rate
+        with self._data_mutex:
+            if data:
+                now = datetime.now()
+                if self._last_up and self._last_up >= 0:
+                    time_diff = (now - self._last_time).total_seconds()
+                    up = int((data.bytes_sent - self._last_up) / time_diff * 8)
+                    down = int((data.bytes_received - self._last_down) / time_diff * 8)
+                    # noinspection PyCallByClass
+                    with self._measurements_mutex:
+                        self._measurements.append(
+                            FritzBoxTrafficGraphWidget.Measurement(now, up, down))
+                        while self._measurements and self._measurements[-1].time < now - self._time_span:
+                            self._measurements.popleft()
+                    self._max = data.max_bit_rate
 
-            self._last_time = now
-            self._last_up = data.status.bytes_sent
-            self._last_down = data.status.bytes_received
+                self._last_time = now
+                self._last_up = data.bytes_sent
+                self._last_down = data.bytes_received
 
     def paint_foreground(self, ctx: Context):
-        if self._measurements and self._max:
-            sx = (self.width - self._bar_width) / self._time_span.total_seconds()
-            sy = (self.height / self._max[0], self.height / self._max[1])
-            colors = (Color.GREEN, Color.RED)
-            current = self._measurements[-1]
+        with self._data_mutex:
+            if self._measurements and self._max:
+                sx = (self.width - self._bar_width) / self._time_span.total_seconds()
+                sy = (self.height / self._max[0], self.height / self._max[1])
+                colors = (Color.GREEN, Color.RED)
+                current = self._measurements[-1]
 
-            for i in (1, 0):
-                current_y = current[i] * sy[i]
-                ctx.set_source_rgba(*colors[i])
-                ctx.rectangle(self.width - self._bar_width, self.height - current_y,
-                              self._bar_width / (2 - i), current_y)
-                ctx.fill()
+                for i in (1, 0):
+                    current_y = current[i] * sy[i]
+                    ctx.set_source_rgba(*colors[i])
+                    ctx.rectangle(self.width - self._bar_width, self.height - current_y,
+                                  self._bar_width / (2 - i), current_y)
+                    ctx.fill()
 
-                first = True
-                with self._measurements_mutex:
-                    for m in self._measurements:
-                        m_x = (self.width - self._bar_width) - (current.time - m.time).total_seconds() * sx
-                        m_y = self.height - m[i] * sy[i]
-                        if first:
-                            ctx.move_to(m_x, m_y)
-                            first = False
-                        else:
-                            ctx.line_to(m_x, m_y)
+                    first = True
+                    with self._measurements_mutex:
+                        for m in self._measurements:
+                            m_x = (self.width - self._bar_width) - (current.time - m.time).total_seconds() * sx
+                            m_y = self.height - m[i] * sy[i]
+                            if first:
+                                ctx.move_to(m_x, m_y)
+                                first = False
+                            else:
+                                ctx.line_to(m_x, m_y)
 
-                ctx.set_source_rgba(*colors[i])
-                ctx.stroke()
+                    ctx.set_source_rgba(*colors[i])
+                    ctx.stroke()

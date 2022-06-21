@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import logging
 from dataclasses import dataclass
-from datetime import timedelta, datetime
+from datetime import timedelta
 from queue import Queue
 from threading import Lock, Thread
-from typing import List, Callable, Optional
+from typing import List, Callable, Optional, Tuple
 
+from fritzconnection import FritzConnection
 from fritzconnection.lib.fritzhosts import FritzHosts
 from fritzconnection.lib.fritzstatus import FritzStatus
 from fritzconnection.lib.fritzwlan import FritzWLAN
@@ -17,9 +18,17 @@ log = logging.getLogger(__name__)
 
 @dataclass()
 class FritzBoxData:
-    status: FritzStatus = None
-    hosts: FritzHosts = None
-    wlan: FritzWLAN = None
+    lan_hosts: Optional[int] = None
+    wifi_hosts: Optional[int] = None
+
+    is_linked: Optional[bool] = None
+    is_connected: Optional[bool] = None
+    external_ip: Optional[str] = None
+    external_ipv6: Optional[str] = None
+    max_bit_rate: Optional[Tuple[int, int]] = None
+    transmission_rate: Optional[Tuple[int, int]] = None
+    bytes_sent: Optional[int] = None
+    bytes_received: Optional[int] = None
 
 
 class FritzBox:
@@ -27,33 +36,61 @@ class FritzBox:
     _password: str
     _listeners: List[Callable[[FritzBoxData], None]]
     _listeners_mutex: Lock
+    _data_mutex: Lock
     _running: bool = True
-    _queue: 'Queue[TaskParameters]'
-    _current_data: FritzBoxData = None
+    _status_queue: 'Queue[TaskParameters]'
+    _hosts_queue: 'Queue[TaskParameters]'
+    current_data: Optional[FritzBoxData] = None
 
     def __init__(self, scheduler: Scheduler, address: str, password: str):
         self._address = address
         self._password = password
-        self._queue = Queue(maxsize=1)
         self._listeners = []
         self._listeners_mutex = Lock()
-        scheduler.schedule_to_queue(timedelta(seconds=1), self._queue)
-        Thread(target=self._poll_loop, daemon=True).start()
+        self._data_mutex = Lock()
+        self.current_data = FritzBoxData()
+        self._status_queue = Queue(maxsize=1)
+        scheduler.schedule_to_queue(timedelta(seconds=3), self._status_queue)
+        Thread(target=self._poll_status_loop, daemon=True).start()
+        self._hosts_queue = Queue(maxsize=1)
+        scheduler.schedule_to_queue(timedelta(seconds=10), self._hosts_queue)
+        Thread(target=self._poll_hosts_loop, daemon=True).start()
 
-    def _poll_loop(self):
-        self._current_data = FritzBoxData()
-        last_hosts: Optional[datetime] = None
+    def _poll_status_loop(self):
+        fritz_connection = FritzConnection(address=self._address, password=self._password)
         while self._running:
             try:
-                self._current_data.status = FritzStatus(address=self._address, password=self._password)
-                if not last_hosts or (datetime.now() - last_hosts) / timedelta(seconds=10) >= 1:
-                    self.current_data.hosts = FritzHosts(address=self._address, password=self._password)
-                    self.current_data.wlan = FritzWLAN(address=self._address, password=self._password)
-                    last_hosts = datetime.now()
+                status = FritzStatus(fc=fritz_connection)
+                with self._data_mutex:
+                    self.current_data.is_linked = status.is_linked
+                    self.current_data.is_connected = status.is_connected
+                    self.current_data.external_ip = status.external_ip
+                    self.current_data.external_ipv6 = status.external_ipv6
+                    self.current_data.max_bit_rate = status.max_bit_rate
+                    self.current_data.transmission_rate = status.transmission_rate
+                    self.current_data.bytes_sent = status.bytes_sent
+                    self.current_data.bytes_received = status.bytes_received
             except IOError as e:
                 log.warning(f"Failed to get FritzBox data: {e}")
+
             self._notify_listeners()
-            self._queue.get()
+            self._status_queue.get()
+
+    def _poll_hosts_loop(self):
+        fritz_connection = FritzConnection(address=self._address, password=self._password)
+        while self._running:
+            try:
+                hosts = FritzHosts(fc=fritz_connection)
+                wlan = FritzWLAN(fc=fritz_connection)
+                active_hosts = len(hosts.get_active_hosts())
+                with self._data_mutex:
+                    self.current_data.wifi_hosts = wlan.total_host_number
+                    self.current_data.lan_hosts = active_hosts - self.current_data.wifi_hosts
+            except IOError as e:
+                log.warning(f"Failed to get FritzBox data: {e}")
+
+            self._notify_listeners()
+            self._hosts_queue.get()
 
     def add_listener(self, listener: Callable[[FritzBoxData], None]):
         with self._listeners_mutex:
@@ -61,14 +98,9 @@ class FritzBox:
 
     def _notify_listeners(self):
         with self._listeners_mutex:
-            current_data = self._current_data
             for listener in self._listeners:
                 # noinspection PyBroadException
                 try:
-                    listener(current_data)
+                    listener(self.current_data)
                 except Exception:
                     log.error("Exception in FritzBox listener.", exc_info=True)
-
-    @property
-    def current_data(self) -> FritzBoxData:
-        return self._current_data
