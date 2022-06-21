@@ -2,7 +2,7 @@ import dataclasses
 from typing import List, Optional
 
 from clear19.data.download_manager import DownloadManager
-from clear19.data.wetter_com import WeatherPeriod
+from clear19.data.wetter_com import WeatherPeriod, WeatherData
 from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size, Rectangle, AnchoredPoint, Anchor, Point
 from clear19.widgets.image_widget import ImageWidget
@@ -131,7 +131,7 @@ class WeatherWidget(ContainerWidget):
 
 
 class WeatherWidgets(ContainerWidget):
-    _weather_periods: List[WeatherPeriod]
+    _weather_periods: Optional[WeatherData]
     _font: Font
 
     def __init__(self, parent: ContainerWidget, weather_periods: Optional[List[WeatherPeriod]],
@@ -151,7 +151,7 @@ class WeatherWidgets(ContainerWidget):
         self._update_children()
 
     def _update_children(self):
-        if self.weather_periods:
+        if self.weather_data:
             n = 0
             i = 0
             for w in self.children:
@@ -160,9 +160,9 @@ class WeatherWidgets(ContainerWidget):
                     combined = None
                     for j in range(n, n + m):
                         if not combined:
-                            combined = self.weather_periods[j]
+                            combined = self.weather_data.periods[j]
                         else:
-                            combined += self.weather_periods[j]
+                            combined += self.weather_data.periods[j]
                     n += m
                     w.weather_period = combined
                     i += 1
@@ -176,14 +176,14 @@ class WeatherWidgets(ContainerWidget):
         return Size(self.children[-1].right, self.children[0].bottom)
 
     @property
-    def weather_periods(self) -> Optional[List[WeatherPeriod]]:
+    def weather_data(self) -> Optional[WeatherData]:
         return self._weather_periods
 
-    def set_weather_periods(self, wps: Optional[List[WeatherPeriod]]):
-        self.weather_periods = wps
+    def set_weather_periods(self, wps: Optional[WeatherData]):
+        self.weather_data = wps
 
-    @weather_periods.setter
-    def weather_periods(self, weather_periods: Optional[List[WeatherPeriod]]):
+    @weather_data.setter
+    def weather_data(self, weather_periods: Optional[WeatherData]):
         if self._weather_periods != weather_periods:
             self._weather_periods = weather_periods
             self._update_children()

@@ -126,7 +126,7 @@ class DownloadManager:
                     with urllib.request.urlopen(job.url) as file:
                         content = file.read()
                 except URLError as err:
-                    log.error(f'Failed to download "{job.url}": {err.reason}')
+                    log.error(f'Failed to download "{job.url}".', exc_info=True)
                     content = None
                 if content:
                     with self._mem_cache_lock:
@@ -162,4 +162,4 @@ class DownloadManager:
             try:
                 job.callback(data)
             except Exception as e:
-                log.error(f"Error when notify job: {e}")
+                log.error(f"Error when notify job: {e}", exc_info=True)

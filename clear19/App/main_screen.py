@@ -6,7 +6,7 @@ from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data import Config
 from clear19.data.fritzbox import FritzBox
-from clear19.data.wetter_com import WetterCom, WeatherPeriod
+from clear19.data.wetter_com import WetterCom, WeatherPeriod, WeatherData
 from clear19.logitech.g19 import G19Key, DisplayKey
 from clear19.widgets.color import Color
 from clear19.widgets.bar_widget import BarWidget
@@ -162,7 +162,10 @@ class MainScreen(Screen):
         if key == DisplayKey.UP:
             self.app.current_screen = Screens.TIME
             return True
+        if key == DisplayKey.LEFT:
+            self.app.current_screen = Screens.WEATHER
+            return True
         return False
 
-    def load_weather(self, _=None) -> Optional[List[WeatherPeriod]]:
+    def load_weather(self, _=None) -> Optional[WeatherData]:
         return self.wetter_com.load_weather(lambda wps2: self.weather_widgets.set_weather_periods(wps2))

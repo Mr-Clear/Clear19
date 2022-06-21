@@ -13,6 +13,7 @@ from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
 from clear19.App.screens import Screens
 from clear19.App.time_screen import TimeScreen
+from clear19.App.weather_screen import WeatherScreen
 from clear19.logitech.g19 import G19, DisplayKey
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
@@ -46,7 +47,8 @@ class App(AppWidget):
             self.foreground = Color.GRAY90
             self._screens = {Screens.MAIN: MainScreen(self),
                              Screens.TIME: TimeScreen(self),
-                             Screens.MENU: MenuScreen(self)}
+                             Screens.MENU: MenuScreen(self),
+                             Screens.WEATHER: WeatherScreen(self)}
             self.current_screen = Screens.MAIN
 
             if self._g19:

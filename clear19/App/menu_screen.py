@@ -25,6 +25,7 @@ class MenuScreen(Screen):
     def _set_log_level(self, _):
         menu = []
         index = 0
+        # noinspection PyUnresolvedReferences
         levels = collections.OrderedDict(sorted(logging._levelToName.items()))
         for i, (level, name) in enumerate(levels.items()):
             menu.append(MenuWidgetEntry(name, lambda _, l=level: set_log_level(l)))

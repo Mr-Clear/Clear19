@@ -1,34 +1,38 @@
 from __future__ import annotations
 
+import logging
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import List, Callable, Optional, Union
 
+# noinspection PyUnresolvedReferences
 from bs4 import BeautifulSoup, Tag
 
 from clear19.data.download_manager import DownloadManager
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
 class WeatherPeriod:
     """
-    Reads data from wetter.com.
+    Contains forecast data for a defined period from wetter.com.
     """
-    start: datetime = None
-    end: datetime = None
-    short_text: str = None
-    long_text: str = None
-    icon: str = None
-    temp: int = None
-    pop: int = None  # Probability of precipitation
-    rainfall: float = None
-    wind_direction: str = None
-    wind_speed: int = None
-    wind_squall_speed: int = None
-    pressure: int = None
-    humidity: int = None
-    cloudiness: int = None
+    start: datetime = datetime.fromtimestamp(0)
+    end: datetime = datetime.fromtimestamp(0)
+    short_text: str = ''
+    long_text: str = ''
+    icon: str = ''
+    temp: int = 0
+    pop: int = 0  # Probability of precipitation
+    rainfall: float = 0
+    wind_direction: str = ''
+    wind_speed: int = 0
+    wind_squall_speed: int = 0
+    pressure: int = 0
+    humidity: int = 0
+    cloudiness: int = 0
 
     @property
     def duration(self) -> timedelta:
@@ -60,6 +64,15 @@ class WeatherPeriod:
         return c
 
 
+@dataclass
+class WeatherData:
+    """
+    Contains forecast data from wetter.com.
+    """
+    location: str = ''
+    periods: List[WeatherPeriod] = field(default_factory=list)
+
+
 class WetterCom:
     _location_id: str
     _download_manager: DownloadManager
@@ -68,20 +81,25 @@ class WetterCom:
         self._location_id = location_id
         self._download_manager = download_manager
 
-    def load_weather(self, callback: Optional[Callable[[Optional[List[WeatherPeriod]]], None]])\
-            -> Optional[List[WeatherPeriod]]:
+    def load_weather(self, callback: Optional[Callable[[WeatherData], None]]) -> Optional[WeatherData]:
         url = f'https://www.wetter.com/deutschland/{self._location_id}.html'
         wps = self._download_manager.get(url, lambda content: callback(self.parse_html(content) if callback else None),
                                          timedelta(minutes=9))
         return self.parse_html(wps)
 
+    # noinspection PyTypeChecker
     @staticmethod
-    def parse_html(html: Union[str, bytes]) -> Optional[List[WeatherPeriod]]:
+    def parse_html(html: Union[str, bytes]) -> Optional[WeatherData]:
         if not html:
             return None
         if isinstance(html, bytes):
             html = html.decode('utf-8')
         s = BeautifulSoup(html, 'html.parser')
+
+        data = WeatherData()
+
+        data.location = s.select('#rtw_cnt')[0].select('h2')[0].text
+
         t_body: Tag = s.select('#vhs-detail-diagram')[0]
 
         wps: List[WeatherPeriod] = []
@@ -97,6 +115,7 @@ class WetterCom:
         if not date:
             date = datetime.now()
 
+        # noinspection PyUnresolvedReferences
         start_hours = int(t_body.contents[5].contents[1].text.strip()[0:2])
         t = datetime(date.year, date.month, date.day, start_hours, 0, 0)
         t -= timedelta(hours=1)
@@ -114,8 +133,9 @@ class WetterCom:
         _parse_row(wps, t_body.contents[31], _parse_pressure)
         _parse_row(wps, t_body.contents[35], _parse_humidity)
         _parse_row(wps, t_body.contents[39], _parse_cloudiness)
+        data.periods = wps
 
-        return wps
+        return data
 
 
 def _parse_row(wps: List[WeatherPeriod], tr: Tag, job: Callable[[List[WeatherPeriod], int, Tag], None]):

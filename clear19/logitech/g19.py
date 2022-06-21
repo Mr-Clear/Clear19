@@ -190,12 +190,12 @@ class G19(object):
         try:
             self._usb_device.handle_if_0.bulkWrite(2, frame, 1000)
         except usb.USBError as err:
-            log.error(f"USB error({err.errno}): {err.strerror}")
+            log.error(f"USB error.", exc_info=True)
         finally:
             self._usb_device_mutex.release()
 
     def set_bg_color(self, r, g, b):
-        """Sets back light to given color."""
+        """Sets backlight to given color."""
         rtype = usb.TYPE_CLASS | usb.RECIP_INTERFACE
         color_data = [7, r, g, b]
         self._usb_device_mutex.acquire()
