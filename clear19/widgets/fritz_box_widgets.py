@@ -150,10 +150,6 @@ class FritzBoxTrafficWidget(FritzBoxWidget, TextWidget):
                 self.text = "🠕 Unknown 🠗"
                 self.foreground = Color.GRAY50
 
-    def paint_background(self, ctx: Context):
-        """ Transparent widget """
-        pass
-
 
 class FritzBoxTrafficGraphWidget(FritzBoxWidget):
     @dataclass

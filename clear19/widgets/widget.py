@@ -119,7 +119,6 @@ class Widget(ABC):
         """
         Renders this widget. Is called by Widget.paint.
         """
-        return
 
     def paint_background(self, ctx: Context):
         """

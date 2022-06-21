@@ -154,6 +154,7 @@ class MainScreen(Screen):
         self.fritz_box_traffic.rectangle = Rectangle(
             self.fritz_box_hosts.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.fritz_box_ip4.position(Anchor.TOP_RIGHT) + Point(0, -1))
+        self.fritz_box_traffic.background = None
 
     def on_key_down(self, key: G19Key):
         if super().on_key_down(key):
