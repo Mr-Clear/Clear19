@@ -4,9 +4,10 @@ import math
 import signal
 from datetime import timedelta
 from queue import Queue
-from typing import Union, Type, Dict
+from typing import Union, Type, Dict, Optional
 
 import cairocffi as cairo
+from usb.core import USBError
 
 from clear19.App import Global
 from clear19.App.main_screen import MainScreen
@@ -15,6 +16,7 @@ from clear19.App.screens import Screens
 from clear19.App.time_screen import TimeScreen
 from clear19.App.weather_screen import WeatherScreen
 from clear19.logitech.g19 import G19, DisplayKey
+from clear19.logitech.g19_simulator import G19Simulator
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
 from clear19.widgets.color import Color
@@ -26,7 +28,7 @@ log = logging.getLogger(__name__)
 
 class App(AppWidget):
     _image: cairo.ImageSurface
-    _g19: Union[G19, None]
+    _g19: Optional[Union[G19, G19Simulator]]
     _screen_size: Size
     _running: bool
     _screens: Dict[Screens, Screen]
@@ -36,7 +38,11 @@ class App(AppWidget):
         try:
             schedule_queue: Queue[Union[TaskParameters, KeyListener.KeyEvent]] = Queue()
             log.debug("Connect LCD")
-            self._g19 = G19()
+            try:
+                self._g19 = G19()
+            except USBError as e:
+                log.error("Cannot create G19 object: " + str(e))
+                self._g19 = G19Simulator()
             self._screen_size = self._g19.image_size
             self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
                                              round(self.screen_size.height),

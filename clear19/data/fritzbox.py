@@ -7,6 +7,7 @@ from threading import Lock, Thread
 from typing import List, Callable, Optional, Tuple
 
 from fritzconnection import FritzConnection
+from fritzconnection.core.exceptions import FritzConnectionException
 from fritzconnection.lib.fritzhosts import FritzHosts
 from fritzconnection.lib.fritzstatus import FritzStatus
 from fritzconnection.lib.fritzwlan import FritzWLAN
@@ -57,7 +58,11 @@ class FritzBox:
         Thread(target=self._poll_hosts_loop, daemon=True).start()
 
     def _poll_status_loop(self):
-        fritz_connection = FritzConnection(address=self._address, password=self._password)
+        try:
+            fritz_connection = FritzConnection(address=self._address, password=self._password)
+        except FritzConnectionException:
+            # Error is logged by FritzConnection
+            return
         while self._running:
             try:
                 status = FritzStatus(fc=fritz_connection)
@@ -77,7 +82,11 @@ class FritzBox:
             self._status_queue.get()
 
     def _poll_hosts_loop(self):
-        fritz_connection = FritzConnection(address=self._address, password=self._password)
+        try:
+            fritz_connection = FritzConnection(address=self._address, password=self._password)
+        except FritzConnectionException:
+            # Error is logged by FritzConnection
+            return
         while self._running:
             try:
                 hosts = FritzHosts(fc=fritz_connection)

@@ -41,8 +41,6 @@ class WeatherScreen(Screen):
             self.read_weather(data)
 
     def read_weather(self, data: Optional[WeatherData] = None):
-        log.debug("B")
         if data:
             self.title.text = data.location
-            log.debug(data.location)
             self.title.fit_font_size()
