@@ -42,7 +42,7 @@ class App(AppWidget):
                 self._g19 = G19()
             except USBError as e:
                 log.error("Cannot create G19 object: " + str(e))
-                self._g19 = G19Simulator()
+                self._g19 = G19Simulator(self)
             self._screen_size = self._g19.image_size
             self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
                                              round(self.screen_size.height),

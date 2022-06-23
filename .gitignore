@@ -4,3 +4,4 @@ test.*
 /clear19.ini
 logs/**
 venv/**
+*~
