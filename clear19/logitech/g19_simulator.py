@@ -21,6 +21,7 @@ class G19Simulator:
         self.app = app
         self.image_size = Size(320, 240)
         self.image = ImageSurface(cairo.FORMAT_RGB16_565, self.image_size.height, self.image_size.width)
+        self.pressed_buttons = 0
         builder = Gtk.Builder()
         builder.add_from_file("clear19/logitech/g19_simulator.glade")
         self.window: ApplicationWindow = builder.get_object("window")
@@ -34,6 +35,11 @@ class G19Simulator:
         self.btn_back: Button = builder.get_object("btn_back")
         self.btn_settings: Button = builder.get_object("btn_settings")
 
+        for button in (self.btn_up, self.btn_down, self.btn_left, self.btn_right,
+                       self.btn_ok, self.btn_menu, self.btn_back, self.btn_settings):
+            button.connect("pressed", self.on_display_button_down)
+            button.connect("released", self.on_display_button_up)
+
         self.window.connect("destroy", self.app.exit)
         self.display.set_size_request(*self.image_size)
         self.display.connect("draw", self.on_draw)
@@ -45,6 +51,12 @@ class G19Simulator:
             context.scale(-1, 1)
             context.set_source_surface(self.image, 0, 00)
             context.paint()
+
+    def on_display_button_down(self, button: Button):
+        self.pressed_buttons |= int(button.get_name(), 0)
+
+    def on_display_button_up(self, button: Button):
+        self.pressed_buttons &= ~int(button.get_name(), 0)
 
     def reset(self):
         log.info("Reset")
@@ -59,4 +71,4 @@ class G19Simulator:
         return []
 
     def read_display_menu_keys(self):
-        return []
+        return [self.pressed_buttons, 128]

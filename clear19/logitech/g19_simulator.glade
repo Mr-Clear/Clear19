@@ -33,6 +33,7 @@
                 <child>
                   <object class="GtkButton" id="btn_up">
                     <property name="label" translatable="yes">▲</property>
+                    <property name="name">0x80</property>
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -49,6 +50,7 @@
                 <child>
                   <object class="GtkButton" id="btn_left">
                     <property name="label" translatable="yes">◄</property>
+                    <property name="name">0x20</property>
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -65,6 +67,7 @@
                 <child>
                   <object class="GtkButton" id="btn_ok">
                     <property name="label" translatable="yes">OK</property>
+                    <property name="name">0x08</property>
                     <property name="width-request">34</property>
                     <property name="height-request">34</property>
                     <property name="visible">True</property>
@@ -81,6 +84,7 @@
                 <child>
                   <object class="GtkButton" id="btn_menu">
                     <property name="label" translatable="yes">MENU</property>
+                    <property name="name">0x04</property>
                     <property name="width-request">60</property>
                     <property name="height-request">34</property>
                     <property name="visible">True</property>
@@ -100,6 +104,7 @@
                 <child>
                   <object class="GtkButton" id="btn_down">
                     <property name="label" translatable="yes">▼</property>
+                    <property name="name">0x40</property>
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -116,6 +121,7 @@
                 <child>
                   <object class="GtkButton" id="btn_right">
                     <property name="label" translatable="yes">►</property>
+                    <property name="name">0x10</property>
                     <property name="width-request">30</property>
                     <property name="height-request">30</property>
                     <property name="visible">True</property>
@@ -132,6 +138,7 @@
                 <child>
                   <object class="GtkButton" id="btn_back">
                     <property name="label" translatable="yes">←</property>
+                    <property name="name">0x02</property>
                     <property name="width-request">60</property>
                     <property name="height-request">34</property>
                     <property name="visible">True</property>
@@ -151,6 +158,7 @@
                 <child>
                   <object class="GtkButton" id="btn_settings">
                     <property name="label" translatable="yes">⚙</property>
+                    <property name="name">0x01</property>
                     <property name="width-request">60</property>
                     <property name="height-request">34</property>
                     <property name="visible">True</property>
