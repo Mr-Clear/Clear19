@@ -22,6 +22,7 @@ class G19Simulator:
         self.image_size = Size(320, 240)
         self.image = ImageSurface(cairo.FORMAT_RGB16_565, self.image_size.height, self.image_size.width)
         self.pressed_buttons = 0
+        self.zoom = 3.0
         builder = Gtk.Builder()
         builder.add_from_file("clear19/logitech/g19_simulator.glade")
         self.window: ApplicationWindow = builder.get_object("window")
@@ -41,15 +42,15 @@ class G19Simulator:
             button.connect("released", self.on_display_button_up)
 
         self.window.connect("destroy", self.app.exit)
-        self.display.set_size_request(*self.image_size)
+        self.display.set_size_request(*(self.image_size * self.zoom))
         self.display.connect("draw", self.on_draw)
         self.window.show_all()
 
-    def on_draw(self, _area, context):
+    def on_draw(self, _area, context: cairo.Context):
         if self.image:
             context.rotate(-math.pi / 2)
-            context.scale(-1, 1)
-            context.set_source_surface(self.image, 0, 00)
+            context.scale(-self.zoom, self.zoom)
+            context.set_source_surface(self.image, 0, 0)
             context.paint()
 
     def on_display_button_down(self, button: Button):
@@ -65,7 +66,6 @@ class G19Simulator:
         self.image = ImageSurface.create_for_data(data, cairo.FORMAT_RGB16_565,
                                                   round(self.image_size.height), round(self.image_size.width))
         self.display.queue_draw()
-        pass
 
     def read_g_and_m_keys(self, _=None):
         return []

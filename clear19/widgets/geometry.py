@@ -217,6 +217,9 @@ class Size:
     def __sub__(self, other: Size) -> Size:
         return Size(self.width - other.width, self.height - other.height)
 
+    def __mul__(self, factor: float):
+        return Size(self.width * factor, self.height * factor)
+
     def __truediv__(self, divisor: float) -> Size:
         return Size(self.width / divisor, self.height / divisor)
 
