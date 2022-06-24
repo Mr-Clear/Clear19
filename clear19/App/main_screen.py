@@ -117,7 +117,7 @@ class MainScreen(Screen):
                                        + Point(0, -1), Size(self.disk_stats.width, self.lhs.preferred_size().height))
         self.lhs.foreground = Color.GRAY50
 
-        self.processes = ProcessList(self, 5, Font(size=12))
+        self.processes = ProcessList(self, 6, Font(size=12))
         self.processes.rectangle = Rectangle(self.mem_stats_bar.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
                                              + Point(2, 5),
                                              self.lhs.position(Anchor.TOP_RIGHT))

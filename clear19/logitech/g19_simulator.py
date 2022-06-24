@@ -60,7 +60,7 @@ class G19Simulator:
         self.pressed_buttons &= ~int(button.get_name(), 0)
 
     def reset(self):
-        log.info("Reset")
+        self.image = None
 
     def send_frame(self, data):
         self.image = ImageSurface.create_for_data(data, cairo.FORMAT_RGB16_565,
