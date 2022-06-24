@@ -16,7 +16,6 @@ from clear19.App.screens import Screens
 from clear19.App.time_screen import TimeScreen
 from clear19.App.weather_screen import WeatherScreen
 from clear19.logitech.g19 import G19, DisplayKey
-from clear19.logitech.g19_simulator import G19Simulator
 from clear19.logitech.key_listener import KeyListener
 from clear19.scheduler import TaskParameters
 from clear19.widgets.color import Color
@@ -28,7 +27,7 @@ log = logging.getLogger(__name__)
 
 class App(AppWidget):
     _image: cairo.ImageSurface
-    _g19: Optional[Union[G19, G19Simulator]]
+    _g19: Optional[G19]
     _screen_size: Size
     _running: bool
     _screens: Dict[Screens, Screen]
@@ -42,6 +41,8 @@ class App(AppWidget):
                 self._g19 = G19()
             except USBError as e:
                 log.error("Cannot create G19 object: " + str(e))
+                from clear19.logitech.g19_simulator import G19Simulator
+                # noinspection PyTypeChecker
                 self._g19 = G19Simulator(self)
             self._screen_size = self._g19.image_size
             self._image = cairo.ImageSurface(cairo.FORMAT_RGB16_565,
