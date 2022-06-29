@@ -1,15 +1,15 @@
 import dataclasses
 from datetime import timedelta
-from typing import Optional, List
+from typing import Optional
 
 from clear19.App import Global
 from clear19.App.screens import Screens
 from clear19.data import Config
 from clear19.data.fritzbox import FritzBox
-from clear19.data.wetter_com import WetterCom, WeatherPeriod, WeatherData
+from clear19.data.wetter_com import WetterCom, WeatherData
 from clear19.logitech.g19 import G19Key, DisplayKey
-from clear19.widgets.color import Color
 from clear19.widgets.bar_widget import BarWidget
+from clear19.widgets.color import Color
 from clear19.widgets.fritz_box_widgets import FritzBoxConnectedWidget, FritzBoxIp6Widget, \
     FritzBoxIp4Widget, FritzBoxHostsWidget, FritzBoxTrafficGraphWidget, FritzBoxTrafficWidget
 from clear19.widgets.geometry import Anchor, VAnchor, AnchoredPoint, Rectangle, Size, Point
@@ -107,7 +107,7 @@ class MainScreen(Screen):
                       Size(self.lv2_3.left - self.cpu_load_bar.right - 2, self.cpu_load_bar.width))
         self.mem_stats_bar.foreground = Color.WHITE.with_value(alpha=0.9)
 
-        self.disk_stats = DiskStats(self, Font(size=12))
+        self.disk_stats = DiskStats(Config.DiskStats.drives(), self, Font(size=12))
         self.disk_stats.rectangle = Rectangle(self.lv2_3.position(Anchor.BOTTOM_LEFT).anchored(Anchor.BOTTOM_RIGHT)
                                               + Point(0, -3), self.cpu_load_text.position(Anchor.TOP_RIGHT))
         self.disk_stats.h_alignment = TextWidget.HAlignment.CENTER

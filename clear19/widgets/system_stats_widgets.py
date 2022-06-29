@@ -1,6 +1,6 @@
 import operator
 from datetime import timedelta
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Dict
 
 import psutil
 from cairocffi import Context
@@ -106,14 +106,17 @@ class DiskStats(TextWidget):
     """
     Shows the disk usage as text.
     """
-    def __init__(self, parent: ContainerWidget, font: Font = Font()):
+    def __init__(self, disks: Dict[str, str], parent: ContainerWidget, font: Font = Font()):
         super().__init__(parent, '', font)
         self.app.scheduler.schedule_synchronous(timedelta(seconds=1), self._update)
+        self.disks = disks
 
     def _update(self, _):
-        root = psutil.disk_usage('/')
-        daten = psutil.disk_usage('/mnt/disk/Daten')
-        self.text = f'/: {root.percent}%, Daten: {daten.percent}%'
+        texts = list()
+        for (name, path) in self.disks.items():
+            usage = psutil.disk_usage(path)
+            texts.append(f'{name}: {usage.percent}%')
+        self.text = ' '.join(texts)
 
 
 class ProcessList(ContainerWidget):

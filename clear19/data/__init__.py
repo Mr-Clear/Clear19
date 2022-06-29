@@ -1,3 +1,4 @@
+import json
 from configparser import ConfigParser
 
 
@@ -42,3 +43,8 @@ class Config:
         @staticmethod
         def password() -> str:
             return Config._config()['FritzBox']['password']
+
+    class DiskStats:
+        @staticmethod
+        def drives() -> dict[str, str]:
+            return json.loads(Config._config()['DiskStats']['drives'])
