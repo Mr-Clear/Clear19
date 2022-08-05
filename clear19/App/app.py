@@ -10,8 +10,10 @@ import cairocffi as cairo
 from usb.core import USBError
 
 from clear19.App import Global
+from clear19.App.clipboard_screen import ClipboardScreen
 from clear19.App.main_screen import MainScreen
 from clear19.App.menu_screen import MenuScreen
+from clear19.App.player_screen import PlayerScreen
 from clear19.App.screens import Screens
 from clear19.App.time_screen import TimeScreen
 from clear19.App.weather_screen import WeatherScreen
@@ -55,7 +57,9 @@ class App(AppWidget):
             self._screens = {Screens.MAIN: MainScreen(self),
                              Screens.TIME: TimeScreen(self),
                              Screens.MENU: MenuScreen(self),
-                             Screens.WEATHER: WeatherScreen(self)}
+                             Screens.WEATHER: WeatherScreen(self),
+                             Screens.PLAYER: PlayerScreen(self),
+                             Screens.CLIPBOARD: ClipboardScreen(self)}
             self.current_screen = Screens.MAIN
 
             if self._g19:

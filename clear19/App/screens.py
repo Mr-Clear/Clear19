@@ -6,3 +6,5 @@ class Screens(Enum):
     TIME = 1
     MENU = 2
     WEATHER = 3
+    PLAYER = 4
+    CLIPBOARD = 5

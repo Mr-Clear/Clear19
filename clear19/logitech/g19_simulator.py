@@ -2,11 +2,11 @@ import logging
 import math
 
 import cairo
-import gi
 from cairo import ImageSurface
 
 from clear19.widgets.geometry import Size
 
+import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 from gi.repository.Gtk import ApplicationWindow, Button, DrawingArea

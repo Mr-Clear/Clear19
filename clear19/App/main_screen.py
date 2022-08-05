@@ -162,8 +162,14 @@ class MainScreen(Screen):
         if key == DisplayKey.UP:
             self.app.current_screen = Screens.TIME
             return True
-        if key == DisplayKey.LEFT:
+        elif key == DisplayKey.DOWN:
             self.app.current_screen = Screens.WEATHER
+            return True
+        elif key == DisplayKey.RIGHT:
+            self.app.current_screen = Screens.PLAYER
+            return True
+        elif key == DisplayKey.LEFT:
+            self.app.current_screen = Screens.CLIPBOARD
             return True
         return False
 

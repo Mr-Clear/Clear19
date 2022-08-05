@@ -153,14 +153,13 @@ class TextWidget(Widget):
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
+        layout.set_width(round(self.width * 1000))
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.set_alignment(Alignment.LEFT)
-        else:
-            layout.set_width(round(self.width * 1000))
-            if self.h_alignment == TextWidget.HAlignment.CENTER:
-                layout.set_alignment(Alignment.CENTER)
-            elif self.h_alignment == TextWidget.HAlignment.RIGHT:
-                layout.set_alignment(Alignment.RIGHT)
+        elif self.h_alignment == TextWidget.HAlignment.CENTER:
+            layout.set_alignment(Alignment.CENTER)
+        elif self.h_alignment == TextWidget.HAlignment.RIGHT:
+            layout.set_alignment(Alignment.RIGHT)
 
         y = -layout.get_extents()[0].y / 1000
         if self.v_alignment == TextWidget.VAlignment.BOTTOM:
