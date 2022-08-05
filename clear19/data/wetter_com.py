@@ -98,7 +98,10 @@ class WetterCom:
 
         data = WeatherData()
 
-        data.location = s.select('#rtw_cnt')[0].select('h2')[0].text
+        try:
+            data.location = s.findAll('h2', {'class': 'gamma text--white mb- lap-mb--'})[0].text
+        except IndexError:
+            log.error("Failed to parse location.", exc_info=True)
 
         t_body: Tag = s.select('#vhs-detail-diagram')[0]
 
@@ -141,7 +144,7 @@ class WetterCom:
 def _parse_row(wps: List[WeatherPeriod], tr: Tag, job: Callable[[List[WeatherPeriod], int, Tag], None]):
     i = 0
     for td in tr.contents:
-        if td.name == 'td':
+        if td.name == 'td' and i < len(wps):
             job(wps, i, td)
             i += 1
 
