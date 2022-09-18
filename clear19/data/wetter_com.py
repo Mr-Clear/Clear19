@@ -85,7 +85,10 @@ class WetterCom:
         url = f'https://www.wetter.com/deutschland/{self._location_id}.html'
         wps = self._download_manager.get(url, lambda content: callback(self.parse_html(content) if callback else None),
                                          timedelta(minutes=9))
-        return self.parse_html(wps)
+        try:
+            return self.parse_html(wps)
+        except ValueError as e:
+            log.error("Error when parsing Wetter.com.", exc_info=True)
 
     # noinspection PyTypeChecker
     @staticmethod
@@ -172,7 +175,11 @@ def _parse_rainfall(wps: List[WeatherPeriod], i: int, td: Tag):
 def _parse_wind_direction(wps: List[WeatherPeriod], i: int, td: Tag):
     wps[i].wind_direction = td.contents[2].strip()
     if len(td.contents) > 3:
-        wps[i].wind_squall_speed = int(td.contents[3].contents[1].text.strip())
+        try:
+            wps[i].wind_squall_speed = int(td.contents[3].contents[1].text.strip())
+        except ValueError as e:
+            log.warning("Failed to parse wind squall speed: " + str(e))
+            wps[i].wind_squall_speed = 0
     else:
         wps[i].wind_squall_speed = wps[i].wind_speed
 
