@@ -92,8 +92,8 @@ class MemStatsBar(ContainerWidget):
         free = mem.total - mem.slab - mem.used - buff
         self._bar.values = [(mem.slab, Color.RED), (mem.buffers, Color.YELLOW), (mem.used, Color.BLUE),
                             (mem.cached, Color.GREEN / 2), (free, None)]
-        self._text.text = f'{mem.percent}%  {(mem.total - mem.available) / 2 ** 30:3.1f} GiB / ' \
-                          f'{mem.total / 2 ** 30:3.1f} GiB'
+        self._text.text = f'{mem.percent}%  {(mem.total - mem.available) / 2 ** 30:3.1f}GiB / ' \
+                          f'{mem.total / 2 ** 30:3.1f}GiB'
 
     @Widget.foreground.setter
     def foreground(self, foreground: Color):
