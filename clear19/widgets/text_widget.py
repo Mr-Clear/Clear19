@@ -114,9 +114,9 @@ class Font:
         layout = pangocairo.create_layout(ctx)
         style = '"italic"' if self.italic else '"normal"'
         weight = '"bold"' if self.bold else '"normal"'
-        layout.set_markup(f'<span font_family={quoteattr(self.name)} size={quoteattr(str(round(self.size * 1000)))} '
-                          f'foreground={quoteattr(color.to_hex())} style={style} '
-                          f'weight={weight}>{escape(text) if escape_text else text}</span>')
+        layout.apply_markup(f'<span font_family={quoteattr(self.name)} size={quoteattr(str(round(self.size * 1000)))} '
+                            f'foreground={quoteattr(color.to_hex())} style={style} '
+                            f'weight={weight}>{escape(text) if escape_text else text}</span>')
         return layout
 
 
@@ -153,13 +153,13 @@ class TextWidget(Widget):
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
-        layout.set_width(round(self.width * 1000))
+        layout.width = round(self.width * 1000)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
-            layout.set_alignment(Alignment.LEFT)
+            layout.alignment = Alignment.LEFT
         elif self.h_alignment == TextWidget.HAlignment.CENTER:
-            layout.set_alignment(Alignment.CENTER)
+            layout.alignment = Alignment.CENTER
         elif self.h_alignment == TextWidget.HAlignment.RIGHT:
-            layout.set_alignment(Alignment.RIGHT)
+            layout.alignment = Alignment.RIGHT
 
         y = -layout.get_extents()[0].y / 1000
         if self.v_alignment == TextWidget.VAlignment.BOTTOM:
