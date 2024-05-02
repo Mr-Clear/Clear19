@@ -115,7 +115,7 @@ class DiskStats(TextWidget):
         texts = list()
         for (name, path) in self.disks.items():
             usage = psutil.disk_usage(path)
-            texts.append(f'{name}: {usage.percent}%')
+            texts.append(f'{name}: {usage.percent:0.0f}%')
         self.text = ' '.join(texts)
 
 
