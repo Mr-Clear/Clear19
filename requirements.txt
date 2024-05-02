@@ -19,6 +19,7 @@ pangocffi
 pip
 psutil
 pycparser
+pyqt5
 pyusb
 requests
 ruamel.yaml.clib
