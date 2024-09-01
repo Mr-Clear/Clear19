@@ -1,3 +1,4 @@
+import logging
 from abc import ABCMeta, ABC
 from dataclasses import replace
 from datetime import timedelta
@@ -12,6 +13,8 @@ from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor
 from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
+
+log = logging.getLogger(__name__)
 
 """
 Widgets that display information of media players.
@@ -60,10 +63,16 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
 
     # noinspection PyUnusedLocal
     def shorten_title(self, track: Track, font: Font, space: Size) -> str:
-        # TODO: Cut text to fit in widget.
         player = self.media_player.current_player_name
         if player == 'spotify':
-            title = f"{track.artist} - {track.album} - {track.title}"
+            parts = [track.artist, track.album, track.title, ' - ']
+            parts_width = list(map(lambda t: font.text_extents(t).width, parts))
+            combinations = [[0, 3, 1, 3, 2], # artist - album - title
+                            [0, 3, 2],       # artist - title
+                            [2]]             # title
+            combinations_width = list(map(lambda c: sum(map(lambda i: parts_width[i], c)), combinations))
+            combination = next((i for i in range(len(combinations)) if combinations_width[i] <= space.width), len(combinations) - 1)
+            title = ''.join(map(lambda i: parts[i], combinations[combination]))
         else:
             title = f"{track.title}"
         return title
