@@ -253,5 +253,7 @@ class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):
             url = ''
 
         if url != self._image_url:
+            self.load_image(None)
             self._image_url = url
-            Global.download_manager.get(url, self.load_image)
+            if url:
+                Global.download_manager.get(url, self.load_image)

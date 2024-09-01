@@ -86,6 +86,11 @@ class ImageWidget(Widget):
             ctx.paint()
             ctx.restore()
         else:
+            ctx.set_source_rgba(*self.background)
+            ctx.rectangle(0, 0, self.size.width, self.size.height)
+            ctx.fill()
+
+            ctx.set_source_rgba(*self.foreground)
             ctx.move_to(0, 0)
             ctx.line_to(self.size.width, self.size.height)
             ctx.stroke()

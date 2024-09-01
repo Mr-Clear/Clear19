@@ -23,6 +23,7 @@ class PlayerScreen(Screen):
 
         self.album_art = MediaPlayerAlbumArt(self, Global.media_player, overlay_color=Color(0, 0, 0, 0.5))
         self.album_art.background = Color.BLACK
+        self.album_art.foreground = Color.BLACK
         self.album_art.rectangle = self.rectangle
 
         self.title = MediaPlayerNameWidget(self, Global.media_player)
