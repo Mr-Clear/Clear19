@@ -154,7 +154,7 @@ class TextWidget(Widget):
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
-        if self._word_wrap:
+        if self._word_wrap or self._h_alignment != TextWidget.HAlignment.LEFT:
             layout.width = round(self.width * 1000)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.alignment = Alignment.LEFT
