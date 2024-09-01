@@ -2,6 +2,7 @@ import logging
 from abc import ABCMeta, ABC
 from dataclasses import replace
 from datetime import timedelta
+from typing import Optional
 
 from cairo import Context
 
@@ -38,6 +39,19 @@ class MediaPlayerWidget(Widget, ABC):
         return self._media_player
 
 
+class MediaPlayerNameWidget(MediaPlayerWidget, TextWidget):
+    """
+    Text widget that shows the name of the current player.
+    """
+    def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
+        MediaPlayerWidget.__init__(self, parent, media_player)
+        TextWidget.__init__(self, parent, font=font)
+        self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_play_state, priority=90)
+
+    def _update_play_state(self, _: TaskParameters):
+        self.text = f'Player: {self.media_player.current_player_name}'
+
+
 class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
     """
     Shows the current track title and the progress.
@@ -60,6 +74,7 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
     def do_layout(self):
         self._unselected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
         self._selected.rectangle = Rectangle(ZERO_TOP_LEFT, self.size)
+        self._update_play_state(self.media_player.current_play_state)
 
     # noinspection PyUnusedLocal
     def shorten_title(self, track: Track, font: Font, space: Size) -> str:
@@ -194,15 +209,40 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
             self.text = '--:--'
 
 
+class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, TextWidget):
+    """
+    TextWidget that shows all known information of the current track.
+    """
+
+    def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
+        MediaPlayerWidget.__init__(self, parent, media_player)
+        TextWidget.__init__(self, parent, "--:--", font)
+        self.media_player.add_listener(self._update_play_state)
+        self._update_play_state(self.media_player.current_play_state)
+
+    def _update_play_state(self, play_state: PlayState):
+        if play_state.track:
+            track = play_state.track
+        else:
+            track = Track
+
+        self.text = '\n'.join([f'Artist: {track.artist}',
+                               f'Album: {track.album}',
+                               f'Track: {track.track_number}',
+                               f'Title: {track.title}',
+                               f'Duration: {track.duration}',
+                               f'Rating: {track.rating}'])
+
+
 class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):
     """
     ImageWidget that shows the album art of the current track.
     """
     _image_url: str = ''
 
-    def __init__(self, parent, media_player, alignment: Anchor = Anchor.CENTER_CENTER):
+    def __init__(self, parent, media_player, alignment: Anchor = Anchor.CENTER_CENTER, overlay_color: Optional[Color] = None):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        ImageWidget.__init__(self, parent, alignment)
+        ImageWidget.__init__(self, parent, alignment, overlay_color)
         self.media_player.add_listener(self._update_play_state)
         self._update_play_state(self.media_player.current_play_state)
 

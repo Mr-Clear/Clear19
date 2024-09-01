@@ -205,7 +205,6 @@ class MediaPlayer:
     def current_track(self, current_track: Track):
         if self._current_track != current_track:
             self._current_track = current_track
-            log.info(f"Current track: {current_track}")
             self._position = KnownPosition(0, datetime.now())
             self._notify_listeners()
 

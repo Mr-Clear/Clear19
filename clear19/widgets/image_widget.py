@@ -4,6 +4,7 @@ from typing import Optional
 from cairocffi import Context, ImageSurface, pixbuf
 
 from clear19.widgets import load_svg
+from clear19.widgets.color import Color
 from clear19.widgets.geometry import Anchor
 from clear19.widgets.widget import Widget, ContainerWidget
 
@@ -18,9 +19,10 @@ class ImageWidget(Widget):
     _image: Optional[ImageSurface] = None
     _alignment: Anchor
 
-    def __init__(self, parent: ContainerWidget, alignment: Anchor = Anchor.CENTER_CENTER):
+    def __init__(self, parent: ContainerWidget, alignment: Anchor = Anchor.CENTER_CENTER, overlay_color : Optional[Color] = None):
         super().__init__(parent)
         self._alignment = alignment
+        self._overlay_color = overlay_color
 
     def load_image(self, image_data: Optional[bytes]):
         if image_data:
@@ -47,6 +49,7 @@ class ImageWidget(Widget):
             s = min(sx, sy)
             sw = self._image.get_width() * s
             sh = self._image.get_height() * s
+            ctx.save()
             ctx.scale(s, s)
             x = 0
             y = 0
@@ -81,6 +84,7 @@ class ImageWidget(Widget):
             y /= s
             ctx.set_source_surface(self._image, x, y)
             ctx.paint()
+            ctx.restore()
         else:
             ctx.move_to(0, 0)
             ctx.line_to(self.size.width, self.size.height)
@@ -88,6 +92,11 @@ class ImageWidget(Widget):
             ctx.move_to(0, self.size.height)
             ctx.line_to(self.size.width, 0)
             ctx.stroke()
+
+        if self._overlay_color:
+            ctx.set_source_rgba(*self._overlay_color)
+            ctx.rectangle(0, 0, self.size.width, self.size.height)
+            ctx.fill()
 
     @property
     def alignment(self) -> Anchor:
@@ -100,3 +109,11 @@ class ImageWidget(Widget):
     def alignment(self, alignment: Anchor):
         self._alignment = alignment
         self.dirty = True
+        
+    @property
+    def overlay_color(self) -> Color:
+        return self._overlay_color
+    
+    @overlay_color.setter
+    def overlay_color(self, overlay_color: Color):
+        self._overlay_color = overlay_color
