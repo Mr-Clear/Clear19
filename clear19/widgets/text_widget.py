@@ -150,10 +150,12 @@ class TextWidget(Widget):
         self._h_alignment = h_alignment
         self._v_alignment = v_alignment
         self._escape = escape
+        self._word_wrap = False
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
-        layout.width = round(self.width * 1000)
+        if self._word_wrap:
+            layout.width = round(self.width * 1000)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.alignment = Alignment.LEFT
         elif self.h_alignment == TextWidget.HAlignment.CENTER:
@@ -231,6 +233,14 @@ class TextWidget(Widget):
         :return: The size of the current text with the current font.
         """
         return self.font.text_extents(self.text)
+
+    @property
+    def word_wrap(self) -> bool:
+        return self._word_wrap
+
+    @word_wrap.setter
+    def word_wrap(self, word_wrap: bool):
+        self._word_wrap = word_wrap
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(rectangle={self.rectangle}, background={self.background}, " \
