@@ -102,7 +102,7 @@ class WetterCom:
         data = WeatherData()
 
         try:
-            data.location = s.findAll('h2', {'class': 'gamma text--white mb- lap-mb--'})[0].text
+            data.location = s.findAll('h2', {'class': 'delta text--white mb--'})[0].text
         except IndexError:
             log.error("Failed to parse location.", exc_info=True)
 
