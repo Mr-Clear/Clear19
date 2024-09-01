@@ -1,4 +1,5 @@
 import dataclasses
+import logging
 from datetime import timedelta
 from typing import Optional
 
@@ -21,6 +22,8 @@ from clear19.widgets.system_stats_widgets import CpuLoadBarWidget, CpuLoadTextWi
 from clear19.widgets.text_widget import TimeWidget, TextWidget, Font
 from clear19.widgets.weather_widget import WeatherWidgets
 from clear19.widgets.widget import Screen, AppWidget
+
+log = logging.getLogger(__name__)
 
 
 class MainScreen(Screen):
@@ -128,29 +131,29 @@ class MainScreen(Screen):
             self.lh1.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(1, 1),
             Size(self.lh1.width, self.fritz_box_connected.preferred_size.height))
 
-        self.fritz_box_hosts = FritzBoxHostsWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_hosts = FritzBoxHostsWidget(self, self.fritz_box, Font(size=10))
         self.fritz_box_hosts.rectangle = Rectangle(
             self.fritz_box_connected.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
-            Size(self.fritz_box_connected.width, self.fritz_box_hosts.preferred_size.height))
+            Size(self.lh1.width, self.fritz_box_hosts.preferred_size.height))
 
         self.fritz_box_ip6 = FritzBoxIp6Widget(self, self.fritz_box, Font(size=12))
         self.fritz_box_ip6.rectangle = Rectangle(
             self.lv2_3.position(Anchor.BOTTOM_RIGHT).anchored(Anchor.BOTTOM_LEFT) + Point(1, -3),
-            Size(self.fritz_box_connected.width, self.fritz_box_ip6.preferred_size.height))
-        self.fritz_box_ip6.fit_font_size()
+            Size(self.lh1.width, self.fritz_box_ip6.preferred_size.height))
+        self.fritz_box_ip6.fit_font_size('000:000:000:000:000:000:000:000')
         self.fritz_box_ip6.set_height(self.fritz_box_ip6.preferred_size.height, VAnchor.BOTTOM)
 
         self.fritz_box_ip4 = FritzBoxIp4Widget(self, self.fritz_box, Font(size=12))
         self.fritz_box_ip4.rectangle = Rectangle(
             self.fritz_box_ip6.position(Anchor.TOP_LEFT).anchored(Anchor.BOTTOM_LEFT) + Point(0, -1),
-            Size(self.fritz_box_connected.width, self.fritz_box_ip4.preferred_size.height))
+            Size(self.lh1.width, self.fritz_box_ip4.preferred_size.height))
 
         self.fritz_box_traffic_graph = FritzBoxTrafficGraphWidget(self, self.fritz_box)
         self.fritz_box_traffic_graph.rectangle = Rectangle(
             self.fritz_box_hosts.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.fritz_box_ip4.position(Anchor.TOP_RIGHT) + Point(0, -1))
 
-        self.fritz_box_traffic = FritzBoxTrafficWidget(self, self.fritz_box, Font(size=12))
+        self.fritz_box_traffic = FritzBoxTrafficWidget(self, self.fritz_box, Font(size=11))
         self.fritz_box_traffic.rectangle = Rectangle(
             self.fritz_box_hosts.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT) + Point(0, 1),
             self.fritz_box_ip4.position(Anchor.TOP_RIGHT) + Point(0, -1))

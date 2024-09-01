@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, ABCMeta, abstractmethod
 from collections import deque
 from dataclasses import dataclass
@@ -13,6 +14,7 @@ from clear19.widgets.color import Color
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import Widget, ContainerWidget
 
+log = logging.getLogger(__name__)
 
 class FritzBoxWidget(Widget, ABC):
     """
@@ -91,7 +93,7 @@ class FritzBoxIp4Widget(FritzBoxWidget, TextWidget):
 
     def update(self, data: Optional[FritzBoxData]):
         with self._data_mutex:
-            if data:
+            if data and data.external_ip:
                 self.text = data.external_ip
                 self.foreground = self.parent.foreground
             else:
@@ -107,7 +109,7 @@ class FritzBoxIp6Widget(FritzBoxWidget, TextWidget):
 
     def update(self, data: Optional[FritzBoxData]):
         with self._data_mutex:
-            if data:
+            if data and data.external_ipv6:
                 self.text = data.external_ipv6
                 self.foreground = self.parent.foreground
             else:
