@@ -224,7 +224,7 @@ class ContainerWidget(Widget):
 
     def do_layout(self):
         """
-        Called then the size of this ContainerWidget changes to rearrange children.
+        Called when the size of this ContainerWidget changes to rearrange children.
         """
         pass
 

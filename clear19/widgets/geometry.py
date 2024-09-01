@@ -86,7 +86,7 @@ class Point:
 
 class AnchoredPoint(Point):
     """
-    Point with information on which position on an widgets border it is.
+    Point with information on which position on a widgets border it is.
     """
     _anchor: Anchor
 
@@ -204,7 +204,7 @@ class Size:
     def fits_into(self, other: Size) -> bool:
         """
         :param other:
-        :return: True, if this Size is smaller then the other size in all dimensions.
+        :return: True, if this Size is smaller than the other size in all dimensions.
         """
         return self.width <= other.width and self.height <= other.height
 
