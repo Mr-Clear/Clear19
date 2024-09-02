@@ -74,14 +74,17 @@ class Font:
                              cairo.FONT_WEIGHT_BOLD if self.bold else cairo.FONT_WEIGHT_NORMAL)
         ctx.set_font_size(self.size)
 
-    def text_extents(self, text: str, inked: bool = True, ctx: Optional[Context] = None) -> Size:
+    def text_extents(self, text: str, inked: bool = True, ctx: Optional[Context] = None, width: Optional[int] = None) -> Size:
         """
         :param text: Arbitrary text
-        :param inked: If true, only the extend of the inked area is returned.
+        :param inked: If true, only the extent of the inked area is returned.
         :param ctx: If None, a dummy context will be created.
+        :param width: If set, word wrap will be used
         :return: Extents of the given text.
         """
         layout = self.get_layout(text, ctx)
+        if width:
+            layout.width = int(width * 1000)
         extents = layout.get_extents()[0 if inked else 1]
         return Size(extents.width / 1000, extents.height / 1000)
 
@@ -116,7 +119,7 @@ class Font:
         weight = '"bold"' if self.bold else '"normal"'
         layout.apply_markup(f'<span font_family={quoteattr(self.name)} size={quoteattr(str(round(self.size * 1000)))} '
                             f'foreground={quoteattr(color.to_hex())} style={style} '
-                            f'weight={weight}>{escape(text) if escape_text else text}</span>')
+                            f'weight={weight} line_height="{self.size * 1000}">{escape(text) if escape_text else text}</span>')
         return layout
 
 
@@ -154,6 +157,7 @@ class TextWidget(Widget):
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
+        layout.line_spacing = 100
         if self._word_wrap or self._h_alignment != TextWidget.HAlignment.LEFT:
             layout.width = round(self.width * 1000)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
@@ -178,6 +182,7 @@ class TextWidget(Widget):
 
     @text.setter
     def text(self, text: str):
+        assert isinstance(text, str)
         if self._text != text:
             self._text = text
             self.dirty = True
@@ -232,7 +237,7 @@ class TextWidget(Widget):
         """
         :return: The size of the current text with the current font.
         """
-        return self.font.text_extents(self.text)
+        return self.font.text_extents(self.text, width=int(self.width))
 
     @property
     def word_wrap(self) -> bool:

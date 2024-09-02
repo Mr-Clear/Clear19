@@ -2,7 +2,7 @@ import logging
 from abc import ABCMeta, ABC
 from dataclasses import replace
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, List, Any
 
 from cairo import Context
 
@@ -10,7 +10,7 @@ from clear19.App import Global
 from clear19.data.media_player import MediaPlayer, Track, PlayState
 from clear19.scheduler import TaskParameters
 from clear19.widgets.color import Color
-from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor
+from clear19.widgets.geometry import Size, Rectangle, ZERO_TOP_LEFT, Anchor, AnchoredPoint, Point, VAnchor, HAnchor
 from clear19.widgets.image_widget import ImageWidget
 from clear19.widgets.text_widget import TextWidget, Font
 from clear19.widgets.widget import ContainerWidget, Widget
@@ -156,7 +156,7 @@ def format_position(position: float):
     if position:
         minutes, seconds = divmod(round(position), 60)
         return f"{minutes:02.0f}:{seconds:02.0f}"
-    return "--:--"
+    return '--:--'
 
 
 class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):
@@ -165,7 +165,7 @@ class MediaPlayerTrackPositionWidget(MediaPlayerWidget, TextWidget):
     """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        TextWidget.__init__(self, parent, "--:--", font)
+        TextWidget.__init__(self, parent, '--:--', font)
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_play_state, priority=90)
 
     def _update_play_state(self, _: TaskParameters):
@@ -181,7 +181,7 @@ class MediaPlayerTrackRemainingWidget(MediaPlayerWidget, TextWidget):
     """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        TextWidget.__init__(self, parent, "--:--", font)
+        TextWidget.__init__(self, parent, '--:--', font)
         self.app.scheduler.schedule_synchronous(timedelta(milliseconds=100), self._update_play_state, priority=90)
 
     def _update_play_state(self, _: TaskParameters):
@@ -198,7 +198,7 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
     """
     def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        TextWidget.__init__(self, parent, "--:--", font)
+        TextWidget.__init__(self, parent, '--:--', font)
         self.media_player.add_listener(self._update_play_state)
         self._update_play_state(self.media_player.current_play_state)
 
@@ -209,16 +209,36 @@ class MediaPlayerTrackDurationWidget(MediaPlayerWidget, TextWidget):
             self.text = '--:--'
 
 
-class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, TextWidget):
+class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, ContainerWidget):
     """
     TextWidget that shows all known information of the current track.
     """
 
-    def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font = Font()):
+    def __init__(self, parent: ContainerWidget, media_player: MediaPlayer, font: Font):
         MediaPlayerWidget.__init__(self, parent, media_player)
-        TextWidget.__init__(self, parent, "--:--", font)
+        self._font = font
+        self._elements: List[List[Any]] = [['artist', 'Artist'],
+                                           ['album', 'Album'],
+                                           ['track_number', 'Track'],
+                                           ['title', 'Title'],
+                                           ['duration', 'Duration'],
+                                           ['rating', 'Rating']]
+        self._max_name_width = 0
+
+        for e in self._elements:
+            name_widget = TextWidget(self, e[1] + ': ', font)
+            name_widget.escape = False
+            name_widget.set_size(name_widget.font.text_extents(name_widget.text, width=int(name_widget.width), inked=False), Anchor.TOP_LEFT)
+            if self._max_name_width < name_widget.width:
+                self._max_name_width = name_widget.width
+            value_widget = TextWidget(self, '', font)
+            value_widget.word_wrap = True
+            e.append(name_widget)
+            e.append(value_widget)
+
         self.media_player.add_listener(self._update_play_state)
         self._update_play_state(self.media_player.current_play_state)
+
 
     def _update_play_state(self, play_state: PlayState):
         if play_state.track:
@@ -226,12 +246,31 @@ class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, TextWidget):
         else:
             track = Track
 
-        self.text = '\n'.join([f'Artist: {track.artist}',
-                               f'Album: {track.album}',
-                               f'Track: {track.track_number}',
-                               f'Title: {track.title}',
-                               f'Duration: {track.duration}',
-                               f'Rating: {track.rating}'])
+        for e in self._elements:
+            value = getattr(track, e[0], None)
+            name_widget: TextWidget = e[2]
+            value_widget:TextWidget = e[3]
+            if value:
+                name_widget.visible = True
+                value_widget.visible = True
+                value_widget.text = str(value)
+            else:
+                name_widget.visible = False
+                value_widget.visible = False
+        self.do_layout()
+
+    def do_layout(self):
+        pos = AnchoredPoint(0, 0, Anchor.TOP_LEFT)
+        for e in self._elements:
+            name_widget: TextWidget = e[2]
+            value_widget:TextWidget = e[3]
+            if name_widget.visible:
+                name_widget.set_position(pos)
+                value_widget.set_width(self.width - self._max_name_width, HAnchor.LEFT)
+                value_widget.set_position(pos + Point(self._max_name_width, 0))
+                height = value_widget.font.text_extents(value_widget.text, width=int(value_widget.width), inked=False).height
+                value_widget.set_height(height, VAnchor.TOP)
+                pos += Point(0, height + 4)
 
 
 class MediaPlayerAlbumArt(MediaPlayerWidget, ImageWidget):

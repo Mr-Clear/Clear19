@@ -32,6 +32,7 @@ class Widget(ABC):
         self._background = parent.background
         self._foreground = parent.foreground
         self._parent = parent
+        self._visible = True
         if parent is not self:
             parent.children.append(self)
 
@@ -64,6 +65,7 @@ class Widget(ABC):
     @rectangle.setter
     def rectangle(self, rectangle: Rectangle):
         self._rectangle = rectangle
+        self.dirty = True
 
     def position(self, anchor: Anchor) -> AnchoredPoint:
         """
@@ -107,6 +109,9 @@ class Widget(ABC):
         Renders this widget.
         :param ctx: Cairo context.
         """
+        if not self._visible:
+            return
+
         if self.background:
             ctx.set_source_rgba(*self.background)
             self.paint_background(ctx)
@@ -201,6 +206,15 @@ class Widget(ABC):
     @property
     def height(self) -> float:
         return self._rectangle.height
+
+    @property
+    def visible(self) -> bool:
+        return self._visible
+
+    @visible.setter
+    def visible(self, visible: bool):
+        self._visible = visible
+        self.dirty = True
 
     def set_height(self, height: float, anchor: VAnchor):
         self.rectangle = Rectangle(self.position(anchor + HAnchor.LEFT), Size(self.width, height))
