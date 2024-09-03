@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
-from xml.sax.saxutils import escape, quoteattr
+from xml.sax.saxutils import escape
 
 import cairocffi as cairo
 import pangocairocffi as pangocairo
@@ -18,9 +19,8 @@ from clear19.widgets.color import Color
 from clear19.widgets.geometry import Size
 from clear19.widgets.widget import Widget, ContainerWidget
 
-"""
-Widget to show text.
-"""
+
+log = logging.getLogger(__name__)
 
 
 @dataclass()
@@ -32,10 +32,36 @@ class Font:
         height: float
         top: float
 
+    class Style(Enum):
+        NORMAL = 0
+        OBLIQUE = 1
+        ITALIC = 2
+
+    class Weight(Enum):
+        ULTRALIGHT = 0
+        LIGHT = 1
+        NORMAL = 2
+        BOLD = 3
+        ULTRABOLD = 4
+        HEAVY = 5
+
+    class Variant(Enum):
+        NORMAL = 0
+        SMALL_CAPS = 1
+        ALL_SMALL_CAPS = 2
+        PETITE_CAPS = 3
+        ALL_PETITE_CAPS = 4
+        UNICASE = 5
+        TITLE_CAPS = 6
+
     name: str = 'Noto Sans Display'
     size: float = 16
     bold: bool = False
-    italic: bool = False
+    style: Style = Style.NORMAL
+    weight: Weight = Weight.NORMAL
+    variant: Variant = Variant.TITLE_CAPS
+    line_spacing: Optional[float] = None
+    word_wrap: bool = False
 
     def fit_size(self, space: Size, text: str, ctx: Context = None) -> Font:
         s = Size(space.width, space.height)
@@ -46,8 +72,8 @@ class Font:
         mid: float = (low + high) / 2.0
 
         copy: Font = dataclasses.replace(font, size=mid)
-
-        fit = copy.text_extents(text, ctx).fits_into(space)
+        extents = copy.text_extents(text, ctx)
+        fit = extents.fits_into(space)
 
         if high - low < 0.0001:
             if fit:
@@ -63,16 +89,6 @@ class Font:
                 return mid
         else:
             return copy._narrow(font, space, text, low, mid, ctx)
-
-    def set(self, ctx: Context):
-        """
-        Set this font to get used on the given context.
-        :param ctx:
-        """
-        ctx.select_font_face(self.name,
-                             cairo.FONT_SLANT_ITALIC if self.italic else cairo.FONT_SLANT_NORMAL,
-                             cairo.FONT_WEIGHT_BOLD if self.bold else cairo.FONT_WEIGHT_NORMAL)
-        ctx.set_font_size(self.size)
 
     def text_extents(self, text: str, inked: bool = True, ctx: Optional[Context] = None, width: Optional[int] = None) -> Size:
         """
@@ -90,7 +106,7 @@ class Font:
 
     def font_extents(self, inked: bool = True, ctx: Optional[Context] = None) -> Font.Extents:
         """
-        :param inked: If true, only the extend of the inked area is returned.
+        :param inked: If true, only the extent of the inked area is returned.
         :param ctx: If None, a dummy context will be created.
         :return: Basic extents of this font which will are independent of the text.
         """
@@ -115,14 +131,27 @@ class Font:
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, 1, 1))
         layout = pangocairo.create_layout(ctx)
-        style = '"italic"' if self.italic else '"normal"'
-        weight = '"bold"' if self.bold else '"normal"'
-        layout.apply_markup(f'<span font_family={quoteattr(self.name)} size={quoteattr(str(round(self.size * 1000)))} '
-                            f'foreground={quoteattr(color.to_hex())} style={style} '
-                            f'weight={weight} line_height="{self.size * 1000}">{escape(text) if escape_text else text}</span>')
+        attributes = {'font_family': self.name,
+                      'size': str(round(self.size * 1000)),
+                      'foreground': color.to_hex()}
+        if self.style != Font.Style.NORMAL:
+            attributes['style'] = self.style.name.lower()
+        if self.weight != Font.Weight.NORMAL:
+            attributes['weight'] = self.weight.name.lower()
+        if self.variant != Font.Variant.NORMAL:
+            attributes['variant'] = self.variant.name.lower().replace('_', '-')
+        if self.line_spacing:
+            attributes['line_height'] = str(self.size * 1000)
+        if not self.word_wrap:
+            attributes['allow_breaks'] = 'false'
+        attributes_string = ' '.join(map(lambda a: f'{a[0]}="{escape(a[1])}"', attributes.items()))
+        layout.apply_markup(f'<span {attributes_string}>{escape(text) if escape_text else text}</span>')
         return layout
 
 
+"""
+Widget to show text.
+"""
 class TextWidget(Widget):
     """
     A widget that renders a text.
@@ -153,13 +182,11 @@ class TextWidget(Widget):
         self._h_alignment = h_alignment
         self._v_alignment = v_alignment
         self._escape = escape
-        self._word_wrap = False
 
     def paint_foreground(self, ctx: Context):
         layout = self.font.get_layout(self.text, ctx, self.foreground, self.escape)
         layout.line_spacing = 100
-        if self._word_wrap or self._h_alignment != TextWidget.HAlignment.LEFT:
-            layout.width = round(self.width * 1000)
+        layout.width = round(self.width * 1000)
         if self.h_alignment == TextWidget.HAlignment.LEFT:
             layout.alignment = Alignment.LEFT
         elif self.h_alignment == TextWidget.HAlignment.CENTER:
@@ -238,14 +265,6 @@ class TextWidget(Widget):
         :return: The size of the current text with the current font.
         """
         return self.font.text_extents(self.text, width=int(self.width))
-
-    @property
-    def word_wrap(self) -> bool:
-        return self._word_wrap
-
-    @word_wrap.setter
-    def word_wrap(self, word_wrap: bool):
-        self._word_wrap = word_wrap
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(rectangle={self.rectangle}, background={self.background}, " \

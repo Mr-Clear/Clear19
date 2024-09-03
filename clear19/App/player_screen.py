@@ -55,12 +55,10 @@ class PlayerScreen(Screen):
             Size(self.width / 3, self.track_remaining.font.font_extents().height))
         self.track_remaining.h_alignment = TextWidget.HAlignment.RIGHT
 
-        self.track_details = MediaPlayerTrackDetailsWidget(self, Global.media_player, Font(size=10))
+        self.track_details = MediaPlayerTrackDetailsWidget(self, Global.media_player, Font(size=10, line_spacing=1, word_wrap=True))
         self.track_details.rectangle = Rectangle(self.title.position(Anchor.BOTTOM_LEFT).anchored(Anchor.TOP_LEFT)
                                                  + Point(0, 10),
                                                  self.track_remaining.position(Anchor.TOP_RIGHT))
-        self.track_details.word_wrap = True
-
 
 
     def on_key_down(self, key: G19Key):

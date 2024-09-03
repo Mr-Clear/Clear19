@@ -96,10 +96,10 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
         if play_state.track:
             self._progress = self.media_player.current_position / play_state.track.duration if play_state.track.duration and play_state.track.duration > 0 else 0
             title = self.shorten_title(play_state.track, self._font, self.size)
-            font = replace(self._unselected.font, italic=False)
+            font = replace(self._unselected.font, style=Font.Style.NORMAL)
         else:
             self._progress = 0
-            font = replace(self._unselected.font, italic=True)
+            font = replace(self._unselected.font, style=Font.Style.ITALIC)
             title = "Not connected"
         self._unselected.font = font
         self._unselected.text = title
@@ -232,7 +232,6 @@ class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, ContainerWidget):
             if self._max_name_width < name_widget.width:
                 self._max_name_width = name_widget.width
             value_widget = TextWidget(self, '', font)
-            value_widget.word_wrap = True
             e.append(name_widget)
             e.append(value_widget)
 
@@ -249,7 +248,7 @@ class MediaPlayerTrackDetailsWidget(MediaPlayerWidget, ContainerWidget):
         for e in self._elements:
             value = getattr(track, e[0], None)
             name_widget: TextWidget = e[2]
-            value_widget:TextWidget = e[3]
+            value_widget: TextWidget = e[3]
             if value:
                 name_widget.visible = True
                 value_widget.visible = True
