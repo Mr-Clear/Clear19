@@ -75,7 +75,7 @@ class Font:
         extents = copy.text_extents(text, ctx)
         fit = extents.fits_into(space)
 
-        if high - low < 0.0001:
+        if high - low < 1:
             if fit:
                 return mid
             else:
