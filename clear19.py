@@ -9,8 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-import haggis.logs
-
 from clear19.App.app import App
 from clear19.data import Config
 
@@ -35,14 +33,30 @@ consoleHandler = logging.StreamHandler(sys.stdout)
 consoleHandler.setFormatter(logFormatter)
 rootLogger.addHandler(consoleHandler)
 
+def addLogLevel(levelName, levelNum, methodName=None):
+    if not methodName:
+        methodName = levelName.lower()
+
+    def logForLevel(self, message, *args, **kwargs):
+        if self.isEnabledFor(levelNum):
+            self._log(levelNum, message, args, **kwargs)
+    def logToRoot(message, *args, **kwargs):
+        logging.log(levelNum, message, *args, **kwargs)
+
+    logging.addLevelName(levelNum, levelName)
+    setattr(logging, levelName, levelNum)
+    setattr(logging.getLoggerClass(), methodName, logForLevel)
+    setattr(logging, methodName, logToRoot)
+
+
 if __name__ == "__main__":
     log.info("START")
 
-    haggis.logs.add_logging_level('TRACE', 2)
-    haggis.logs.add_logging_level('VERBOSE', 5)
-    haggis.logs.add_logging_level('FATAL', 60, if_exists=haggis.logs.OVERWRITE)
-    haggis.logs.add_logging_level('WTF', 70)
-    haggis.logs.add_logging_level('PRINT', 80)
+    addLogLevel('TRACE', 2)
+    addLogLevel('VERBOSE', 5)
+    addLogLevel('FATAL', 60)
+    addLogLevel('WTF', 70)
+    addLogLevel('PRINT', 80)
 
     if not os.path.exists('clear19.ini'):
         log.warning("No settings file found. Restore from default settings file.")
