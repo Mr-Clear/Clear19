@@ -87,7 +87,7 @@ class MediaPlayerTrackTitleWidget(MediaPlayerWidget, ContainerWidget):
                             [2]]             # title
             combinations_width = list(map(lambda c: sum(map(lambda i: parts_width[i], c)), combinations))
             combination = next((i for i in range(len(combinations)) if combinations_width[i] <= space.width), len(combinations) - 1)
-            title = ''.join(map(lambda i: parts[i], combinations[combination]))
+            title = ''.join(map(lambda i: str(parts[i]), combinations[combination]))
         else:
             title = f"{track.title}"
         return title

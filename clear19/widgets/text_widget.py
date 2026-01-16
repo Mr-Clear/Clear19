@@ -128,6 +128,9 @@ class Font:
         :param escape_text: If True, control characters will be macerated.
         :return: A pango layout object that can be rendered on the screen.
         """
+        if not text:
+            log.error("No text given for layout")
+            text = ""
         if ctx is None:
             ctx = Context(ImageSurface(cairo.FORMAT_RGB16_565, 1, 1))
         layout = pangocairo.create_layout(ctx)
