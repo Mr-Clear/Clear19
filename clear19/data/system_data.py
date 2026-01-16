@@ -13,7 +13,7 @@ class SystemData:
     Reads system performance data.
     """
     CpuTimes: Type = psutil._pslinux.scputimes
-    MemStats: Type = psutil._pslinux.svmem
+    MemStats: Type = psutil._ntuples.svmem
 
     _cpu_times_percent: CpuTimes = None
     _process_cpu_percent: List[Tuple[str, float]]
